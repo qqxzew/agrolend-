@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgroLand - check land, leases and energy sites</title>
+<meta name="description" content="AgroLand helps landowners, tenant farms and energy developers check land, leases and sites in Germany and India. Pay per result on Cardano preprod via Masumi.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232f7d3b'/%3E%3Cpath d='M8 22l5-10 4 7 3-5 4 8z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./"><span class="logo">A</span> AgroLand</a>
+  <nav aria-label="Main">
+    <a class="link" href="#workflows">Workflows</a><a class="link" href="#examples">Example results</a><a class="link" href="#how">How it works</a><a class="link" href="#coverage">Germany &amp; India</a>
+    <a class="btn primary sm" href="app/">Open the app</a>
+  </nav>
+</div></header>
+
+<main>
+<section class="wrap hero">
+  <div>
+    <p><span class="chip info">Hackathon build · Cardano preprod · test funds only</span></p>
+    <h1>Know what your land, your leases and your site are really worth - before you sign.</h1>
+    <p class="lead">AgroLand gives landowners, tenant farms and energy developers a checked answer in minutes: a parcel audit, a lease check, or a safe introduction to a neighbouring project. You pay per result on Cardano, and every report carries its sources, its limits and a hash.</p>
+    <div class="cta"><a class="btn primary" href="app/#/start">Start in the app</a><a class="btn" href="#examples">See example results</a></div>
+    <div class="proof"><span class="chip">Germany</span><span class="chip">India</span><span class="chip">Pay per result</span><span class="chip">Sources and limits shown</span></div>
+  </div>
+  <div class="mapart" aria-hidden="true">
+    <svg viewBox="0 0 520 380" role="img"><defs><pattern id="g" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="currentColor" stroke-opacity=".08"/></pattern></defs>
+      <rect width="520" height="380" rx="18" fill="url(#g)" style="color:var(--text)"/>
+      <path d="M-10 250 C140 200 300 280 540 170" fill="none" stroke="var(--muted)" stroke-width="14" stroke-opacity=".35"/>
+      <path d="M-10 250 C140 200 300 280 540 170" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="10 10" stroke-opacity=".6"/>
+      <polygon points="70,60 190,40 220,120 110,150" fill="var(--good)" fill-opacity=".35" stroke="var(--good)" stroke-width="3"/>
+      <polygon points="230,70 340,50 370,130 250,150" fill="var(--warn)" fill-opacity=".35" stroke="var(--warn)" stroke-width="3"/>
+      <polygon points="120,290 240,300 250,360 100,350" fill="var(--bad)" fill-opacity=".3" stroke="var(--bad)" stroke-width="3"/>
+      <polygon points="330,260 450,250 470,330 350,340" fill="var(--info)" fill-opacity=".3" stroke="var(--info)" stroke-width="3"/>
+      <circle cx="285" cy="100" r="7" fill="var(--text)"/><text x="296" y="94" font-size="13" fill="var(--text)" font-weight="700">neighbour</text>
+      <text x="82" y="102" font-size="13" fill="var(--text)" font-weight="700">your parcel</text>
+    </svg>
+  </div>
+</section>
+
+<section class="block" id="workflows"><div class="wrap">
+  <h2>Three ways in. Each one works on its own.</h2>
+  <p class="sub">You never have to complete someone else's workflow. Shared parcels and results connect them when you choose to: a listing, a lease and a developer's site mean different things and stay separate.</p>
+  <div class="grid3">
+    <article class="card wf"><div class="ico"><svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13M9 21v-7h6v7"/></svg></div>
+      <h3>Landowner</h3><p class="muted">Is this parcel suitable for wind or solar, and what should I say to interested parties?</p>
+      <ul><li>Audit a parcel: verdict, data quality and limits shown separately</li><li>Attach your own documents (never publicly visible)</li><li>Publish only when you decide; share the exact boundary only with who you accept</li></ul>
+      <div class="price"><span class="small muted">Land Audit · <b data-price="land_audit">…</b></span><a class="btn primary sm" href="app/#/start?role=owner">Start as owner</a></div></article>
+    <article class="card wf"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 20c0-6 3-11 8-14 5 3 8 8 8 14M12 20V9M8 14l4-3 4 3"/></svg></div>
+      <h3>Tenant farm</h3><p class="muted">Am I paying for land I do not farm, or area the record does not show?</p>
+      <ul><li>Compares your leases, the official parcel record and your fields</li><li>Separates what is identified, what is only negotiable, and what you actually saved</li><li>Deadlines and a calendar file with rent and expiry reminders</li></ul>
+      <div class="price"><span class="small muted">Lease Check · <b data-price="lease_check">…</b></span><a class="btn primary sm" href="app/#/start?role=farm">Start as farm</a></div></article>
+    <article class="card wf"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M7 7l10 10M17 7L7 17"/></svg></div>
+      <h3>Energy developer</h3><p class="muted">Is the site viable, and is there a neighbouring project worth pooling with?</p>
+      <ul><li>Audit sites for solar, wind or both</li><li>Anonymous teasers first; names and boundaries only after both sides consent and sign the NDA</li><li>One payment covers disclosure and a preliminary joint calculation with draft documents</li></ul>
+      <div class="price"><span class="small muted">Pool Access · <b data-price="pool_access">…</b></span><a class="btn primary sm" href="app/#/start?role=developer">Start as developer</a></div></article>
+  </div>
+</div></section>
+
+<section class="block" id="examples" style="background:var(--surface-2)"><div class="wrap">
+  <h2>Example results</h2>
+  <p class="sub">Produced by the real services on the labelled demonstration data. Demonstration parcels, owners and contracts are fictional; the calculations and checks are not simulated.</p>
+  <div class="examples">
+    <article class="card ex"><span class="chip good">Land Audit · Germany</span><div class="big">GO · 95/100</div>
+      <table><tr><td>Preliminary geometric signal</td><td>green (inside 500 m motorway corridor)</td></tr><tr><td>Audit conclusion</td><td>no blocking issue found</td></tr><tr><td>Data quality</td><td>all sources answered</td></tr><tr><td>Legal suitability</td><td>unconfirmed</td></tr></table>
+      <p class="small muted" style="margin-top:.8rem">Three separate ideas on purpose: a green map signal is not a guarantee.</p></article>
+    <article class="card ex"><span class="chip info">Lease Check · DE and IN</span><div class="big">€1,440 identified</div>
+      <table><tr><td>Negotiable (opportunity)</td><td>up to €720 / year</td></tr><tr><td>Savings achieved</td><td>€0 until you record it</td></tr><tr><td>Expiring leases</td><td>2 within 180 days</td></tr><tr><td>Same check in India (₹, acres)</td><td>₹4,60,800 identified</td></tr></table>
+      <p class="small muted" style="margin-top:.8rem">Every finding is recomputed from your source rows before delivery.</p></article>
+    <article class="card ex"><span class="chip warn">Pool Access · DE and IN</span><div class="big">Viable? It may say no.</div>
+      <table><tr><td>Introduction</td><td>both sides must consent</td></tr><tr><td>Disclosure</td><td>after both sign the NDA</td></tr><tr><td>Joint calculation</td><td>layout, NPV, split in basis points</td></tr><tr><td>Documents</td><td>draft agreement + grid application</td></tr></table>
+      <p class="small muted" style="margin-top:.8rem">In our live Magdeburg run the joint project was <b>not viable</b> and the model said so, falling back to an area split. Screening model; not bankable, not legal advice.</p></article>
+  </div>
+</div></section>
+
+<section class="block" id="how"><div class="wrap">
+  <h2>How it works and how you pay</h2>
+  <p class="sub">The same engine answers on this website and inside Sokosumi. You see the price before anything happens.</p>
+  <ol class="steps" style="padding:0;margin:0">
+    <li><b>Choose</b>pick the service for your role and country</li>
+    <li><b>See the price</b>fixed before you pay, in test USDM on Cardano preprod</li>
+    <li><b>Funds are locked</b>in a Masumi smart contract, not sent to us</li>
+    <li><b>Result is delivered</b>the hash of the report is written on-chain</li>
+    <li><b>Seller is paid</b>after the dispute window; refund rules apply if we fail</li>
+  </ol>
+  <p class="small muted" style="margin-top:1rem">We show four separate facts: report ready, funds locked, result hash confirmed on-chain, seller paid out. A hash proves a report is unchanged; it does not prove the data is true. A correct negative report is a completed service.</p>
+</div></section>
+
+<section class="block" id="coverage" style="background:var(--surface-2)"><div class="wrap">
+  <h2>Germany and India - and what we do not claim</h2>
+  <div class="coverage">
+    <div class="card"><h3>Germany</h3><p class="muted">Open ALKIS fragment (Magdeburg, Sachsen-Anhalt) with motorway corridor screening, live checks on BKG, OpenStreetMap, BfN, PVGIS and Open-Meteo, German NDA and pooling documents in German. Prices in EUR where money amounts appear in leases.</p></div>
+    <div class="card"><h3>India</h3><p class="muted">Audits for Gujarat and Andhra Pradesh with state knowledge (other states get a site-wide condition), lease checks in INR per acre, English NDA, Land Pooling Agreement and grid-connectivity drafts. Protected-area and habitation screens rely on OpenStreetMap completeness, which we have not measured.</p></div>
+  </div>
+  <p class="note" style="margin-top:1.2rem"><b>Not promised:</b> ownership verification, planning permission, or grid-connection availability. Unavailable sources show up as limitations, never as a pass. Demonstration parcels are labelled as such.</p>
+</div></section>
+</main>
+
+<footer class="site"><div class="wrap">
+  <div><b>AgroLand</b><br>Built for the TUM Blockchain &amp; AI Hackathon, Cardano track.<br>Cardano preprod · test funds only</div>
+  <div><a href="app/">Open the app</a><br><a href="#workflows">Workflows</a><br><a href="#how">Payment</a></div>
+  <div class="small">Reports are screening results, not legal, tax or planning advice.</div>
+</div></footer>
+<script type="module" src="js/landing.js"></script>
+</body></html>

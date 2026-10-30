@@ -1,0 +1,20 @@
+# secrets and local state - never commit
+.env
+.env.*
+!.env.example
+*.env.local
+state/
+.local/
+docs/payment-state.json
+docs/registration-state.json
+# environments and build output
+.venv*/
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+# raw inputs supplied for the task (contain a wallet seed in geo-pooler's .env)
+*.tar
+*.tar.gz
+_src_agro/
+_src_case/

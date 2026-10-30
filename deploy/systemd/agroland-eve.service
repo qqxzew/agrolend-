@@ -1,0 +1,14 @@
+[Unit]
+Description=AgroLand Eve agent (language-model Concierge)
+After=network-online.target
+
+[Service]
+User=agroland
+WorkingDirectory=/opt/agroland/agent
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

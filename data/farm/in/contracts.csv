@@ -1,0 +1,13 @@
+contract_id,owner,parcel_id,area_contract,rent_per_unit,start_date,end_date,payment_due
+PF-01,Ramanbhai Desai,Kadi-142/1,6.5,52000,2021-06-01,2031-05-31,06-10
+PF-02,Jayaben Thakkar,Kadi-145/2,4.0,50000,2022-06-01,2032-05-31,06-15
+PF-03,Mahendra Chaudhary,Kadi-151,8.0,50000,2020-06-01,2030-05-31,06-20
+PF-04,Shantaben Rathod,Becharaji-77/3,5.5,48000,2023-06-01,2033-05-31,07-05
+PF-05,Bhikhabhai Prajapati,Becharaji-81,7.0,72000,2024-06-01,2034-05-31,07-10
+PF-06,Hasmukh Solanki,Becharaji-90/1,3.5,50000,2019-03-01,2027-02-28,03-05
+PF-07,Kokilaben Parmar,Unjha-212,9.0,49000,2021-06-01,2031-05-31,08-01
+PF-08,Dahyabhai Vaghela,Unjha-219/4,6.0,51000,2022-06-01,2032-05-31,08-12
+PF-09,Lilaben Modi,Unjha-224,4.5,50000,2018-05-01,2027-04-15,05-02
+PF-10,Natvarlal Brahmbhatt,Visnagar-31/2,10.0,47000,2020-06-01,2030-05-31,09-01
+PF-11,Savitaben Joshi,Visnagar-35,5.0,50000,2023-06-01,2033-05-31,09-15
+PF-12,Prakashbhai Zala,Visnagar-40/1,7.5,50000,2022-06-01,2032-05-31,10-05

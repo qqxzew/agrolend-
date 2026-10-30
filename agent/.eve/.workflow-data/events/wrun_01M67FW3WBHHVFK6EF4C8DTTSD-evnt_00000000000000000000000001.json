@@ -1,0 +1,31 @@
+{
+  "eventType": "run_created",
+  "specVersion": 8,
+  "eventData": {
+    "deploymentId": "mvvk9yru-e0b70f5f-9690-4c6c-96af-81d2a3743061",
+    "workflowName": "workflow//eve//sessionTimeoutWorkflow",
+    "input": {
+      "__type": "Uint8Array",
+      "data": "ZGV2bFtbMV0seyJkZWFkbGluZSI6Miwib3duZXJSdW5JZCI6NCwidG9rZW4iOjV9LFsiRGF0ZSIsM10sIjIwMjYtMTEtMjlUMjI6NDY6MTcuMTM1WiIsIndydW5fMDFNNjdGVzNSWDRRWlk1WEJHTVZINjJWQjEiLCJldmU6c2Vzc2lvbjp3cnVuXzAxTTY3RlczUlg0UVpZNVhCR01WSDYyVkIxOmluYm94Il0="
+    },
+    "executionContext": {
+      "traceCarrier": {
+        "traceparent": "00-d734492aa4f148990871f5112ad5a313-d8698915a0dd18e4-01",
+        "baggage": "workflow.run_id=wrun_01M67FW3RX4QZY5XBGMVH62VB1,workflow.name=workflow%2F%2Feve%2F%2FworkflowEntry"
+      },
+      "workflowCoreVersion": "5.0.1",
+      "features": {
+        "encryption": false
+      },
+      "hookResumeInputVersion": 1
+    },
+    "attributes": {
+      "$rootRunId": "wrun_01M67FW3RX4QZY5XBGMVH62VB1",
+      "$parentRunId": "wrun_01M67FW3RX4QZY5XBGMVH62VB1"
+    },
+    "allowReservedAttributes": true
+  },
+  "runId": "wrun_01M67FW3WBHHVFK6EF4C8DTTSD",
+  "eventId": "evnt_00000000000000000000000001",
+  "createdAt": "2026-10-30T22:46:17.231Z"
+}

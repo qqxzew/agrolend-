@@ -1,0 +1,29 @@
+{
+  "captured_at": "2026-10-30T16:50:30.710+01:00",
+  "region": "Magdeburg · Sachsen-Anhalt",
+  "parcel_count": 191,
+  "wfs_features_received": 2670,
+  "crs_measurements": "EPSG:25832",
+  "road_reference": "OSM carriageway centerlines; actual carriageway edge unavailable",
+  "screening_bbox": [
+    11.54,
+    52.08,
+    11.57,
+    52.1
+  ],
+  "sources": [
+    {
+      "name": "ALKIS · LVermGeo Sachsen-Anhalt",
+      "url": "https://www.lvermgeo.sachsen-anhalt.de/de/gdp-open-data.html",
+      "license": "Datenlizenz Deutschland – Namensnennung – Version 2.0",
+      "attribution": "© GeoBasis-DE / LVermGeo LSA",
+      "raw_sha256": "e7fa1ef5a6410b9a94c2208a9a2be8f50492d62e240dddfb5578ca1fc2c75875"
+    },
+    {
+      "name": "OpenStreetMap contributors",
+      "url": "https://www.openstreetmap.org/copyright",
+      "license": "ODbL 1.0",
+      "raw_sha256": "e078b2baa3c648660b7f8f36d7c71ee03068f25d1d47eca5c7c91664e507d202"
+    }
+  ]
+}

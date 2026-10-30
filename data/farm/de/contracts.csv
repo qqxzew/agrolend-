@@ -1,0 +1,23 @@
+contract_id,owner,parcel_id,area_contract,rent_per_unit,start_date,end_date,payment_due
+HF-01,Gertrud Böhme,Altenbrueck-1-14,7.8,410,2019-10-01,2031-09-30,01-15
+HF-02,Heinz Kowalski,Altenbrueck-1-27,5.0,400,2020-10-01,2032-09-30,02-01
+HF-03,Erbengemeinschaft Lehmann,Altenbrueck-2-3,6.0,520,2023-10-01,2035-09-30,02-15
+HF-04,Ilse Brandt,Altenbrueck-2-41,3.2,400,2018-10-01,2030-09-30,03-01
+HF-05,Werner Pfeiffer,Kleinrode-1-8,9.5,395,2017-10-01,2029-09-30,03-15
+HF-06,Marta Seidel,Kleinrode-1-19,4.1,405,2021-10-01,2033-09-30,04-01
+HF-07,Klaus Hoffmeister,Kleinrode-2-5,8.7,390,2016-10-01,2028-09-30,04-15
+HF-08,Renate Vogt,Kleinrode-3-77,6.3,415,2022-10-01,2034-09-30,05-01
+HF-09,Dieter Kranz,Kleinrode-3-80,12.4,385,2019-10-01,2031-09-30,05-15
+HF-10,Ursula Lindner,Wendelsdorf-1-2,5.6,400,2020-10-01,2032-09-30,06-01
+HF-11,Friedrich Ahrens,Wendelsdorf-1-33,7.2,410,2015-04-01,2027-03-31,11-15
+HF-12,Helga Tamm,Wendelsdorf-2-9,4.8,380,2018-10-01,2030-09-30,06-15
+HF-13,Bernd Rössler,Wendelsdorf-2-16,10.1,395,2017-10-01,2029-09-30,07-01
+HF-14,Monika Gerlach,Wendelsdorf-4-58,6.9,420,2021-10-01,2033-09-30,07-15
+HF-15,Jürgen Falk,Wendelsdorf-4-61,3.7,405,2022-10-01,2034-09-30,08-01
+HF-16,Elke Wiegand,Rosenfelde-1-4,8.2,400,2015-04-16,2027-04-15,12-01
+HF-17,Rainer Stolle,Rosenfelde-1-12,5.4,390,2019-10-01,2031-09-30,08-15
+HF-18,Sabine Kühn,Rosenfelde-2-30,9.0,410,2020-10-01,2032-09-30,09-01
+HF-19,Horst Bartels,Rosenfelde-2-31,4.4,400,2016-10-01,2028-09-30,09-15
+HF-20,Ingrid Mahler,Rosenfelde-3-7,7.5,385,2023-10-01,2035-09-30,10-01
+HF-21,Uwe Schaper,Rosenfelde-3-22,6.6,415,2018-10-01,2030-09-30,11-01
+HF-22,Petra Ullrich,Rosenfelde-3-25,7.6,400,2021-10-01,2033-09-30,12-15

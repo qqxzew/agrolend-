@@ -1,0 +1,23 @@
+{
+  "name": "agroland-agent",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env start.mjs",
+    "worker": "node --env-file-if-exists=.env worker.mjs",
+    "test": "node --env-file-if-exists=.env --test *.test.mjs",
+    "mps:key": "node --env-file-if-exists=.env --env-file-if-exists=.local/mps.env payment-registration.mjs key",
+    "register": "node --env-file-if-exists=.env --env-file-if-exists=.local/mps.env register-agents.mjs register",
+    "register:status": "node --env-file-if-exists=.env --env-file-if-exists=.local/mps.env register-agents.mjs status",
+    "e2e:fake": "node --env-file-if-exists=.env e2e/planner-e2e.mjs"
+  },
+  "dependencies": {
+    "eve": "0.71.0",
+    "ai": "7.0.127",
+    "zod": "4.6.5",
+    "@ai-sdk/openai-compatible": "3.0.62"
+  }
+}

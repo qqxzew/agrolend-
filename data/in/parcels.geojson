@@ -1,0 +1,210 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.55,
+       23.35
+      ],
+      [
+       70.55391377993804,
+       23.35
+      ],
+      [
+       70.55391377993804,
+       23.352705139765558
+      ],
+      [
+       70.55,
+       23.352705139765558
+      ],
+      [
+       70.55,
+       23.35
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-1",
+    "label": "Kutch wind plot A",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 118/1",
+    "area_ha": 12.0,
+    "demo": true,
+    "note": "Illustrative rectangle at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.564,
+       23.351
+      ],
+      [
+       70.56752242848499,
+       23.351
+      ],
+      [
+       70.56752242848499,
+       23.353524797114517
+      ],
+      [
+       70.564,
+       23.353524797114517
+      ],
+      [
+       70.564,
+       23.351
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-2",
+    "label": "Kutch solar plot B",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 131",
+    "area_ha": 10.08,
+    "demo": true,
+    "note": "Illustrative rectangle at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.552,
+       23.341
+      ],
+      [
+       70.55493513595307,
+       23.341
+      ],
+      [
+       70.55493513595307,
+       23.343705139765557
+      ],
+      [
+       70.552,
+       23.343705139765557
+      ],
+      [
+       70.552,
+       23.341
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-3",
+    "label": "Kutch plot C",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 140/2",
+    "area_ha": 9.0,
+    "demo": true,
+    "note": "Illustrative rectangle at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.82,
+       14.97
+      ],
+      [
+       77.82390545328927,
+       14.97
+      ],
+      [
+       77.82390545328927,
+       14.972885482416592
+      ],
+      [
+       77.82,
+       14.972885482416592
+      ],
+      [
+       77.82,
+       14.97
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-4",
+    "label": "Anantapur wind plot D",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 56/3",
+    "area_ha": 13.44,
+    "demo": true,
+    "note": "Illustrative rectangle at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.833,
+       14.9715
+      ],
+      [
+       77.8365335300936,
+       14.9715
+      ],
+      [
+       77.8365335300936,
+       14.974205139765555
+      ],
+      [
+       77.833,
+       14.974205139765555
+      ],
+      [
+       77.833,
+       14.9715
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-5",
+    "label": "Anantapur solar plot E",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 61",
+    "area_ha": 11.4,
+    "demo": true,
+    "note": "Illustrative rectangle at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  }
+ ]
+}

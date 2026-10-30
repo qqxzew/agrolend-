@@ -1,0 +1,16 @@
+{
+  "eventType": "hook_created",
+  "specVersion": 8,
+  "correlationId": "hook_01M67FW334QVAEJQEQPGZRJ897",
+  "eventData": {
+    "token": "eve:inbox:v1:eve:session:wrun_01M67FW3347YTXE7TV96B8BPY2:inbox",
+    "metadata": {
+      "__type": "Uint8Array",
+      "data": "ZGV2bFt7InNlc3Npb25JZCI6MX0sIndydW5fMDFNNjdGVzMzNDdZVFhFN1RWOTZCOEJQWTIiXQ=="
+    },
+    "isWebhook": false
+  },
+  "runId": "wrun_01M67FW3347YTXE7TV96B8BPY2",
+  "eventId": "evnt_00000000000000000000000004",
+  "createdAt": "2026-10-30T22:46:16.459Z"
+}

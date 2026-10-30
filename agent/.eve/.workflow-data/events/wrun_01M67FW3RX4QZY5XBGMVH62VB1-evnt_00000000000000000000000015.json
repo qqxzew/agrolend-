@@ -1,0 +1,21 @@
+{
+  "eventType": "attr_set",
+  "specVersion": 8,
+  "eventData": {
+    "changes": [
+      {
+        "key": "$eve.title",
+        "value": "MODE: PLAN Task brief (untrusted customer text): Can you check my site?"
+      }
+    ],
+    "writer": {
+      "type": "step",
+      "stepId": "step_01M67FW3RXAB2QZHWWMHBRVJXG",
+      "attempt": 1
+    },
+    "allowReservedAttributes": true
+  },
+  "runId": "wrun_01M67FW3RX4QZY5XBGMVH62VB1",
+  "eventId": "evnt_00000000000000000000000015",
+  "createdAt": "2026-10-30T22:46:17.546Z"
+}

@@ -1,0 +1,75 @@
+{
+  "_comment": "Single source of truth for services and prices. Read by the gateway (quotes, orders, MIP-003 pricing), the Node agent layer (Sokosumi paid tasks) and the registration script. Amounts are integer base units of the payment token (6 decimals).",
+  "payment": {
+    "network": "Preprod",
+    "paymentSourceType": "Web3CardanoV2",
+    "token": {
+      "symbol": "tUSDM",
+      "decimals": 6,
+      "unit": "16a55b2a349361ff88c03788f93e1e966e5d689605d044fef722ddde0014df10745553444d"
+    },
+    "windows_minutes": {
+      "pay_by": 15,
+      "submit_result": 30,
+      "unlock": 60,
+      "external_dispute": 90
+    }
+  },
+  "services": {
+    "land_audit": {
+      "agent": 1,
+      "title": "Land Audit",
+      "summary": "Wind / solar due-diligence verdict for one parcel or site, with sources, data quality and limits.",
+      "roles": [
+        "owner",
+        "developer"
+      ],
+      "countries": [
+        "DE",
+        "IN"
+      ],
+      "price": {
+        "amount": "1000000"
+      },
+      "deliverable": "Audit report (verdict, score, grid/regulatory/environment checks, data-quality table) as canonical JSON plus a Markdown rendering. A correct NO_GO report is a completed service."
+    },
+    "lease_check": {
+      "agent": 2,
+      "title": "Lease Check",
+      "summary": "Compares lease contracts, official parcel records and farmed fields; finds paid-but-unfarmed land, area mismatches, above-benchmark rents and expiring leases; produces a report and calendar reminders.",
+      "roles": [
+        "farm"
+      ],
+      "countries": [
+        "DE",
+        "IN"
+      ],
+      "price": {
+        "amount": "2000000"
+      },
+      "deliverable": "Lease report where every finding is recomputed from the source rows before delivery (status pass/fail), plus an .ics reminder file."
+    },
+    "pool_access": {
+      "agent": 3,
+      "title": "Pool Access",
+      "summary": "Both-sides-consented introduction between two energy developers: NDA signing by both parties, disclosure of the counterpart's parcel and contacts, and a preliminary joint-project calculation with draft agreement and grid-application documents.",
+      "roles": [
+        "developer"
+      ],
+      "countries": [
+        "DE",
+        "IN"
+      ],
+      "price": {
+        "amount": "3000000"
+      },
+      "deliverable": "Revealed counterpart package + joint-project plan (shares in basis points, layout, NPV) + draft pooling agreement and grid-connection application PDFs, delivered only after both NDAs are signed. One payment covers disclosure and calculation.",
+      "windows_minutes": {
+        "pay_by": 2880,
+        "submit_result": 10080,
+        "unlock": 11520,
+        "external_dispute": 14400
+      }
+    }
+  }
+}

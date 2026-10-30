@@ -1,0 +1,19 @@
+# Sokosumi Coworker worker + Eve agent. Runs on the HOST (not in Docker): the Sokosumi CLI keeps the Coworker runtime key in the OS credential vault.
+# Install:  sudo cp deploy/systemd/agroland-*.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now agroland-eve agroland-worker
+# Exactly ONE worker per Coworker and workspace. Edit User and WorkingDirectory first.
+[Unit]
+Description=AgroLand Sokosumi Coworker worker
+After=network-online.target agroland-eve.service
+Wants=agroland-eve.service
+
+[Service]
+User=agroland
+WorkingDirectory=/opt/agroland/agent
+ExecStart=/usr/bin/npm run worker
+Restart=on-failure
+RestartSec=10
+# The vault needs the user's session bus; see docs/DEPLOY.md "Credential vault on a server".
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

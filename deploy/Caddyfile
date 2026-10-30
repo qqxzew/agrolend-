@@ -1,0 +1,15 @@
+# TLS terminates here. Only the gateway is exposed; /internal/* is blocked at the edge (it is for the Coworker worker on the same host).
+{$AGROLAND_DOMAIN} {
+	encode zstd gzip
+	request_body {
+		max_size 12MB
+	}
+	@internal path /internal/*
+	respond @internal 404
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+	}
+	reverse_proxy gateway:8080
+}

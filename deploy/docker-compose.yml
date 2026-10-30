@@ -1,0 +1,141 @@
+# AgroLand production stack. Copy ../.env.example to ../.env first, then:  docker compose -f deploy/docker-compose.yml --env-file .env up -d --build
+# NOTE: written for this repository but NOT run on the machine it was authored on (no Docker there): run `docker compose config` and a first start on the server.
+# Only Caddy publishes ports. Geo services and the payment service stay on the private network (internal keys + payment bypass inside).
+name: agroland
+x-geo: &geo
+  build: {context: .., dockerfile: deploy/Dockerfile}
+  working_dir: /srv/services/geo
+  restart: unless-stopped
+  networks: [internal]
+  volumes: [geo_data:/data]
+  healthcheck: {test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:PORT/health')"], interval: 15s, timeout: 5s, retries: 8}
+services:
+  de-audit:
+    <<: *geo
+    command: ["python","-m","uvicorn","app.main:app","--host","0.0.0.0","--port","8000"]
+    environment:
+      - INTERNAL_API_KEY=${GEO_DE_INTERNAL_KEY}
+      - BYPASS_PAYMENT=true
+      - DATABASE_PATH=/data/de_jobs.sqlite3
+    healthcheck: {test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health')"], interval: 15s, timeout: 5s, retries: 8}
+  de-matcher:
+    <<: *geo
+    command: ["python","-m","uvicorn","matcher.main:app","--host","0.0.0.0","--port","8001"]
+    environment:
+      - VALIDATOR_URL=http://de-audit:8000
+      - VALIDATOR_API_KEY=${GEO_DE_INTERNAL_KEY}
+      - MATCHER_API_KEY=${GEO_DE_INTERNAL_KEY}
+      - MATCHER_DATABASE_PATH=/data/de_matcher.sqlite3
+    depends_on: {de-audit: {condition: service_healthy}}
+    healthcheck: {test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:8001/health')"], interval: 15s, timeout: 5s, retries: 8}
+  de-escrow:
+    <<: *geo
+    command: ["python","-m","uvicorn","escrow.main:app","--host","0.0.0.0","--port","8002"]
+    environment:
+      - MATCHER_URL=http://de-matcher:8001
+      - MATCHER_API_KEY=${GEO_DE_INTERNAL_KEY}
+      - ESCROW_API_KEY=${GEO_DE_ESCROW_KEY}
+      - ESCROW_DATABASE_PATH=/data/de_escrow.sqlite3
+      - ESCROW_BYPASS_PAYMENT=true
+    depends_on: {de-matcher: {condition: service_healthy}}
+    healthcheck: {test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:8002/health')"], interval: 15s, timeout: 5s, retries: 8}
+  de-architect:
+    <<: *geo
+    command: ["python","-m","uvicorn","architect.main:app","--host","0.0.0.0","--port","8003"]
+    environment:
+      - ESCROW_URL=http://de-escrow:8002
+      - ESCROW_API_KEY=${GEO_DE_ESCROW_KEY}
+      - ARCHITECT_API_KEY=${GEO_DE_ARCHITECT_KEY}
+      - ARCHITECT_DATABASE_PATH=/data/de_architect.sqlite3
+    depends_on: {de-escrow: {condition: service_healthy}}
+    healthcheck: {test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:8003/health')"], interval: 15s, timeout: 5s, retries: 8}
+  in-audit:
+    <<: *geo
+    command: ["python","-m","uvicorn","india.audit.main:app","--host","0.0.0.0","--port","9000"]
+    environment:
+      - IN_AUDIT_INTERNAL_API_KEY=${GEO_IN_INTERNAL_KEY}
+      - IN_AUDIT_BYPASS_PAYMENT=true
+      - IN_AUDIT_DATABASE_PATH=/data/in_jobs.sqlite3
+    healthcheck: {test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:9000/health')"], interval: 15s, timeout: 5s, retries: 8}
+  in-matcher:
+    <<: *geo
+    command: ["python","-m","uvicorn","india.matcher.main:app","--host","0.0.0.0","--port","9001"]
+    environment:
+      - IN_MATCHER_VALIDATOR_URL=http://in-audit:9000
+      - IN_MATCHER_VALIDATOR_API_KEY=${GEO_IN_INTERNAL_KEY}
+      - IN_MATCHER_API_KEY=${GEO_IN_INTERNAL_KEY}
+      - IN_MATCHER_DATABASE_PATH=/data/in_matcher.sqlite3
+    depends_on: {in-audit: {condition: service_healthy}}
+    healthcheck: {test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:9001/health')"], interval: 15s, timeout: 5s, retries: 8}
+  in-escrow:
+    <<: *geo
+    command: ["python","-m","uvicorn","india.escrow.main:app","--host","0.0.0.0","--port","9002"]
+    environment:
+      - IN_ESCROW_MATCHER_URL=http://in-matcher:9001
+      - IN_ESCROW_MATCHER_API_KEY=${GEO_IN_INTERNAL_KEY}
+      - IN_ESCROW_API_KEY=${GEO_IN_ESCROW_KEY}
+      - IN_ESCROW_DATABASE_PATH=/data/in_escrow.sqlite3
+      - IN_ESCROW_BYPASS_PAYMENT=true
+    depends_on: {in-matcher: {condition: service_healthy}}
+    healthcheck: {test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:9002/health')"], interval: 15s, timeout: 5s, retries: 8}
+  in-architect:
+    <<: *geo
+    command: ["python","-m","uvicorn","india.architect.main:app","--host","0.0.0.0","--port","9003"]
+    environment:
+      - IN_ARCHITECT_ESCROW_URL=http://in-escrow:9002
+      - IN_ARCHITECT_ESCROW_API_KEY=${GEO_IN_ESCROW_KEY}
+      - IN_ARCHITECT_API_KEY=${GEO_IN_ARCHITECT_KEY}
+      - IN_ARCHITECT_DATABASE_PATH=/data/in_architect.sqlite3
+    depends_on: {in-escrow: {condition: service_healthy}}
+    healthcheck: {test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:9003/health')"], interval: 15s, timeout: 5s, retries: 8}
+  gateway:
+    build: {context: .., dockerfile: deploy/Dockerfile}
+    restart: unless-stopped
+    networks: [internal]
+    volumes: [gateway_data:/data/gateway]
+    ports: ["127.0.0.1:8080:8080"]   # loopback only: the host-run Coworker worker calls /internal/* here; Caddy hides /internal from the internet
+    env_file: ../.env
+    environment:
+      - AGROLAND_STATE_DIR=/data/gateway
+      - GEO_DE_AUDIT_URL=http://de-audit:8000
+      - GEO_DE_MATCHER_URL=http://de-matcher:8001
+      - GEO_DE_ESCROW_URL=http://de-escrow:8002
+      - GEO_DE_ARCHITECT_URL=http://de-architect:8003
+      - GEO_IN_AUDIT_URL=http://in-audit:9000
+      - GEO_IN_MATCHER_URL=http://in-matcher:9001
+      - GEO_IN_ESCROW_URL=http://in-escrow:9002
+      - GEO_IN_ARCHITECT_URL=http://in-architect:9003
+    depends_on:
+      de-architect: {condition: service_healthy}
+      in-architect: {condition: service_healthy}
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    networks: [internal]
+    environment: [POSTGRES_USER=postgres, "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"]
+    volumes: [pg_data:/var/lib/postgresql/data]
+    healthcheck: {test: ["CMD-SHELL","pg_isready -U postgres"], interval: 5s, timeout: 5s, retries: 10}
+  # Masumi payment service (seller side). Image tag pinned to the version the geo-pooler prototype was built against; confirm the current release
+  # in the Masumi docs before the first start. Migration/seed step: see docs/DEPLOY.md section "Payment service".
+  masumi-payment-service:
+    image: ghcr.io/masumi-network/masumi-payment-service:0.29.0
+    restart: unless-stopped
+    networks: [internal]
+    ports: ["127.0.0.1:3001:3001"]   # admin UI on loopback only; reach it through an SSH tunnel
+    environment:
+      - "DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres"
+      - "ENCRYPTION_KEY=${ENCRYPTION_KEY}"
+      - "ADMIN_KEY=${ADMIN_KEY}"
+      - "BLOCKFROST_API_KEY_PREPROD=${BLOCKFROST_API_KEY_PREPROD}"
+    command: ["node","./dist/index.js"]
+    depends_on: {postgres: {condition: service_healthy}}
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    networks: [internal]
+    ports: ["80:80","443:443"]
+    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", caddy_data:/data]
+    environment: ["AGROLAND_DOMAIN=${AGROLAND_DOMAIN}"]
+    depends_on: [gateway]
+networks: {internal: {}}
+volumes: {geo_data: {}, gateway_data: {}, pg_data: {}, caddy_data: {}}

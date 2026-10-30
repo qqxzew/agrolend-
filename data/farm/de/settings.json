@@ -1,0 +1,23 @@
+{
+  "country": "DE",
+  "farm_name": "Hans Farm",
+  "region": "Sachsen-Anhalt",
+  "currency": "EUR",
+  "currency_symbol": "€",
+  "area_unit": "ha",
+  "area_unit_long": "hectare",
+  "benchmark_rent_per_unit": 400,
+  "benchmark_note": "Demo value: fictional regional average rent, not an official statistic.",
+  "overpriced_threshold_pct": 15,
+  "area_tolerance": 0.05,
+  "expiry_window_days": 180,
+  "payment_alarm_days_before": 7,
+  "expiry_reminder_days_before_end": 90,
+  "record_name": "Liegenschaftskataster (ALKIS) extract",
+  "parcel_id_format": "Gemarkung-Flur-Flurstück",
+  "legal_notes": [
+    "Demonstration dataset: farm, owners, contracts and amounts are fictional.",
+    "The benchmark rent is a labelled demo value, not an official statistic.",
+    "This check compares your own documents; it does not assess the legal validity of a lease."
+  ]
+}
