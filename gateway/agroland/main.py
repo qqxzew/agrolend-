@@ -121,6 +121,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             resp.headers["Content-Security-Policy"] = CSP
         if request.url.path.startswith(("/api/", "/internal/")):
             resp.headers["Cache-Control"] = "no-store"
+        elif not request.url.path.startswith("/masumi/"):
+            resp.headers["Cache-Control"] = "no-cache"  # pages/scripts/styles: always revalidate (ETag), so a redeploy is never hidden by a stale browser cache
         return resp
 
     def internal(x_internal_key: str = Header(default="")):
