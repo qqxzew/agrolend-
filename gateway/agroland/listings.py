@@ -175,8 +175,14 @@ class Listings:
             p = self._parcel(r["parcel_id"])
             region = (alkis.METADATA["region"] if country == "DE" else (p["label"].rsplit(",", 1)[-1].strip()))
             out.append({"id": r["id"], "country": country, "deal_type": r["deal_type"], "price": r["price_amount"], "area_ha": p["area_ha"], "region": region,
-                        "audit": audit, "demo": bool(p["demo"]) or p["source"] == "alkis-demo", "ownership": "not verified by AgroLand"})
+                        "audit": audit, "demo": bool(p["demo"]) or p["source"] == "alkis-demo", "ownership": "not verified by AgroLand",
+                        "agent_demo": self._is_demo_owner(r["user_id"])})
         return out  # allow-list: no owner name, no document, no exact geometry
+
+    def _is_demo_owner(self, uid: str) -> bool:
+        with self.db.tx() as c:
+            r = c.execute("SELECT persona FROM users WHERE id=?", (uid,)).fetchone()
+        return bool(r and r["persona"] == "demo-owner")
 
     def express_interest(self, dev, lid: str, message: str) -> dict:
         with self.db.tx() as c:
@@ -184,8 +190,11 @@ class Listings:
             if not r or not r["consent"] or not self._audit_summary(r["audit_order_id"]):
                 raise HTTPException(404, "Listing not found")
             iid = new_id()
+            owner = c.execute("SELECT u.persona FROM users u JOIN listings l ON l.user_id=u.id WHERE l.id=?", (lid,)).fetchone()
+            # The platform-provided demo Landowner agent accepts at once (labelled in the UI); real owners always decide themselves.
+            auto = bool(owner and owner["persona"] == "demo-owner")
             try:
-                c.execute("INSERT INTO interests VALUES(?,?,?,?,?,?,?)", (iid, lid, dev["id"], (message or "")[:500], "pending", now(), None))
+                c.execute("INSERT INTO interests VALUES(?,?,?,?,?,?,?)", (iid, lid, dev["id"], (message or "")[:500], "accepted" if auto else "pending", now(), now() if auto else None))
             except Exception:
                 pass
         return self.interest_status(dev, lid)

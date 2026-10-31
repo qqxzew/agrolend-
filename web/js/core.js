@@ -5,6 +5,7 @@ export const ws = {
   write(v) { try { localStorage.setItem(LS, JSON.stringify(v)); } catch { /* private mode: workspace lives for this tab only */ mem = v; } },
   get current() { const s = this.read(); return s.list.find(w => w.id === s.current) || null; },
   add(user, token) { const s = this.read(); s.list = s.list.filter(w => w.id !== user.id).concat([{ ...user, token }]); s.current = user.id; this.write(s); },
+  addQuiet(user, token) { const s = this.read(); s.list = s.list.filter(w => w.id !== user.id).concat([{ ...user, token }]); this.write(s); },
   use(id) { const s = this.read(); s.current = id; this.write(s); },
   drop(id) { const s = this.read(); s.list = s.list.filter(w => w.id !== id); if (s.current === id) s.current = s.list[0]?.id || null; this.write(s); },
 };

@@ -53,7 +53,7 @@ details > summary { cursor: pointer; font-weight: 600; } pre.json { background: 
 table.t { display: block; overflow-x: auto; max-width: 100%; }
 .cols > *, .stack > * { min-width: 0; }
 body { overflow-x: hidden; }
-.cols.wide-r { grid-template-columns: minmax(0, .85fr) minmax(0, 1.3fr); }
+.cols.wide-r { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
 @media (max-width: 900px) { .cols.wide-r { grid-template-columns: 1fr; } }
 
 /* ---- prototype-style sidebar (LandCheck look) ---- */

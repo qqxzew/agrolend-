@@ -4,7 +4,7 @@ import { api, h, toast } from './core.js';
 
 const COLORS = { green: '#2f7d3b', yellow: '#c58a00', red: '#b3261e' };
 
-export async function parcelMap(el, { country, onSelect, saved = [] }) {
+export async function parcelMap(el, { country, onSelect, saved = [], leased = [] }) {
   const L = window.L;
   const map = L.map(el, { zoomControl: true, attributionControl: true }).setView(country === 'DE' ? [52.09, 11.555] : [23.35, 70.56], country === 'DE' ? 13 : 12);
   // Default: OpenStreetMap tiles rendered in a quiet grey "schematic" style (CSS filter on .tiles-schematic); plain street map, satellite and "no tiles" are in the switcher.
@@ -51,6 +51,7 @@ export async function parcelMap(el, { country, onSelect, saved = [] }) {
     map.fitBounds(parcelLayer.getBounds().pad(.4));
   }
   const mine = L.featureGroup().addTo(map);
+  for (const l of leased) L.geoJSON({ type: 'Feature', geometry: l.geometry }, { style: { color: '#c2410c', weight: 2, fillOpacity: .3, dashArray: '5 3' } }).bindTooltip(l.label || 'Leased parcel').addTo(mine);
   for (const p of saved.filter(p => p.source === 'drawn')) L.geoJSON({ type: 'Feature', geometry: p.geometry }, { style: { color: '#7a3db8', weight: 2, fillOpacity: .2 } }).bindTooltip(p.label).addTo(mine);
 
   // --- drawing
@@ -71,7 +72,7 @@ export async function parcelMap(el, { country, onSelect, saved = [] }) {
     function cleanup() { map.off('click', click); map.getContainer().style.cursor = ''; line.remove(); dots.remove(); drawing = null; }
     return drawing;
   }
-  setTimeout(() => map.invalidateSize(), 50);
+  setTimeout(() => { map.invalidateSize(); if (leased.length && mine.getLayers().length) map.fitBounds(mine.getBounds().pad(1.5), { maxZoom: 16 }); }, 200);
   function find(q) {
     q = (q || '').trim().toLowerCase(); if (!q) return false;
     const key = Object.keys(byRef).find(k => k.toLowerCase().replace(/_/g, '').includes(q.replace(/_/g, '')));

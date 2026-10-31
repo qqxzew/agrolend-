@@ -58,12 +58,12 @@ export function home() {
 }
 
 // ---------------------------------------------------------------- shared: parcel picker
-async function parcelPicker({ onSaved, allowDraw = true, saved }) {
+async function parcelPicker({ onSaved, allowDraw = true, saved, leased = [] }) {
   const w = ws.current, root = h('div', { class: 'stack' });
   const mapEl = h('div', { class: 'map' }); let picked = null;
   const pickedBox = h('div', { class: 'small muted' }, 'Click a parcel on the map' + (allowDraw ? ', or draw your own outline.' : '.'));
   const saveBtn = h('button', { class: 'btn primary', disabled: true, onclick: e => guard(async () => { const p = await api('/parcels', { method: 'POST', body: picked.body }); toast('Saved to your parcels'); onSaved(p); }, e.target) }, 'Use this parcel');
-  const m = await parcelMap(mapEl, { country: w.country, saved, onSelect: p => { picked = { body: { source: p.source, ref: p.ref }, label: p.label }; pickedBox.replaceChildren(h('b', null, p.label), ` · ${num(p.area_ha)} ha`, p.signal ? h('span', null, ' · signal ', h('span', { class: 'sig ' + p.signal }), p.signal) : '', p.demo ? chip(' demo', 'info') : ''); saveBtn.disabled = false; } });
+  const m = await parcelMap(mapEl, { country: w.country, saved, leased, onSelect: p => { picked = { body: { source: p.source, ref: p.ref }, label: p.label }; pickedBox.replaceChildren(h('b', null, p.label), ` · ${num(p.area_ha)} ha`, p.signal ? h('span', null, ' · signal ', h('span', { class: 'sig ' + p.signal }), p.signal) : '', p.demo ? chip(' demo', 'info') : ''); saveBtn.disabled = false; } });
   let drawCtl = null; const drawBtn = h('button', { class: 'btn', onclick: () => {
     if (drawCtl) { drawCtl.finish(); return; }
     drawBtn.textContent = 'Finish outline'; drawCtl = m.draw(async geom => { drawBtn.textContent = 'Draw my own outline'; drawCtl = null;
@@ -151,12 +151,18 @@ export async function farm() {
   let demo = await api('/farm/demo?demo=' + encodeURIComponent(source.startsWith('demo:') ? source.slice(5) : showcase.id));
   const dataset = () => source === 'saved' ? ds.dataset : demo;
   const files = { contracts_csv: '', cadastre_csv: '', fields_csv: '', boundaries_geojson: '' };
-  const fileIn = (key, label, hint, accept = '.csv,text/csv') => field(label, h('input', { type: 'file', accept, onchange: async e => { files[key] = await e.target.files[0]?.text() || ''; } }), hint);
+  const inputs = {};
+  const fileIn = (key, label, hint, accept = '.csv,text/csv') => field(label, inputs[key] = h('input', { type: 'file', accept, onchange: async e => { files[key] = await e.target.files[0]?.text() || ''; } }), hint);
+  // Test data for demos/videos: fill the upload fields from the selected demonstration farm, exactly as if the files had been chosen from disk.
+  const fileText = k => k === 'boundaries_geojson' ? (demo.boundaries?.features?.length ? JSON.stringify(demo.boundaries) : '') : (() => { const rows = { contracts_csv: demo.contracts, cadastre_csv: demo.cadastre, fields_csv: demo.fields }[k], cols = COLS[k]; return [cols.join(','), ...rows.map(r => cols.map(c => r[c] ?? '').join(','))].join('\n'); })();
+  const FILENAME = { contracts_csv: 'contracts.csv', cadastre_csv: 'cadastre.csv', fields_csv: 'fields.csv', boundaries_geojson: 'boundaries.geojson' };
+  const loadTestFiles = () => { for (const k of Object.keys(inputs)) { const text = fileText(k); if (!text) continue; const dt = new DataTransfer(); dt.items.add(new File([text], FILENAME[k])); inputs[k].files = dt.files; files[k] = text; } toast('Test files loaded into the upload fields. Press "Validate and save".'); };
+  const downloadTestFiles = () => { for (const k of Object.keys(FILENAME)) { const text = fileText(k); if (text) download(new Blob([text], { type: k.endsWith('geojson') ? 'application/geo+json' : 'text/csv' }), FILENAME[k]); } };
   const info = h('div', { class: 'small muted' });
   function describe() {
     const d = dataset(), s = d.settings, b = d.boundaries?.features || [];
-    info.replaceChildren(source === 'saved' ? `Saved data: ${ds.label} (${d.contracts.length} leases), updated ${fmtTime(ds.updated_at)}.` : `Labelled demonstration farm: ${s.farm_name}, ${s.region}. ${d.contracts.length} leases, ${s.currency} and ${s.area_unit}.`,
-      b.length ? h('div', { class: 'row', style: 'margin-top:.35rem' }, chip(`${b.length} field outlines`, 'info'), b.some(f => f.properties.registry) ? chip('outlines registered on Cardano (5am.earth)', 'good') : null) : null);
+    info.replaceChildren(...[source === 'saved' ? `Saved data: ${ds.label} (${d.contracts.length} leases), updated ${fmtTime(ds.updated_at)}.` : `Labelled demonstration farm: ${s.farm_name}, ${s.region}. ${d.contracts.length} leases, ${s.currency} and ${s.area_unit}.`,
+      b.length ? h('div', { class: 'row', style: 'margin-top:.35rem' }, chip(`${b.length} field outlines`, 'info'), b.some(f => f.properties.registry) ? chip('outlines registered on Cardano (5am.earth)', 'good') : null) : null].filter(Boolean));
   }
   const srcSel = h('select', { onchange: e => guard(async () => { source = e.target.value; if (source.startsWith('demo:')) demo = await api('/farm/demo?demo=' + encodeURIComponent(source.slice(5))); describe(); await drawFields(); }) },
     demos.map(d => h('option', { value: 'demo:' + d.id, selected: source === 'demo:' + d.id }, `Demo: ${d.farm_name.replace(' (demo)', '')}, ${d.region}${d.registry_linked ? ' · 5am.earth fields' : ''}`)),
@@ -210,20 +216,46 @@ export async function farm() {
 
   describe();
   const prior = (await latestOrders('lease_check'))[0]; if (prior) show(prior);
+  let autorun = false; try { autorun = sessionStorage.getItem('agl.farm.autorun') === '1'; sessionStorage.removeItem('agl.farm.autorun'); } catch {}
   const st = demo.settings;
   root.append(h('div', { class: 'cols wide-r' },
     h('div', { class: 'card stack' }, h('h3', null, '1 · Your data'), field('Use', srcSel), info,
-      h('details', null, h('summary', null, 'Upload my own files'), h('div', { class: 'stack', style: 'margin-top:.6rem' }, h('p', { class: 'small muted' }, 'Same columns as the demonstration files: ', sample('contracts_csv'), ', ', sample('cadastre_csv'), ', ', sample('fields_csv'), `. Area is in ${st.area_unit}, rent in ${st.currency} per ${st.area_unit} per year. The official record (${st.record_name}) is the cadastre file.`),
+      h('details', { open: true }, h('summary', null, 'Upload my own files'), h('div', { class: 'stack', style: 'margin-top:.6rem' }, h('div', { class: 'callout' }, h('b', null, 'Test data: '), 'use the files of the farm selected above. ', h('div', { class: 'row', style: 'margin-top:.5rem' }, h('button', { class: 'btn sm', onclick: downloadTestFiles }, 'Download test files'), h('button', { class: 'btn sm', onclick: loadTestFiles }, 'Load test files into the fields below'))), h('p', { class: 'small muted' }, 'Same columns as the demonstration files: ', sample('contracts_csv'), ', ', sample('cadastre_csv'), ', ', sample('fields_csv'), `. Area is in ${st.area_unit}, rent in ${st.currency} per ${st.area_unit} per year. The official record (${st.record_name}) is the cadastre file.`),
         fileIn('contracts_csv', 'Contracts'), fileIn('cadastre_csv', 'Official parcel record'), fileIn('fields_csv', 'Fields you farm'),
         fileIn('boundaries_geojson', 'Field outlines (optional)', h('span', null, 'GeoJSON polygons with a parcel_id each, like ', sample('boundaries'), '. Adds the satellite crop and biomass section; an outline may name its 5am.earth registration (registry.tx_hash).'), '.geojson,.json,application/geo+json,application/json'),
-        h('button', { class: 'btn', onclick: e => guard(async () => { await api('/farm/dataset', { method: 'PUT', body: files }); toast('Saved'); location.reload(); }, e.target) }, 'Validate and save'))),
+        h('button', { class: 'btn', onclick: e => guard(async () => { await api('/farm/dataset', { method: 'PUT', body: files }); toast('Saved. Running the Lease Check on your uploaded data…'); try { sessionStorage.setItem('agl.farm.autorun', '1'); } catch {} location.reload(); }, e.target) }, 'Validate and save'))),
       h('div', { class: 'row between' }, h('div', null, 'Lease Check · ', h('b', null, priceOf('lease_check'))), run),
       h('div', { class: 'callout' }, 'Your farm data is private to your workspace and is never published. A finding is a statement about your own documents, not about the validity of a lease.')),
     h('div', { class: 'card stack' }, h('h3', null, '2 · Report and reminders'), orderBox)),
   fieldsCard);
   await drawFields();
+  if (autorun && source === 'saved') run.click();   // after an upload: go straight to the order so the result appears on screen
   return root;
 }
+
+
+// Demo neighbourhood: builds, through the real services, a site of another developer and a Landowner agent's parcel next to our site.
+async function neighbourhoodCard(redraw) {
+  const root = h('div', { class: 'card stack' });
+  let timer = null;
+  const ICON = { done: '✓', error: '✗', running: '…', pending: '·' };
+  async function render() {
+    let job; try { job = await api('/demo/neighbourhood'); } catch { job = { status: 'none', steps: [] }; }
+    clearTimeout(timer);
+    const start = h('button', { class: 'btn primary', disabled: job.status === 'running', onclick: e => guard(async () => { await api('/demo/neighbourhood', { method: 'POST' }); render(); }, e.target) }, job.status === 'done' ? 'Build again' : job.status === 'running' ? 'Building…' : 'Build demo neighbourhood');
+    root.replaceChildren(...[h('div', { class: 'row between' }, h('div', null, h('h3', { style: 'margin:0' }, 'Demo neighbourhood'), h('div', { class: 'small muted' }, 'Puts another developer\'s site and a Landowner agent\'s parcel right next to yours, so you can show how developers find each other and how land is taken on lease. Real matcher, real audits (takes a few minutes); the example parties are labelled demo.')), start),
+      job.steps.length ? h('div', { class: 'list' }, job.steps.map(s => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, `${ICON[s.status]} ${s.label}`), s.detail ? h('span', { class: 'small muted' }, s.detail) : null), chip(s.status, s.status === 'done' ? 'good' : s.status === 'error' ? 'bad' : s.status === 'running' ? 'info' : '')))) : null,
+      job.status === 'done' ? h('div', { class: 'callout good' }, 'Done. 1) ', h('a', { href: '#/developer?tab=deals' }, 'Matches & deals'), ': the other developer\'s anonymous teaser, then consent, payment, NDA and disclosure. 2) ', h('a', { href: '#/developer?tab=market' }, 'Owner listings'), ': take the Landowner agent\'s parcel on lease; it then appears on the map below.') : null,
+      job.status === 'error' ? h('div', { class: 'callout bad' }, job.error) : null].filter(Boolean));
+    if (job.status === 'done' && job.result?.counterpart && !ws.read().list.some(w => w.id === job.result.counterpart.user.id)) { ws.addQuiet(job.result.counterpart.user, job.result.counterpart.token); redraw?.(); return; }
+    if (job.status === 'running') timer = setTimeout(() => { if (root.isConnected) render(); }, 3000);
+  }
+  await render();
+  return root;
+}
+
+// Lets a presenter act as the labelled demo counterpart (a real second workspace) and come back, without leaving the page.
+function actAs(label, targetId) { const b = h('button', { class: 'btn sm', onclick: () => { ws.use(targetId); ctx.rerender(); } }, label); return b; }
 
 // ---------------------------------------------------------------- developer
 export async function developer(q) {
@@ -236,10 +268,11 @@ export async function developer(q) {
     body.append(await ({ sites, deals, market }[tab])());
   }
   async function sites() {
-    const [parcels, pf] = await Promise.all([api('/parcels'), api('/pool/portfolio')]);
-    const mapCol = await parcelPicker({ saved: parcels, onSaved: p => { sel = p; draw(); } });
+    const [parcels, pf, market0] = await Promise.all([api('/parcels'), api('/pool/portfolio'), api('/marketplace').catch(() => [])]);
+    const leased = market0.filter(m => m.my_interest.disclosed_boundary).map(m => ({ geometry: m.my_interest.disclosed_boundary, label: m.agent_demo ? 'Leased from the Landowner agent (demo)' : 'Leased parcel' }));
+    const mapCol = await parcelPicker({ saved: parcels, leased, onSaved: p => { sel = p; draw(); } });
     const type = h('select', null, ['wind', 'solar', 'hybrid'].map(x => h('option', { value: x }, x)));
-    return h('div', { class: 'cols wide-r' }, h('div', { class: 'card stack' }, h('h3', null, '1 · Choose a site'), mapCol, parcelList(parcels, sel?.id, p => { sel = p; draw(); }, async p => { await guard(() => api('/parcels/' + p.id, { method: 'DELETE' })); draw(); })),
+    return h('div', { class: 'stack' }, await neighbourhoodCard(draw), h('div', { class: 'cols wide-r' }, h('div', { class: 'card stack' }, h('h3', null, '1 · Choose a site'), mapCol, parcelList(parcels, sel?.id, p => { sel = p; draw(); }, async p => { await guard(() => api('/parcels/' + p.id, { method: 'DELETE' })); draw(); })),
       h('div', { class: 'stack' }, h('div', { class: 'card stack' }, h('h3', null, '2 · Audit or add to the pool'),
         sel ? [h('b', null, sel.label), auditComposer(sel, { onOrder: o => orderBox.replaceChildren(orderPanel(o)) }), h('hr'),
           h('div', null, h('b', null, 'Add this site to the pool'), h('p', { class: 'small muted' }, 'The matcher audits it internally, then looks for other developers\' sites within 1.5 km and sends both sides an anonymous teaser (technology, area band, verdict band, distance band). Names, coordinates and parcel ids are never in a teaser.')),
@@ -247,22 +280,31 @@ export async function developer(q) {
         h('div', { class: 'card stack' }, h('h3', null, 'Audit result'), orderBox),
         h('div', { class: 'card stack' }, h('h3', null, 'Your pool portfolio'), pf.length ? h('div', { class: 'list' }, pf.map(p => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, `${p.project_type} · ${p.audit?.verdict || ''} ${p.audit?.score ?? ''}`, p.reason ? ' · ' + p.reason : '')),
           h('div', { class: 'row' }, chip(p.status, p.status === 'registered' ? 'good' : p.status === 'rejected' ? 'bad' : ''),
-            p.status === 'registered' && h('button', { class: 'btn sm', title: 'Creates a second, labelled demo workspace with a site next to this one', onclick: e => guard(async () => { const r = await api('/demo/counterpart', { method: 'POST', body: { pool_parcel_id: p.id } }); ws.add(r.user, r.token); ws.use(ws.read().list.find(x => x.persona !== 'demo-counterpart')?.id || ws.current.id); toast('Demo counterpart created: find it under Workspaces'); draw(); }, e.target) }, '+ demo counterpart'),
-            p.status === 'registered' && h('button', { class: 'btn sm danger', onclick: e => guard(async () => { await api('/pool/portfolio/' + p.id, { method: 'DELETE' }); draw(); }, e.target) }, 'Withdraw'))))) : empty('Nothing in the pool yet.'))));
+            p.status === 'registered' && h('button', { class: 'btn sm', title: 'Creates a second, labelled demo workspace with a site next to this one', onclick: e => guard(async () => { const r = await api('/demo/counterpart', { method: 'POST', body: { pool_parcel_id: p.id } }); ws.addQuiet(r.user, r.token); toast('Demo counterpart created. Open "Matches & deals" to act as it.'); draw(); }, e.target) }, '+ demo counterpart'),
+            p.status === 'registered' && h('button', { class: 'btn sm danger', onclick: e => guard(async () => { await api('/pool/portfolio/' + p.id, { method: 'DELETE' }); draw(); }, e.target) }, 'Withdraw'))))) : empty('Nothing in the pool yet.')))));
   }
   async function deals() {
     const [teasers, deals] = await Promise.all([api('/pool/teasers'), api('/pool/deals')]);
     const box = h('div', { class: 'stack' }); const byId = new Map(deals.map(d => [d.match_id, d]));
     const ids = [...new Set([...teasers.map(t => t.match_id), ...deals.map(d => d.match_id)])];
     for (const id of ids) box.append(dealCard(id, teasers.find(t => t.match_id === id), byId.get(id), draw));
-    return h('div', { class: 'stack' }, h('div', { class: 'callout' }, 'Process: anonymous teaser → both consent → both payments locked → NDA signed by each party for itself → disclosure plus joint calculation. Proximity alone does not establish a continuous land block or prove a joint benefit.'),
+    const list = ws.read().list, me2 = ws.current, cp = list.find(x => x.persona === 'demo-counterpart' && x.country === me2.country), back = list.find(x => x.persona !== 'demo-counterpart' && x.role === 'developer');
+    const switcher = me2.persona === 'demo-counterpart' ? (back ? h('div', { class: 'callout warn row between' }, h('span', null, 'You are acting as the demo counterpart. Its consent and signature are yours to give.'), actAs('Back to ' + back.name, back.id)) : null) : (cp ? h('div', { class: 'callout row between' }, h('span', null, 'The other side of this deal is a demo workspace. Switch to it to give its consent, payment and signature.'), actAs('Act as ' + cp.name, cp.id)) : null);
+    return h('div', { class: 'stack' }, switcher, h('div', { class: 'callout' }, 'Process: anonymous teaser → both consent → both payments locked → NDA signed by each party for itself → disclosure plus joint calculation. Proximity alone does not establish a continuous land block or prove a joint benefit.'),
       ids.length ? box : empty('No matches yet. Add a site to the pool; a match appears when another developer has a site within 1.5 km. To try the full flow alone, add a demo counterpart on the Sites tab.'));
   }
   async function market() {
     const items = await api('/marketplace');
-    return items.length ? h('div', { class: 'list' }, items.map(m => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, `${m.deal_type} · ${num(m.area_ha)} ha · ${m.region}`), h('span', { class: 'small muted' }, `Audit ${m.audit.verdict} ${m.audit.score}/100 (${m.audit.project_type}) · ${m.audit.data_complete ? 'all sources answered' : 'data incomplete'} · ${m.ownership}${m.demo ? ' · demo' : ''}`)),
-      m.my_interest.status === 'none' ? h('button', { class: 'btn sm', onclick: e => guard(async () => { await api(`/marketplace/${m.id}/interest`, { method: 'POST', body: { message: prompt('Short message to the owner (optional)') || '' } }); draw(); }, e.target) }, 'Ask for the boundary') : chip(m.my_interest.status, m.my_interest.status === 'accepted' ? 'good' : ''),
-      m.my_interest.disclosed_boundary && h('details', null, h('summary', null, 'Boundary'), h('pre', { class: 'json' }, JSON.stringify(m.my_interest.disclosed_boundary)))))) : empty('No owner has published a listing for your country yet. An owner must consent, attach an audit and publish.');
+    if (!items.length) return empty('No owner has published a listing for your country yet. An owner must consent, attach an audit and publish. Tip: "Build demo neighbourhood" on the Sites tab creates one.');
+    return h('div', { class: 'list' }, items.map(m => {
+      const msg = h('input', { placeholder: 'Message to the owner (optional)', 'aria-label': 'Message to the owner', style: 'max-width:260px' });
+      const mi = m.my_interest;
+      return h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, `${m.deal_type} · ${num(m.area_ha)} ha · ${m.region}`),
+        h('span', { class: 'small muted' }, `Audit ${m.audit.verdict} ${m.audit.score}/100 (${m.audit.project_type}) · ${m.audit.data_complete ? 'all sources answered' : 'data incomplete'} · ${m.ownership}${m.demo ? ' · demo' : ''}${m.agent_demo ? ' · Landowner agent (demo)' : ''}`)),
+        mi.status === 'none' ? h('div', { class: 'row' }, msg, h('button', { class: 'btn sm', onclick: e => guard(async () => { await api(`/marketplace/${m.id}/interest`, { method: 'POST', body: { message: msg.value || (m.agent_demo ? 'We would like to lease this parcel for our project' : '') } }); toast(m.agent_demo ? 'Leased: the demo Landowner agent accepted' : 'Request sent'); draw(); }, e.target) }, m.agent_demo ? 'Take on lease' : 'Ask for the boundary'))
+          : chip(mi.status === 'accepted' && m.agent_demo ? 'leased - demo Landowner agent accepted' : mi.status, mi.status === 'accepted' ? 'good' : ''),
+        mi.disclosed_boundary && h('details', null, h('summary', null, 'Boundary'), h('pre', { class: 'json' }, JSON.stringify(mi.disclosed_boundary))));
+    }));
   }
   await draw(); return root;
 }
