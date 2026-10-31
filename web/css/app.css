@@ -143,3 +143,10 @@ table.findings th:nth-child(4), table.findings td:nth-child(4) { width: 96px; te
 table.findings td { overflow-wrap: anywhere; line-height: 1.4; }
 .actions { gap: .4rem; } .actions .btn { padding: .4rem .75rem; font-size: .88rem; }
 @media (max-width: 1100px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .farm-cols { grid-template-columns: 1fr; } .side-card { position: static; } }
+
+[hidden] { display: none !important; }
+.farm-cols.collapsed { grid-template-columns: 1fr; } .farm-cols.collapsed .side-card { display: none; }
+.data-summary { display: flex; align-items: center; gap: .7rem; padding: .6rem .9rem; border: 1px solid var(--border); border-left: 3px solid var(--good); background: var(--surface); animation: fold-in .25s ease-out; }
+.data-summary .ok { color: var(--good); font-weight: 800; }
+.side-card .fold { position: absolute; top: 1rem; right: 1rem; }
+@keyframes fold-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }

@@ -212,7 +212,8 @@ export async function farm() {
     const prior = (await latestOrders('lease_check')).find(o => o.state === 'delivered' && o.subject.startsWith(d.settings.farm_name));
     if (prior) await applyOrder(prior);
   }
-  function show(o) { orderBox.replaceChildren(orderPanel(o, { onChange: ord => applyOrder(ord) })); }
+  let hasOrder = false, setCollapsed = () => {};
+  function show(o) { hasOrder = true; setCollapsed(true); orderBox.replaceChildren(orderPanel(o, { onChange: ord => applyOrder(ord) })); }
 
   describe();
   const prior = (await latestOrders('lease_check'))[0]; if (prior) show(prior);
@@ -228,6 +229,17 @@ export async function farm() {
       h('div', { class: 'callout' }, 'Your farm data is private to your workspace and is never published. A finding is a statement about your own documents, not about the validity of a lease.')),
     h('div', { class: 'card stack' }, h('h3', null, '2 · Report and reminders'), orderBox)),
   fieldsCard);
+  // Once an order exists the data card folds into a slim summary bar (and back with "Change data"), so the report gets the full width.
+  const grid = root.firstChild, dataCard = grid.firstChild;
+  const summary = h('div', { class: 'data-summary', hidden: true }, h('span', { class: 'ok' }, '✓'), h('b', null, '1 · Your data'), h('span', { class: 'muted ds-text' }), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => setCollapsed(false) }, 'Change data'));
+  const fold = h('button', { class: 'btn sm ghost fold', onclick: () => setCollapsed(true) }, 'Collapse ↑');
+  dataCard.querySelector('h3').after(fold);
+  root.prepend(summary);
+  setCollapsed = c => {
+    grid.classList.toggle('collapsed', c); summary.hidden = !c; fold.hidden = !hasOrder || c;
+    if (c) { const d = dataset(); summary.querySelector('.ds-text').textContent = `${d.settings.farm_name} · ${d.contracts.length} leases · ${source === 'saved' ? 'your uploaded files' : 'demo data'}`; }
+  };
+  setCollapsed(hasOrder);
   await drawFields();
   if (autorun && source === 'saved') run.click();   // after an upload: go straight to the order so the result appears on screen
   return root;
