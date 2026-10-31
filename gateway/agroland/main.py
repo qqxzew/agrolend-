@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from shapely.affinity import translate
 from shapely.geometry import mapping, shape, box
 
-from . import alkis, auth, cropwatch, farm, parcels as parcels_mod
+from . import alkis, auth, chat, cropwatch, farm, parcels as parcels_mod
 from .db import Database, jdump, new_id, now
 from .geoclient import Geo, GeoUnavailable, in_country
 from .hashing import report_sha256
@@ -139,7 +139,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 return False
         return {"status": "ok", "payment_mode": s.payment_mode,
                 "geo": {c: {"audit": probe(g.audit_url), "matcher": probe(g.matcher_url), "escrow": probe(g.escrow_url), "architect": probe(g.architect_url)} for c, g in s.geo.items()},
-                "agents_registered": {k: bool(v) for k, v in s.agent_identifiers.items()}, "demo_wallet_configured": bool(s.buyer_mps_url and s.buyer_mps_key)}
+                "agents_registered": {k: bool(v) for k, v in s.agent_identifiers.items()}, "demo_wallet_configured": bool(s.buyer_mps_url and s.buyer_mps_key), "assistant_configured": bool(s.openai_api_key)}
 
     @app.get("/api/config")
     def config():
@@ -151,6 +151,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                              "IN": {"name": "India", "currency": "INR", "area_unit": "acre / ha", "notes": ["Audits: Gujarat and Andhra Pradesh carry state knowledge; other states get a site-wide condition",
                                                                                                          "Protected-area and habitation screens are OpenStreetMap-based and not measured for completeness",
                                                                                                          "Title is never verified; revenue records are not conclusive proof of title"]}}}
+
+    # ---------------------------------------------------------------- home-page assistant
+    @app.post("/api/chat")
+    def assistant(body: dict, request: Request):
+        msgs = chat.clean_messages(body.get("messages"))
+        if not msgs or msgs[-1]["role"] != "user":
+            raise HTTPException(422, "messages must end with a question")
+        if not limiter.allow("chat:" + client_ip(request), s.rate_chat_per_hour):
+            raise HTTPException(429, "Too many questions in the last hour. Try again later.")
+        role, country, agent = body.get("role"), body.get("country"), body.get("agent")
+        try:
+            return chat.reply(s, msgs, role if role in chat.ROLES else None, country if country in ("DE", "IN") else None, agent if agent in chat.AGENTS else None)
+        except chat.ChatUnavailable:
+            raise HTTPException(503, "The assistant is not available right now.")
 
     # ---------------------------------------------------------------- identity
     @app.post("/api/session", status_code=201)
@@ -461,7 +475,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         name = "Solarpark Süd GmbH (demo)" if u["country"] == "DE" else "Surya Solar LLP (demo)"
         cu, token = auth.create_user(db, name, "developer", u["country"], persona="demo-counterpart")
         p = parcels_mod.add(db, cu, {"source": "drawn", "geometry": other, "label": f"Demo counterpart site next to '{mine['label'][:60]}' (illustrative)", "ref": f"demo-{new_id()[:8]}"})
-        reg = pool.register(cu, p["id"], "solar" if mine["project_type"] == "wind" else "wind")
+        # a real audit can reject one technology here (a turbine next to houses), so try the next before giving up
+        for tech in dict.fromkeys(("solar", mine["project_type"], "wind")):
+            reg = pool.register(cu, p["id"], tech)
+            if reg["status"] == "registered":
+                break
         prof = ({"company_name": name, "street": "Musterstraße 12", "postal_code": "39104", "city": "Magdeburg", "representative": "Jörg Schäfer, Prokurist",
                  "commercial_register": "Amtsgericht Stendal, HRB 00000 (demo)", "email": "demo-counterpart@example.invalid", "phone": ""} if u["country"] == "DE" else
                 {"company_name": name, "address": "Plot 12, Demo Industrial Area, Bhuj", "state": "Gujarat", "pin_code": "370001", "representative": "Meera Shah, Designated Partner",

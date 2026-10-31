@@ -14,7 +14,7 @@ const ic = k => h('span', { class: 'ico', html: `<svg viewBox="0 0 24 24"><path 
 const NAV = [
   ['What do you want to do?', [['chat', 'Ask the agent', 'Pick the right workflow', '#/', null], ['pin', 'Check a parcel', 'Map, audit, listings', '#/owner', 'owner'], ['euro', 'Audit my leases', 'Reports and rent reminders', '#/farm', 'farm'],
     ['shield', 'Audit a site', 'Map, pool, deals, owner listings', '#/developer', 'developer']]],
-  ['Reference', [['orders', 'Orders', 'History, payment, results', '#/orders', 'any'], ['data', 'Data and sources', 'Where the numbers come from', '#/data', null], ['user', 'Workspaces', 'Switch or create', '#/start', null]]],
+  ['Reference', [['map', 'Map', 'All parcels, find by number', '#/map', 'any'], ['orders', 'Orders', 'History, payment, results', '#/orders', 'any'], ['data', 'Data and sources', 'Where the numbers come from', '#/data', null], ['user', 'Workspaces', 'Switch or create', '#/start', null]]],
 ];
 const ROUTES = {
   '': { title: 'Chat', fn: V.home, nav: 'home' }, start: { title: 'Workspaces', fn: V.start, nav: 'home' }, owner: { title: 'Landowner', fn: V.owner, nav: 'owner' },

@@ -206,3 +206,13 @@ details > pre.json, details > table { margin: 0; border-radius: 0; max-width: 10
 @media (max-width: 640px) { .agent-row { grid-template-columns: 1fr; gap: .5rem; } .agent-card { flex-direction: row; text-align: left; padding: .5rem .7rem; } .agent-av { width: 48px; height: 48px; flex: none; } .tagline { display: none; } }
 @media (max-height: 640px) { .tagline, .agent-txt small { display: none; } .hero h2 { display: none; } }
 details.quiet { margin-top: .5rem; } details.quiet > summary { color: var(--muted); font-size: .88rem; font-weight: 500; padding: .3rem 0; } details.quiet[open] > summary { margin-bottom: .5rem; }
+
+/* home chat: the log takes the free height and scrolls by itself, so the page never does */
+.composer { margin-inline: auto; flex: none; } .pick-map { background: none; border: none; cursor: pointer; font: inherit; font-size: .88rem; padding: .2rem; }
+.home:not(.chatting) .pick-map, .home:not(.chatting) .chatlog { display: none; }
+.home.chatting { justify-content: flex-start; gap: .7rem; }
+.home.chatting .tagline, .home.chatting .hero h2 { display: none; } .home.chatting .logo-lockup img { width: 32px; } .home.chatting .logo-word { font-size: 1.4rem; }
+.chatlog { flex: 1; min-height: 0; overflow-y: auto; width: min(680px, 100%); margin-inline: auto; display: flex; flex-direction: column; gap: .6rem; padding: .2rem; }
+.msg { max-width: 85%; padding: .55rem .8rem; border-radius: 4px; line-height: 1.4; display: flex; flex-direction: column; gap: .45rem; align-items: flex-start; overflow-wrap: anywhere; }
+.msg.user { align-self: flex-end; background: var(--accent-soft); } .msg.assistant { align-self: flex-start; background: var(--surface-2); }
+.home.chatting .agent-card { flex-direction: row; text-align: left; padding: .4rem .6rem; gap: .5rem; } .home.chatting .agent-av { width: 36px; height: 36px; flex: none; } .home.chatting .agent-txt span, .home.chatting .agent-txt small { display: none; }

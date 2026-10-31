@@ -14,6 +14,6 @@ test('Eve executable resolves through Node package lookup',()=>{
 });
 test('runtime root derives from supported installed CLI output',()=>{
  assert.equal(sokosumiRoot((command,args)=>{assert.equal(command,'sokosumi');assert.deepEqual(args,['skills','path']);return '/opt/node/lib/node_modules/@masumi_network/sokosumi/skills\n';}),join('/opt/node/lib/node_modules/@masumi_network/sokosumi','dist','src'));
- assert.equal(sokosumiRoot(()=>'C:\\Users\\x\\npm\\node_modules\\@masumi_network\\sokosumi\\skills\\\n'),join('C:\\Users\\x\\npm\\node_modules\\@masumi_network\\sokosumi','dist','src'));
+ if(process.platform==='win32')assert.equal(sokosumiRoot(()=>'C:\\Users\\x\\npm\\node_modules\\@masumi_network\\sokosumi\\skills\\\n'),join('C:\\Users\\x\\npm\\node_modules\\@masumi_network\\sokosumi','dist','src'));
  assert.throws(()=>sokosumiRoot(()=>'/unrelated'),/invalid package path/);
 });

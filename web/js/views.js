@@ -35,27 +35,59 @@ const AVATAR = {
 };
 
 // ---------------------------------------------------------------- home
+const CHAT_KEY = 'agl.chat', ACTION = { owner: 'Open Land Audit', farm: 'Open Lease Check', developer: 'Open Pool Access', map: 'Open the map', orders: 'Open my orders', data: 'Open data and sources' };
+const chatRead = () => { try { return JSON.parse(sessionStorage.getItem(CHAT_KEY)) || []; } catch { return []; } };
+const chatWrite = v => { try { sessionStorage.setItem(CHAT_KEY, JSON.stringify(v)); } catch {} };
+
 export function home() {
   const w = ws.current;
   const route = txt => { const s = txt.toLowerCase();
-    if (/lease|rent|farm|contract|pacht/.test(s)) return '#/farm';
-    if (/neighbo|nda|pool|developer|wind|solar|site|audit/.test(s)) return '#/developer';
-    if (/map|explore/.test(s)) return '#/map';
-    return '#/owner'; };
+    if (/lease|rent|farm|contract|pacht/.test(s)) return 'farm';
+    if (/neighbo|nda|pool|developer|wind|solar|site|audit/.test(s)) return 'developer';
+    if (/map|explore/.test(s)) return 'map';
+    return 'owner'; };
   const agents = [['owner', 'Land Audit', 'Is this site good for wind or solar?', 'land_audit'], ['farm', 'Lease Check', 'Finds overpaid rent and unfarmed land.', 'lease_check'], ['developer', 'Pool Access', 'Meets neighbouring developers under NDA.', 'pool_access']];
-  const open = r => { location.hash = w?.role === r ? '#/' + r : '#/start?role=' + r; };
-  const text = h('input', { placeholder: 'Describe what you need, e.g. "check my leases" or "audit a solar site" - we open the right workflow', 'aria-label': 'What would you like to check?' });
-  const sel = h('select', { 'aria-label': 'Agent' }, h('option', { value: '' }, 'Pick for me'), agents.map(([r, n]) => h('option', { value: r, selected: w?.role === r }, n)));
-  const go = () => { const r = sel.value || null; const dest = r ? '#/' + r : route(text.value); location.hash = w ? (r && w.role !== r ? '#/start?role=' + r : dest) : '#/start?role=' + (r || dest.slice(2) || 'owner'); };
+  // a workflow belongs to one workspace role, so another role goes through workspace creation
+  const open = r => { location.hash = !['owner', 'farm', 'developer'].includes(r) || w?.role === r ? '#/' + r : '#/start?role=' + r; };
+  let msgs = chatRead(), busy = false;
+  const log = h('div', { class: 'chatlog', 'aria-live': 'polite' });
+  const text = h('input', { placeholder: 'Ask anything, e.g. "check my leases" or "is my site good for solar?"', 'aria-label': 'What would you like to check?', maxlength: 1000 });
+  const sel = h('select', { 'aria-label': 'Agent' }, h('option', { value: '' }, 'Pick for me'), agents.map(([r, n]) => h('option', { value: r }, n)));
+  const send = h('button', { class: 'send', 'aria-label': 'Send', onclick: () => go() }, '↑');
+  const page = h('div', { class: 'home' });
+  function paint(pending) {
+    page.classList.toggle('chatting', msgs.length > 0 || !!pending);
+    log.replaceChildren(...msgs.map(m => h('div', { class: 'msg ' + m.role }, h('div', null, m.content), m.open && ACTION[m.open] && h('button', { class: 'btn sm primary', onclick: () => open(m.open) }, ACTION[m.open] + ' →'))), ...(pending ? [h('div', { class: 'msg assistant' }, spinner('Thinking…'))] : []));
+    log.scrollTop = log.scrollHeight;
+  }
+  async function go() {
+    const q = text.value.trim();
+    if (!q) { if (sel.value) open(sel.value); return; }
+    if (busy) return;
+    busy = true; send.disabled = true; text.value = '';
+    msgs.push({ role: 'user', content: q }); chatWrite(msgs); paint(true);
+    try {
+      const r = await api('/chat', { method: 'POST', body: { messages: msgs.map(({ role, content }) => ({ role, content })), role: w?.role, country: w?.country, agent: sel.value || undefined } });
+      msgs.push({ role: 'assistant', content: r.reply, open: r.open });
+    } catch (e) {
+      // without the assistant the page still gets the visitor to the right workflow
+      msgs.push({ role: 'assistant', content: e.status === 429 ? e.message : 'The assistant is not available right now, but this workflow looks like the right one.', open: sel.value || route(q) });
+    }
+    busy = false; send.disabled = false; chatWrite(msgs); paint(); text.focus();
+  }
   text.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  return h('div', { class: 'home' },
+  const clear = h('button', { class: 'pick-map', onclick: () => { msgs = []; chatWrite(msgs); paint(); text.focus(); } }, 'New chat');
+  page.append(
     h('div', { class: 'hero' },
       h('div', { class: 'logo-lockup' }, h('img', { src: '../img/logo-mark.svg', alt: '', width: 56, height: 56 }), h('div', { class: 'logo-word' }, h('b', null, 'Agro'), 'Land')),
       h('p', { class: 'tagline' }, 'Pay-per-result land intelligence on Cardano'),
-      h('h2', null, 'What would you like to check?'),
-      h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), h('span', { class: 'grow' }), h('button', { class: 'send', 'aria-label': 'Go', onclick: go }, '↑')))),
+      h('h2', null, 'What would you like to check?')),
+    log,
+    h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), clear, h('span', { class: 'grow' }), send)),
     h('div', { class: 'agent-row' }, agents.map(([r, name, line, svc]) => h('button', { class: 'agent-card', onclick: () => open(r) },
       h('span', { class: 'agent-av', html: AVATAR[r] }), h('span', { class: 'agent-txt' }, h('b', null, name), h('span', null, line), h('small', null, priceOf(svc)))))));
+  paint();
+  return page;
 }
 
 // "Data and sources" and the agent table, kept off the chat page so it fits one screen
@@ -105,10 +137,10 @@ function auditComposer(parcel, { onOrder, typeChoices = ['solar', 'wind', 'hybri
 export async function owner(q = new URLSearchParams()) {
   const blocked = need('owner'); if (blocked) return blocked;
   const root = h('div', { class: 'stack' }); let parcels = await api('/parcels'), sel = null, changing = false, auditStarted = false, auditOpen = false, auditType = '', orderBox = h('div', null, empty('Order an audit to see it here.')), tab = q.get('tab') === 'listings' ? 'listings' : 'audit';
-  const listings = await api('/listings');
+  let listings = [];
   try { const sid = sessionStorage.getItem('agl.owner.sel'); sel = parcels.find(x => x.id === sid) || null; } catch {}   // the chosen parcel survives a page refresh
   async function draw() {
-    parcels = await api('/parcels');
+    [parcels, listings] = await Promise.all([api('/parcels'), api('/listings')]);
     try { sessionStorage.setItem('agl.owner.sel', sel?.id || ''); } catch {}
     const tabs = h('div', { class: 'tabs' }, [['audit', 'Audit a parcel'], ['listings', `My listings (${listings.length})`]].map(([k, l]) => h('button', { class: tab === k ? 'on' : '', onclick: () => { tab = k; draw(); } }, l)));
     const body = h('div');
@@ -136,7 +168,7 @@ export async function owner(q = new URLSearchParams()) {
         body.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, step2, h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), listingForm(sel, draw)));
       }
     } else {
-      body.append(listings.length ? h('div', { class: 'stack' }, (await api('/listings')).map(listingCard)) : empty('No listings yet. Audit a parcel and publish it when you are ready.'));
+      body.append(listings.length ? h('div', { class: 'stack' }, listings.map(listingCard)) : empty('No listings yet. Audit a parcel and publish it when you are ready.'));
     }
     root.replaceChildren(h('div', { class: 'callout' }, 'Publishing does not transfer rights to your land. Ownership is never verified by AgroLand; your document stays private to you.'), tabs, body);
   }
@@ -145,11 +177,12 @@ export async function owner(q = new URLSearchParams()) {
     return h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('b', null, l.parcel.label), chip(l.status.replace('_', ' '), statusKind)),
       h('div', { class: 'small muted' }, `${l.deal_type} · ${l.price} · ${num(l.parcel.area_ha)} ha · consent ${l.consent ? 'on' : 'off'}`),
       l.audit ? h('div', null, `Attached audit: ${l.audit.verdict} ${l.audit.score}/100`, l.audit.data_complete ? '' : ' (data incomplete)') : h('div', { class: 'callout warn' }, 'Not visible to developers yet: attach a delivered audit (run one in the Audit tab, then attach it here).'),
-      h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: e => guard(async () => { await api('/listings/' + l.id, { method: 'PATCH', body: { consent: !l.consent } }); toast(l.consent ? 'Withdrawn from developers' : 'Published'); location.reload(); }, e.target) }, l.consent ? 'Withdraw consent' : 'Publish'),
-        !l.audit && h('button', { class: 'btn sm', onclick: e => guard(async () => { const o = (await latestOrders('land_audit')).find(o => o.state === 'delivered' && o.subject === l.parcel.label); if (!o) throw new Error('No delivered audit for this parcel yet.'); await api('/listings/' + l.id, { method: 'PATCH', body: { audit_order_id: o.id } }); location.reload(); }, e.target) }, 'Attach latest audit'),
-        h('button', { class: 'btn sm danger', onclick: e => guard(async () => { if (confirm('Delete this listing?')) { await api('/listings/' + l.id, { method: 'DELETE' }); location.reload(); } }, e.target) }, 'Delete')),
+      h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: e => guard(async () => { await api('/listings/' + l.id, { method: 'PATCH', body: { consent: !l.consent } }); toast(l.consent ? 'Withdrawn from developers' : 'Published'); draw(); }, e.target) }, l.consent ? 'Withdraw consent' : 'Publish'),
+        !l.audit && h('button', { class: 'btn sm', onclick: e => guard(async () => { const o = (await latestOrders('land_audit')).find(o => o.state === 'delivered' && o.subject === l.parcel.label); if (!o) throw new Error('No delivered audit for this parcel yet.'); await api('/listings/' + l.id, { method: 'PATCH', body: { audit_order_id: o.id } }); draw(); }, e.target) }, 'Attach latest audit'),
+        l.document_id && h('button', { class: 'btn sm', onclick: async e => guard(async () => download(await api('/documents/' + l.document_id, { blob: true }), 'document.pdf'), e.target) }, 'Open document'),
+        h('button', { class: 'btn sm danger', onclick: e => guard(async () => { if (confirm('Delete this listing?')) { await api('/listings/' + l.id, { method: 'DELETE' }); draw(); } }, e.target) }, 'Delete')),
       l.interests.length ? h('div', null, h('h4', null, 'Interested developers'), h('div', { class: 'list' }, l.interests.map(i => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, i.developer_name), h('span', { class: 'small muted' }, i.message || '')),
-        i.status === 'pending' ? h('div', { class: 'row' }, ['accepted', 'declined'].map(d => h('button', { class: 'btn sm', onclick: e => guard(async () => { await api(`/listings/${l.id}/interests/${i.id}`, { method: 'POST', body: { decision: d } }); location.reload(); }, e.target) }, d === 'accepted' ? 'Share boundary' : 'Decline'))) : chip(i.status, i.status === 'accepted' ? 'good' : ''))))) : null);
+        i.status === 'pending' ? h('div', { class: 'row' }, ['accepted', 'declined'].map(d => h('button', { class: 'btn sm', onclick: e => guard(async () => { await api(`/listings/${l.id}/interests/${i.id}`, { method: 'POST', body: { decision: d } }); draw(); }, e.target) }, d === 'accepted' ? 'Share boundary' : 'Decline'))) : chip(i.status, i.status === 'accepted' ? 'good' : ''))))) : null);
   }
   await draw(); return root;
 }
@@ -344,20 +377,24 @@ export async function developer(q) {
         h('div', { class: 'row' }, type, h('button', { class: 'btn primary', onclick: e => guard(async () => { const r = await api('/pool/portfolio', { method: 'POST', body: { parcel_id: sel.id, project_type: type.value } }); toast(r.status === 'registered' ? `Registered. New matches: ${r.new_matches}` : 'Not added: ' + (r.reasons || []).join('; ')); draw(); }, e.target) }, 'Add to pool'), h('span', { class: 'small muted' }, 'Screening takes up to two minutes.')));
       out.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, step2, h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), pool));
     }
-    out.append(h('div', { class: 'card stack' }, h('h3', null, 'Your pool portfolio'), pf.length ? h('div', { class: 'list' }, pf.map(p => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, `${p.project_type} · ${p.audit?.verdict || ''} ${p.audit?.score ?? ''}`, p.reason ? ' · ' + p.reason : '')),
+    out.append(h('div', { class: 'card stack' }, h('h3', null, 'Your pool portfolio'), pf.length ? h('div', { class: 'list' }, pf.map(p => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, [p.project_type, p.audit?.verdict && `${p.audit.verdict} ${p.audit.score}`, p.reason].filter(Boolean).join(' · '))),
       h('div', { class: 'row' }, chip(p.status, p.status === 'registered' ? 'good' : p.status === 'rejected' ? 'bad' : ''),
-        p.status === 'registered' && h('button', { class: 'btn sm', title: 'Creates a second, labelled demo workspace with a site next to this one', onclick: e => guard(async () => { const r = await api('/demo/counterpart', { method: 'POST', body: { pool_parcel_id: p.id } }); ws.addQuiet(r.user, r.token); toast('Demo counterpart created. Open "Matches & deals" to act as it.'); draw(); }, e.target) }, '+ demo counterpart'),
-        p.status === 'registered' && h('button', { class: 'btn sm danger', onclick: e => guard(async () => { await api('/pool/portfolio/' + p.id, { method: 'DELETE' }); draw(); }, e.target) }, 'Withdraw'))))) : empty('Nothing in the pool yet.')));
+        p.status === 'registered' && h('button', { class: 'btn sm', title: 'Creates a second, labelled demo workspace with a site next to this one', onclick: e => guard(async () => { const r = await api('/demo/counterpart', { method: 'POST', body: { pool_parcel_id: p.id } }); ws.addQuiet(r.user, r.token); if (r.registration.status === 'registered') toast(`Demo counterpart created. New matches: ${r.registration.new_matches}. Open "Matches & deals" to act as it.`); else toast('The counterpart site did not pass the audit: ' + (r.registration.reasons || []).join('; '), true); draw(); }, e.target) }, '+ demo counterpart'),
+        h('button', { class: 'btn sm danger', onclick: e => guard(async () => { await api('/pool/portfolio/' + p.id, { method: 'DELETE' }); draw(); }, e.target) }, p.status === 'registered' ? 'Withdraw' : 'Remove'))))) : empty('Nothing in the pool yet.')));
     // presenter tool, kept out of the way (like the farm page's test-data links)
     out.append(h('details', { class: 'quiet' }, h('summary', null, 'Demo tools'), await neighbourhoodCard(draw)));
     return out;
   }
   async function deals() {
     const [teasers, deals] = await Promise.all([api('/pool/teasers'), api('/pool/deals')]);
+    // the other party acts in its own session: follow the deal so the NDA and the result appear without a manual refresh
+    const stamp = list => JSON.stringify(list.map(d => [d.match_id, d.status, d.own_paid, d.counterpart_paid, d.you, d.counterpart]));
+    const follow = async () => { if (!box.isConnected) return; const now = await api('/pool/deals').catch(() => deals); if (!box.isConnected) return; if (stamp(now) !== stamp(deals)) draw(); else setTimeout(follow, 5000); };
+    setTimeout(follow, 5000);
     const box = h('div', { class: 'stack' }); const byId = new Map(deals.map(d => [d.match_id, d]));
     const ids = [...new Set([...teasers.map(t => t.match_id), ...deals.map(d => d.match_id)])];
     for (const id of ids) box.append(dealCard(id, teasers.find(t => t.match_id === id), byId.get(id), draw));
-    const list = ws.read().list, me2 = ws.current, cp = list.find(x => x.persona === 'demo-counterpart' && x.country === me2.country), back = list.find(x => x.persona !== 'demo-counterpart' && x.role === 'developer');
+    const list = ws.read().list, me2 = ws.current, cp = list.filter(x => x.persona === 'demo-counterpart' && x.country === me2.country).pop(), back = list.find(x => x.persona !== 'demo-counterpart' && x.role === 'developer');
     const switcher = me2.persona === 'demo-counterpart' ? (back ? h('div', { class: 'callout warn row between' }, h('span', null, 'You are acting as the demo counterpart. Its consent and signature are yours to give.'), actAs('Back to ' + back.name, back.id)) : null) : (cp ? h('div', { class: 'callout row between' }, h('span', null, 'The other side of this deal is a demo workspace. Switch to it to give its consent, payment and signature.'), actAs('Act as ' + cp.name, cp.id)) : null);
     return h('div', { class: 'stack' }, switcher, h('div', { class: 'callout' }, 'Process: anonymous teaser → both consent → both payments locked → NDA signed by each party for itself → disclosure plus joint calculation. Proximity alone does not establish a continuous land block or prove a joint benefit.'),
       ids.length ? box : empty('No matches yet. Add a site to the pool; a match appears when another developer has a site within 1.5 km. To try the full flow alone, add a demo counterpart on the Sites tab.'));
@@ -393,7 +430,7 @@ function dealCard(id, teaser, deal, redraw) {
   card.append(head);
   const consent = dec => e => guard(async () => { await api(`/pool/deals/${id}/consent`, { method: 'POST', body: { decision: dec } }); redraw(); }, e.target);
   if (d.status === 'not_started' || d.status === 'pending_consent') {
-    const mine = d.you?.consented;
+    const mine = d.you?.consent === 'accept';
     card.append(h('div', { class: 'row' }, !mine && h('button', { class: 'btn primary', onclick: async e => { const inputs = {}; const dlg = h('div', { class: 'card stack' }, h('b', null, 'Your company details (printed in the NDA; e-mail and phone are shown to the counterpart only after signing)'), ...PROFILE[country()].map(([k, l]) => field(l, inputs[k] = h('input', { value: '' }))), h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: ev => guard(async () => { await api('/pool/profile', { method: 'PUT', body: Object.fromEntries(Object.entries(inputs).map(([k, i]) => [k, i.value])) }); await api(`/pool/deals/${id}/consent`, { method: 'POST', body: { decision: 'accept' } }); redraw(); }, ev.target) }, 'Save details and accept'), h('button', { class: 'btn', onclick: () => dlg.remove() }, 'Cancel'))); card.append(dlg); } }, 'Accept introduction'),
       mine && chip('You accepted - waiting for the other side', 'warn'), h('button', { class: 'btn danger', onclick: consent('decline') }, 'Decline')));
   } else if (d.order) {
