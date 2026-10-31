@@ -59,9 +59,11 @@ export function orderPanel(initial, { onChange } = {}) {
     const children = [h('div', { class: 'row between' }, h('div', null, h('b', null, o.title), ' ', h('span', { class: 'muted' }, '· ' + o.subject), h('div', { class: 'small muted' }, `${o.country} · ${fmtTime(o.created_at)} · order ${o.id.slice(0, 8)}`)), stateChip(o)),
       facts(o), payBlock(o, load)];
     if (o.state === 'delivered') children.push(h('div', { id: 'result-slot' }, spinner('Loading result…')));
-    children.push(h('details', null, h('summary', null, 'Technical details and timeline'), kv([['Order id', hash(o.id)], ['Input hash', hash(o.input_hash)], ['Result hash', o.result_hash ? hash(o.result_hash) : '-'], ['Channel', o.channel], ['Price (base units)', o.price.amount + ' ' + o.price.symbol + ' units'],
+    const tech = () => h('details', null, h('summary', null, 'Technical details and timeline'), kv([['Order id', hash(o.id)], ['Input hash', hash(o.input_hash)], ['Result hash', o.result_hash ? hash(o.result_hash) : '-'], ['Channel', o.channel], ['Price (base units)', o.price.amount + ' ' + o.price.symbol + ' units'],
       ['Payment state', o.payment.on_chain_state || o.payment.stage || '-']]),
-      h('div', { class: 'stack', style: 'margin-top:.6rem' }, (o.events || []).map(e => h('div', { class: 'bubble' }, h('time', null, fmtTime(e.at)), e.event.replace(/_/g, ' '), e.data && Object.keys(e.data).length ? ' - ' + Object.entries(e.data).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(', ') : '')))));
+      h('div', { class: 'stack', style: 'margin-top:.6rem' }, (o.events || []).map(e => h('div', { class: 'bubble' }, h('time', null, fmtTime(e.at)), e.event.replace(/_/g, ' '), e.data && Object.keys(e.data).length ? ' - ' + Object.entries(e.data).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(', ') : ''))));
+    if (o.state !== 'delivered') children.push(tech());
+    root._tech = tech;
     root.replaceChildren(...children.filter(Boolean));
     if (o.state === 'delivered') loadResult();
   }
@@ -69,7 +71,7 @@ export function orderPanel(initial, { onChange } = {}) {
     const slot = root.querySelector('#result-slot'); if (!slot) return;
     try {
       const r = await api(`/orders/${order.id}/result`);
-      slot.replaceChildren(renderResult(order, r), resultActions(order, r));
+      slot.replaceChildren(renderResult(order, r), root._tech(), resultActions(order, r));
     } catch (e) { slot.replaceChildren(empty(e.message)); }
   }
   load();
