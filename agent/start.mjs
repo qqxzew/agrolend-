@@ -16,9 +16,16 @@ export function eveBinary(resolveModule=createRequire(import.meta.url).resolve){
  if(typeof pkg.bin?.eve!=='string')throw new Error('Installed eve package has no eve executable');
  return resolve(dirname(manifest),pkg.bin.eve);
 }
+// EVE_MODE=start runs the agent compiled by `eve build` (servers); the default `dev` compiles at start.
+export function eveArgs(env,port){
+ const mode=env.EVE_MODE?.trim()||'dev';
+ if(mode==='start')return ['start','--host','127.0.0.1','--port',String(port)];
+ if(mode==='dev')return ['dev','--no-ui','--no-default-extensions','--host','127.0.0.1','--port',String(port)];
+ throw new Error('EVE_MODE must be dev or start');
+}
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  const {port,url}=eveAddress(process.env);
- const child=spawn(process.execPath,[eveBinary(),'dev','--no-ui','--no-default-extensions','--host','127.0.0.1','--port',String(port)],{stdio:'inherit',env:{...process.env,EVE_PORT:String(port),EVE_URL:url}});
+ const child=spawn(process.execPath,[eveBinary(),...eveArgs(process.env,port)],{stdio:'inherit',env:{...process.env,EVE_PORT:String(port),EVE_URL:url}});
  child.on('error',()=>{console.error('Eve could not start');process.exitCode=1;});
  child.on('exit',(code,signal)=>{process.exitCode=code??(signal?1:0);});
  for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>child.kill(signal));
