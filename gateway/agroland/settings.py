@@ -54,11 +54,11 @@ class Settings:
     rate_orders_per_hour: int = 120       # order creations per workspace
     max_body_bytes: int = 12 * 1024 * 1024
     max_parcels_per_user: int = 200
+    openai_api_key: str = ""              # home-page assistant (chat.py); empty = the page falls back to keyword routing
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_model: str = "gpt-4.1-mini"
+    rate_chat_per_hour: int = 60          # assistant messages per client IP
     cropwatch: str = "live"               # "live": Lease Check reads Sentinel-2 / Open-Meteo for parcels with boundaries; "off": section marked unavailable
-    llm_base_url: str = ""                # AI chat on the home page: any OpenAI-compatible provider (empty = chat switched off)
-    llm_api_key: str = ""
-    llm_model: str = ""
-    rate_chat_per_hour: int = 120         # chat messages per workspace / client IP
 
     @property
     def paid(self) -> bool:
@@ -102,10 +102,9 @@ def get_settings() -> Settings:
         trust_proxy=_flag("AGROLAND_TRUST_PROXY"),
         rate_sessions_per_hour=int(e("AGROLAND_RATE_SESSIONS_PER_HOUR", "30")),
         rate_orders_per_hour=int(e("AGROLAND_RATE_ORDERS_PER_HOUR", "120")),
+        openai_api_key=e("OPENAI_API_KEY", ""),
+        openai_base_url=e("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/"),
+        openai_model=e("OPENAI_MODEL", "gpt-4.1-mini"),
+        rate_chat_per_hour=int(e("AGROLAND_RATE_CHAT_PER_HOUR", "60")),
         cropwatch=crop,
-        # fallbacks: the Sokosumi Coworker's ZAI_* variables, then the machine's OPENAI_API_KEY with the Coworker's model, so one key serves both
-        llm_base_url=e("AGROLAND_LLM_BASE_URL", e("ZAI_BASE_URL", "https://api.openai.com/v1" if e("OPENAI_API_KEY") else "")).rstrip("/"),
-        llm_api_key=e("AGROLAND_LLM_API_KEY", e("ZAI_API_KEY", e("OPENAI_API_KEY", ""))),
-        llm_model=e("AGROLAND_LLM_MODEL", e("ZAI_MODEL", "gpt-4.1-mini" if e("OPENAI_API_KEY") else "")),
-        rate_chat_per_hour=int(e("AGROLAND_RATE_CHAT_PER_HOUR", "120")),
     )

@@ -119,27 +119,29 @@ function auditResult(o, rep) {
 function leaseResult(o, rep) {
   const s = rep.summary, m = rep.meta, cur = m.currency;
   const fm = n => money(n, cur);
+  const achieved = h('div', { class: 'n' }, fm(s.achieved_per_year));
+  api(`/farm/outcomes/${o.id}`).then(r => { achieved.textContent = fm(r.achieved_per_year); }).catch(() => {});
   return h('div', { class: 'stack' },
     h('div', { class: 'tiles stats' },
       h('div', { class: 'tile warn' }, h('div', { class: 'n' }, fm(s.identified_per_year)), h('div', { class: 'l' }, 'Identified from your documents / year')),
       h('div', { class: 'tile info' }, h('div', { class: 'n' }, fm(s.negotiable_per_year)), h('div', { class: 'l' }, 'Negotiation opportunity / year (not a loss)')),
-      h('div', { class: 'tile good', id: 'achieved' }, h('div', { class: 'n' }, fm(s.achieved_per_year)), h('div', { class: 'l' }, 'Savings achieved (you record these)')),
+      h('div', { class: 'tile good' }, achieved, h('div', { class: 'l' }, 'Savings achieved (you record these)')),
       h('div', { class: 'tile' }, h('div', { class: 'n' }, s.expiring_contracts.length), h('div', { class: 'l' }, 'Leases expiring soon'))),
     h('p', { class: 'small muted' }, `${m.farm_name} · ${s.contracts_count} leases · ${num(s.total_area_contract)} ${m.area_unit} · rent ${fm(s.total_rent_per_year)}/year · verification: `, chip(rep.verification.status, rep.verification.status === 'pass' ? 'good' : 'bad')),
     h('h4', { class: 'sec' }, 'Findings'),
     h('table', { class: 't findings' }, h('thead', null, h('tr', null, ['Type', 'Lease', 'Finding', `${cur}/year`, ''].map(x => h('th', null, x)))),
       h('tbody', null, rep.findings.map(f => h('tr', null,
         h('td', null, chip(f.category, f.category === 'identified' ? 'warn' : f.category === 'negotiable' ? 'info' : '')), h('td', null, f.contract_id), h('td', null, f.explanation), h('td', null, f.amount_per_year ? fm(f.amount_per_year) : '-'),
-        h('td', null, f.category !== 'expiring' && h('button', { class: 'btn sm', onclick: e => recordOutcome(o, f, e.target) }, 'Record saving')))))),
+        h('td', null, f.category !== 'expiring' && h('button', { class: 'btn sm', onclick: e => recordOutcome(o, f, e.target, v => { achieved.textContent = fm(v); }) }, 'Record saving')))))),
     s.expiring_contracts.length ? h('div', { class: 'callout warn' }, h('b', null, 'Deadlines'), h('ul', null, s.expiring_contracts.map(e => h('li', null, `${e.contract_id} (${e.owner}) ends ${e.end_date} - ${e.days_left} days`)))) : null,
     rep.warnings.length ? h('div', { class: 'callout warn' }, rep.warnings.map(w => h('div', null, w))) : null,
     h('p', { class: 'small muted' }, m.benchmark_note), cropSection(rep), limits(rep.limitations));
 }
 
-async function recordOutcome(o, f, btn) {
+async function recordOutcome(o, f, btn, show) {
   const raw = prompt(`How much per year did you actually save on ${f.contract_id}? (0 = nothing yet)`, '0'); if (raw == null) return;
   const note = prompt('Short note (optional): e.g. "owner agreed to a new rent from January"', '') || '';
-  await guard(async () => { const r = await api('/farm/outcomes', { method: 'POST', body: { order_id: o.id, finding_key: `${f.type}:${f.contract_id}`, amount_per_year: Number(raw), note } }); toast('Recorded. Achieved so far: ' + r.achieved_per_year); const t = document.querySelector('#achieved .n'); if (t) t.textContent = r.achieved_per_year; }, btn);
+  await guard(async () => { const r = await api('/farm/outcomes', { method: 'POST', body: { order_id: o.id, finding_key: `${f.type}:${f.contract_id}`, amount_per_year: Number(raw), note } }); toast('Recorded'); show(r.achieved_per_year); }, btn);
 }
 
 function poolResult(o, rep) {
@@ -148,7 +150,7 @@ function poolResult(o, rep) {
   const eur = n => n == null ? '-' : (o.country === 'IN' ? '₹' : '€') + Number(n).toLocaleString(o.country === 'IN' ? 'en-IN' : 'en-GB', { maximumFractionDigits: 0 });
   return h('div', { class: 'stack' },
     h('div', { class: 'callout good' }, h('b', null, 'Disclosed after both NDAs were signed')),
-    kv([['Counterpart', co.company_name], ['Representative', co.representative], ['E-mail', co.email], ['Phone', co.phone], ['Their parcel', par.label || par.municipality || par.alkis_parcel_id], ['Technology', par.assessed_technology], ['Area (ha)', par.area_ha]]),
+    kv([['Counterpart', co.company_name], ['Representative', co.representative], ['E-mail', co.email], ['Phone', co.phone], ['Their parcel', par.label || par.municipality || par.alkis_parcel_id], ['Technology', par.assessed_technology ?? par.audit_report?.assessed_technology], ['Area (ha)', par.area_ha]]),
     h('h4', null, 'Preliminary joint calculation'),
     plan.viable === false || plan.pooling_beneficial === false
       ? h('div', { class: 'callout warn' }, h('b', null, plan.viable === false ? 'On these assumptions the joint project is not viable. ' : 'Pooling does not create value on these assumptions. '), 'Being close is not enough: the model compares the joint project with each site alone. The split below is the fall-back key (', plan.method_applied || 'area', '), not a recommendation to proceed.')

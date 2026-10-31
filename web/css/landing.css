@@ -2,7 +2,7 @@
 header.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
 header.top .wrap { display: flex; align-items: center; gap: 1rem; min-height: 64px; }
 .brand { display: inline-flex; align-items: center; gap: .6rem; font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; }
-.brand .logo { width: 30px; height: 30px; border-radius: 3px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-weight: 800; }
+.brand .logo { width: 30px; height: 30px; display: block; }
 header.top nav { margin-left: auto; display: flex; gap: .25rem; align-items: center; flex-wrap: wrap; }
 header.top nav a.link { color: var(--muted); text-decoration: none; padding: .4rem .7rem; border-radius: 3px; font-weight: 600; font-size: .95rem; }
 header.top nav a.link:hover { color: var(--text); background: var(--surface-2); }

@@ -51,6 +51,10 @@ Three paid services are registered in Masumi as separate agents; the language-mo
 | **Configuration** | `AGENT_IDENTIFIER_POOL_ACCESS`. |
 | **Verification** | `gateway/tests/test_pool.py` — runs against the **real** matcher, escrow and architect services for **both DE and IN**: payment gate before the NDA, hash-checked signatures, no delivery before both sign, access control for outsiders, decline path. |
 
+### Home-page assistant
+
+The chat on the app's home page answers questions about AgroLand and offers a button to the right workflow. It uses the OpenAI API from the gateway (`gateway/agroland/chat.py`, `POST /api/chat`; `OPENAI_API_KEY` in `.env`, `OPENAI_MODEL` defaults to `gpt-4.1-mini`). It only talks: no orders, no payment, no access to workspace data. Without a key the page falls back to keyword routing.
+
 ### Agent 4 — AgroLand Concierge  (Sokosumi Coworker, language model; not a paid registration)
 | | |
 |---|---|

@@ -1,4 +1,4 @@
-import { api, ws, h, esc, chip, fmtTime, num, money, toast, guard, download, copy, hash, kv, field, empty, spinner, ApiError } from './core.js';
+import { api, ws, h, chip, fmtTime, num, money, toast, guard, download, copy, hash, kv, field, empty, spinner, ApiError } from './core.js';
 import { parcelMap } from './map.js';
 import { orderPanel, stateChip } from './order.js';
 import { fieldMap, fieldDetail, legend } from './crop.js';
@@ -15,96 +15,79 @@ export function start(q) {
   const name = h('input', { placeholder: 'Your name or company', maxlength: 80, value: '' });
   const r = h('select', null, ['owner', 'farm', 'developer'].map(x => h('option', { value: x, selected: x === role }, ROLE_TEXT[x])));
   const c = h('select', null, h('option', { value: 'DE' }, 'Germany'), h('option', { value: 'IN' }, 'India'));
-  const list = ws.read().list;
-  return h('div', { class: 'cols' },
-    h('div', { class: 'card' }, h('h2', null, 'Create a workspace'),
-      h('p', { class: 'muted' }, 'A workspace keeps your parcels, documents, orders and deals private to you. There is no password: your browser keeps a secret token, so do not clear site data if you want to come back.'),
-      field('Name', name), field('I am a…', r), field('Country', c, 'Data, units, currency and documents follow the country.'),
-      h('button', { class: 'btn primary', onclick: e => guard(async () => { const res = await api('/session', { method: 'POST', body: { name: name.value, role: r.value, country: c.value } }); ws.add(res.user, res.token); location.hash = '#/' + (res.user.role === 'owner' ? 'owner' : res.user.role === 'farm' ? 'farm' : 'developer'); ctx.rerender(); }, e.target) }, 'Create workspace')),
-    h('div', { class: 'card' }, h('h2', null, 'Your workspaces on this device'), list.length ? h('div', { class: 'list' }, list.map(w => h('div', { class: 'item' + (w.id === ws.current?.id ? ' sel' : '') },
-      h('div', { class: 't' }, h('b', null, w.name), h('span', { class: 'small muted' }, `${ROLE_TEXT[w.role]} · ${w.country}${w.persona ? ' · demo' : ''}`)),
-      h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => { ws.use(w.id); ctx.rerender(); location.hash = '#/'; } }, 'Use'), h('button', { class: 'btn sm danger', onclick: () => { if (confirm('Forget this workspace on this device? Its data stays on the server but you lose access without the token.')) { ws.drop(w.id); ctx.rerender(); } } }, 'Forget'))))) : empty('None yet.'),
-      h('p', { class: 'small muted' }, 'Two-party flows (pool deals) need two workspaces: yours, and a clearly labelled demo counterpart that you can create inside the Developer area.')));
+  return h('div', { class: 'card', style: 'max-width:560px;margin-inline:auto' }, h('h2', null, 'Create a workspace'),
+    h('p', { class: 'muted' }, 'A workspace keeps your parcels, documents, orders and deals private to you. There is no password: your browser keeps a secret token, so do not clear site data if you want to come back.'),
+    field('Name', name), field('I am a…', r), field('Country', c, 'Data, units, currency and documents follow the country.'),
+    h('button', { class: 'btn primary', onclick: e => guard(async () => { const res = await api('/session', { method: 'POST', body: { name: name.value, role: r.value, country: c.value } }); ws.add(res.user, res.token); location.hash = '#/' + (res.user.role === 'owner' ? 'owner' : res.user.role === 'farm' ? 'farm' : 'developer'); ctx.rerender(); }, e.target) }, 'Create workspace'));
 }
 
 // Cartoon avatars of the three agents (inline SVG, no external files).
 const AVATAR = {
+  guide: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#e3efe0"/><path d="M32 9v7" stroke="#1f4d2e" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="8" r="4" fill="#e0a43a"/><rect x="13" y="16" width="38" height="31" rx="12" fill="#1f4d2e"/><rect x="18" y="22" width="28" height="19" rx="8" fill="#f4f7f0"/><circle cx="26" cy="31" r="3.2" fill="#1f4d2e"/><circle cx="38" cy="31" r="3.2" fill="#1f4d2e"/><circle cx="27" cy="30" r="1" fill="#fff"/><circle cx="39" cy="30" r="1" fill="#fff"/><path d="M27 36q5 4 10 0" fill="none" stroke="#1f4d2e" stroke-width="2.2" stroke-linecap="round"/><rect x="8" y="27" width="5" height="11" rx="2.5" fill="#8dc86a"/><rect x="51" y="27" width="5" height="11" rx="2.5" fill="#8dc86a"/><path d="M20 55q12-9 24 0" fill="#8dc86a"/></svg>',
   owner: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#dcefd6"/><circle cx="32" cy="36" r="17" fill="#f6d7b0"/><path d="M14 31a18 18 0 0 1 36 0z" fill="#e0a43a"/><rect x="11" y="30" width="42" height="5" rx="2.5" fill="#c98a1f"/><circle cx="26" cy="39" r="2" fill="#2b2b2b"/><circle cx="38" cy="39" r="2" fill="#2b2b2b"/><path d="M27 45q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><circle cx="46" cy="47" r="7" fill="#fff" fill-opacity=".6" stroke="#1f4d2e" stroke-width="3"/><path d="M51 52l7 7" stroke="#1f4d2e" stroke-width="4" stroke-linecap="round"/></svg>',
   farm: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#fff0cc"/><path d="M17 33a15 15 0 0 1 30 0z" fill="#8a5a2b"/><circle cx="32" cy="37" r="16" fill="#f6d7b0"/><path d="M15 29q17-12 34 0l-3 6H18z" fill="#8a5a2b"/><circle cx="26" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><circle cx="38" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><path d="M31 38h2" stroke="#2b2b2b" stroke-width="2"/><circle cx="26" cy="38" r="1.6" fill="#2b2b2b"/><circle cx="38" cy="38" r="1.6" fill="#2b2b2b"/><path d="M28 46q4 3 8 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><rect x="38" y="44" width="17" height="18" rx="2" fill="#fff" stroke="#1f4d2e" stroke-width="2.5"/><path d="M42 50h9M42 54h9M42 58h5" stroke="#1f4d2e" stroke-width="2" stroke-linecap="round"/></svg>',
   developer: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#d9eef8"/><circle cx="32" cy="36" r="16" fill="#f6d7b0"/><path d="M16 33c0-14 32-14 32 0-6-6-26-6-32 0z" fill="#3b2a1a"/><circle cx="26" cy="38" r="2" fill="#2b2b2b"/><circle cx="38" cy="38" r="2" fill="#2b2b2b"/><path d="M27 44q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><path d="M13 36a19 19 0 0 1 38 0" fill="none" stroke="#1f6b8f" stroke-width="3.5" stroke-linecap="round"/><rect x="9" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><rect x="49" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><circle cx="26" cy="56" r="6" fill="none" stroke="#1f4d2e" stroke-width="3"/><circle cx="38" cy="56" r="6" fill="none" stroke="#e0a43a" stroke-width="3"/></svg>',
 };
 
-// ---------------------------------------------------------------- home: AI chat
-// The assistant (POST /api/chat) answers from AgroLand's catalogue and the visitor's own orders and can offer a button into a workflow.
-// It never orders or pays. Without a configured model the box falls back to opening the matching workflow by keywords.
-const CHAT_KEY = 'agroland.chat.v1';
-const chatState = {
-  read() { try { return JSON.parse(sessionStorage.getItem(CHAT_KEY)) || { messages: [], agent: '' }; } catch { return { messages: [], agent: '' }; } },
-  write(v) { try { sessionStorage.setItem(CHAT_KEY, JSON.stringify(v)); } catch { /* private mode: the conversation lives until reload */ } },
-};
-// Tiny, safe formatting for model text: escape first, then **bold**, `code`, "- " / "1. " lists and paragraphs.
-function richText(text) {
-  const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
-  const out = []; let list = null;
-  for (const line of String(text).split('\n')) {
-    const m = line.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)$/);
-    if (m) { if (!list) { list = []; out.push(list); } list.push(inline(m[1])); continue; }
-    list = null; if (line.trim()) out.push(inline(line.trim()));
-  }
-  return out.map(x => Array.isArray(x) ? '<ul>' + x.map(i => `<li>${i}</li>`).join('') + '</ul>' : `<p>${x}</p>`).join('');
-}
+// ---------------------------------------------------------------- home
+const ACTION = { owner: 'Open Land Audit', farm: 'Open Lease Check', developer: 'Open Pool Access', orders: 'Open my orders', data: 'Open data and sources' };
+// each workspace keeps its own conversation, like separate chats
+const chatKey = () => 'agl.chat.' + (ws.current?.id || 'none');
+const chatRead = () => { try { return JSON.parse(sessionStorage.getItem(chatKey())) || []; } catch { return []; } };
+const chatWrite = v => { try { sessionStorage.setItem(chatKey(), JSON.stringify(v)); } catch {} };
 
 export function home() {
   const w = ws.current;
-  const aiOn = !!ctx.config.chat;
-  const st = chatState.read();
   const route = txt => { const s = txt.toLowerCase();
-    if (/lease|rent|farm|contract|pacht|аренд|ферм|договор/.test(s)) return 'farm';
-    if (/neighbo|nda|pool|developer|wind|solar|site|сосед|ветр|солн|девелоп/.test(s)) return 'developer';
+    if (/lease|rent|farm|contract|pacht/.test(s)) return 'farm';
+    if (/neighbo|nda|pool|developer|wind|solar|site|audit/.test(s)) return 'developer';
     return 'owner'; };
   const agents = [['owner', 'Land Audit', 'Is this site good for wind or solar?', 'land_audit'], ['farm', 'Lease Check', 'Finds overpaid rent and unfarmed land.', 'lease_check'], ['developer', 'Pool Access', 'Meets neighbouring developers under NDA.', 'pool_access']];
-  const open = r => { location.hash = w?.role === r ? '#/' + r : '#/start?role=' + r; };
-  const text = h('textarea', { rows: 1, placeholder: aiOn ? 'Ask about prices, your parcel, leases or reports…' : 'Describe what you need, e.g. "check my leases"', 'aria-label': 'Message' });
-  const sel = h('select', { 'aria-label': 'Agent', onchange: () => { st.agent = sel.value; chatState.write(st); } }, h('option', { value: '' }, aiOn ? 'Any agent' : 'Pick for me'), agents.map(([r, n]) => h('option', { value: r, selected: st.agent === r }, n)));
-  const sendBtn = h('button', { class: 'send', 'aria-label': 'Send' }, '↑');
-  const thread = h('div', { class: 'chat-thread', 'aria-live': 'polite' });
-  const av = () => h('span', { class: 'msg-av', html: AVATAR[st.agent] || AVATAR.owner });
-  const bubble = m => h('div', { class: 'msg ' + m.role + (m.error ? ' error' : '') }, m.role === 'assistant' && av(),
-    h('div', { class: 'msg-body' }, m.role === 'assistant' ? h('div', { class: 'msg-text', html: richText(m.content) }) : h('div', { class: 'msg-text' }, m.content),
-      m.actions?.length ? h('div', { class: 'msg-actions' }, m.actions.map(a => h('a', { class: 'btn sm primary', href: a.href }, a.label + ' →'))) : null));
-  let busy = false, root;
-  const paint = () => {
-    thread.replaceChildren(...st.messages.map(bubble), busy ? h('div', { class: 'msg assistant typing' }, av(), h('div', { class: 'msg-body' }, h('span', { class: 'dots' }, h('i'), h('i'), h('i')))) : '');
-    root.classList.toggle('chatting', st.messages.length > 0);
-    thread.scrollTop = thread.scrollHeight;
-  };
-  const fit = () => { text.style.height = 'auto'; text.style.height = Math.min(text.scrollHeight, 160) + 'px'; };
-  const send = async () => {
-    const q = text.value.trim(); if (!q || busy) return;
-    if (!aiOn) { const r = sel.value || route(q); location.hash = w?.role === r ? '#/' + r : '#/start?role=' + r; return; }
-    st.messages.push({ role: 'user', content: q }); text.value = ''; fit(); busy = true; sendBtn.disabled = true; chatState.write(st); paint();
+  // a workflow belongs to one workspace role, so another role goes through workspace creation
+  const open = r => { location.hash = !['owner', 'farm', 'developer'].includes(r) || w?.role === r ? '#/' + r : '#/start?role=' + r; };
+  let msgs = chatRead(), busy = false;
+  const log = h('div', { class: 'chatlog', 'aria-live': 'polite' });
+  const text = h('input', { placeholder: 'Ask anything, e.g. "check my leases" or "is my site good for solar?"', 'aria-label': 'What would you like to check?', maxlength: 1000 });
+  const sel = h('select', { 'aria-label': 'Agent' }, h('option', { value: '' }, 'Pick for me'), agents.map(([r, n]) => h('option', { value: r }, n)));
+  const send = h('button', { class: 'send', 'aria-label': 'Send', onclick: () => go() }, '↑');
+  const page = h('div', { class: 'home' });
+  function paint(pending) {
+    page.classList.toggle('chatting', msgs.length > 0 || !!pending);
+    const last = msgs.length - 1;
+    const av = () => h('span', { class: 'msg-av', html: AVATAR[sel.value] || AVATAR.guide });
+    log.replaceChildren(...msgs.map((m, i) => h('div', { class: 'msg ' + m.role }, m.role === 'assistant' && av(), h('div', { class: 'msg-body' }, h('div', { class: 'msg-text' }, m.content), m.open && ACTION[m.open] && h('button', { class: 'btn sm primary', onclick: () => open(m.open) }, ACTION[m.open] + ' →'),
+      i === last && !pending && m.suggestions?.length ? h('div', { class: 'sugg' }, m.suggestions.map(q => h('button', { class: 'chip-btn', onclick: () => go(q) }, q))) : null))), ...(pending ? [h('div', { class: 'msg assistant' }, av(), h('div', { class: 'msg-body' }, spinner('Thinking…')))] : []));
+    log.scrollTop = log.scrollHeight;
+  }
+  async function go(preset) {
+    const q = (typeof preset === 'string' ? preset : text.value).trim();
+    if (!q) { if (sel.value) open(sel.value); return; }
+    if (busy) return;
+    busy = true; send.disabled = true; text.value = '';
+    msgs.push({ role: 'user', content: q }); chatWrite(msgs); paint(true);
     try {
-      const r = await api('/chat', { method: 'POST', body: { messages: st.messages.filter(m => !m.error).map(({ role, content }) => ({ role, content })).slice(-24), agent: st.agent || null } });
-      st.messages.push({ role: 'assistant', content: r.reply, actions: r.actions });
-    } catch (e) { st.messages.push({ role: 'assistant', content: e.message || String(e), error: true }); }
-    busy = false; sendBtn.disabled = false; chatState.write(st); paint(); text.focus();
-  };
-  sendBtn.addEventListener('click', send);
-  text.addEventListener('input', fit);
-  text.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-  const reset = h('button', { class: 'btn sm chat-reset', onclick: () => { st.messages = []; chatState.write(st); paint(); text.focus(); } }, 'New chat');
-  root = h('div', { class: 'home' },
+      const r = await api('/chat', { method: 'POST', body: { messages: msgs.map(({ role, content }) => ({ role, content })), role: w?.role, country: w?.country, agent: sel.value || undefined } });
+      msgs.push({ role: 'assistant', content: r.reply, open: r.open, suggestions: r.suggestions || [] });
+    } catch (e) {
+      // without the assistant the page still gets the visitor to the right workflow
+      msgs.push({ role: 'assistant', content: e.status === 429 ? e.message : 'The assistant is not available right now, but this workflow looks like the right one.', open: sel.value || route(q) });
+    }
+    busy = false; send.disabled = false; chatWrite(msgs); paint(); text.focus();
+  }
+  text.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  const back = h('button', { class: 'chat-back', 'aria-label': 'Leave the chat', title: 'Back to the start', onclick: () => { msgs = []; chatWrite(msgs); paint(); text.focus(); } }, h('span', { 'aria-hidden': 'true' }, '←'), ' Back');
+  const dot = h('span', { class: 'agent-dot', html: AVATAR.guide });
+  sel.addEventListener('change', () => { dot.innerHTML = AVATAR[sel.value] || AVATAR.guide; paint(); });
+  page.append(back,
     h('div', { class: 'hero' },
-      h('div', { class: 'logo-lockup' }, h('img', { src: '../img/logo-mark.svg', alt: '', width: 56, height: 56 }), h('div', { class: 'logo-word' }, h('b', null, 'Agro'), 'Land')),
-      h('p', { class: 'tagline' }, 'Pay-per-result land intelligence on Cardano'),
+      h('div', { class: 'brand-name' }, h('b', null, 'Agro'), 'Land'),
       h('h2', null, 'What would you like to check?')),
-    thread,
-    h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), reset, h('span', { class: 'grow' }), sendBtn)),
-    !aiOn && h('p', { class: 'small muted chat-off' }, 'AI chat is switched off on this server; the box opens the matching workflow.'),
+    log,
+    h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, dot, sel), h('span', { class: 'grow' }), send)),
     h('div', { class: 'agent-row' }, agents.map(([r, name, line, svc]) => h('button', { class: 'agent-card', onclick: () => open(r) },
       h('span', { class: 'agent-av', html: AVATAR[r] }), h('span', { class: 'agent-txt' }, h('b', null, name), h('span', null, line), h('small', null, priceOf(svc)))))));
   paint();
-  return root;
+  return page;
 }
 
 // "Data and sources" and the agent table, kept off the chat page so it fits one screen
@@ -154,10 +137,10 @@ function auditComposer(parcel, { onOrder, typeChoices = ['solar', 'wind', 'hybri
 export async function owner(q = new URLSearchParams()) {
   const blocked = need('owner'); if (blocked) return blocked;
   const root = h('div', { class: 'stack' }); let parcels = await api('/parcels'), sel = null, changing = false, auditStarted = false, auditOpen = false, auditType = '', orderBox = h('div', null, empty('Order an audit to see it here.')), tab = q.get('tab') === 'listings' ? 'listings' : 'audit';
-  const listings = await api('/listings');
+  let listings = [];
   try { const sid = sessionStorage.getItem('agl.owner.sel'); sel = parcels.find(x => x.id === sid) || null; } catch {}   // the chosen parcel survives a page refresh
   async function draw() {
-    parcels = await api('/parcels');
+    [parcels, listings] = await Promise.all([api('/parcels'), api('/listings')]);
     try { sessionStorage.setItem('agl.owner.sel', sel?.id || ''); } catch {}
     const tabs = h('div', { class: 'tabs' }, [['audit', 'Audit a parcel'], ['listings', `My listings (${listings.length})`]].map(([k, l]) => h('button', { class: tab === k ? 'on' : '', onclick: () => { tab = k; draw(); } }, l)));
     const body = h('div');
@@ -185,7 +168,7 @@ export async function owner(q = new URLSearchParams()) {
         body.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, step2, h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), listingForm(sel, draw)));
       }
     } else {
-      body.append(listings.length ? h('div', { class: 'stack' }, (await api('/listings')).map(listingCard)) : empty('No listings yet. Audit a parcel and publish it when you are ready.'));
+      body.append(listings.length ? h('div', { class: 'stack' }, listings.map(listingCard)) : empty('No listings yet. Audit a parcel and publish it when you are ready.'));
     }
     root.replaceChildren(h('div', { class: 'callout' }, 'Publishing does not transfer rights to your land. Ownership is never verified by AgroLand; your document stays private to you.'), tabs, body);
   }
@@ -194,11 +177,12 @@ export async function owner(q = new URLSearchParams()) {
     return h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('b', null, l.parcel.label), chip(l.status.replace('_', ' '), statusKind)),
       h('div', { class: 'small muted' }, `${l.deal_type} · ${l.price} · ${num(l.parcel.area_ha)} ha · consent ${l.consent ? 'on' : 'off'}`),
       l.audit ? h('div', null, `Attached audit: ${l.audit.verdict} ${l.audit.score}/100`, l.audit.data_complete ? '' : ' (data incomplete)') : h('div', { class: 'callout warn' }, 'Not visible to developers yet: attach a delivered audit (run one in the Audit tab, then attach it here).'),
-      h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: e => guard(async () => { await api('/listings/' + l.id, { method: 'PATCH', body: { consent: !l.consent } }); toast(l.consent ? 'Withdrawn from developers' : 'Published'); location.reload(); }, e.target) }, l.consent ? 'Withdraw consent' : 'Publish'),
-        !l.audit && h('button', { class: 'btn sm', onclick: e => guard(async () => { const o = (await latestOrders('land_audit')).find(o => o.state === 'delivered' && o.subject === l.parcel.label); if (!o) throw new Error('No delivered audit for this parcel yet.'); await api('/listings/' + l.id, { method: 'PATCH', body: { audit_order_id: o.id } }); location.reload(); }, e.target) }, 'Attach latest audit'),
-        h('button', { class: 'btn sm danger', onclick: e => guard(async () => { if (confirm('Delete this listing?')) { await api('/listings/' + l.id, { method: 'DELETE' }); location.reload(); } }, e.target) }, 'Delete')),
+      h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: e => guard(async () => { await api('/listings/' + l.id, { method: 'PATCH', body: { consent: !l.consent } }); toast(l.consent ? 'Withdrawn from developers' : 'Published'); draw(); }, e.target) }, l.consent ? 'Withdraw consent' : 'Publish'),
+        !l.audit && h('button', { class: 'btn sm', onclick: e => guard(async () => { const o = (await latestOrders('land_audit')).find(o => o.state === 'delivered' && o.subject === l.parcel.label); if (!o) throw new Error('No delivered audit for this parcel yet.'); await api('/listings/' + l.id, { method: 'PATCH', body: { audit_order_id: o.id } }); draw(); }, e.target) }, 'Attach latest audit'),
+        l.document_id && h('button', { class: 'btn sm', onclick: async e => guard(async () => download(await api('/documents/' + l.document_id, { blob: true }), 'document.pdf'), e.target) }, 'Open document'),
+        h('button', { class: 'btn sm danger', onclick: e => guard(async () => { if (confirm('Delete this listing?')) { await api('/listings/' + l.id, { method: 'DELETE' }); draw(); } }, e.target) }, 'Delete')),
       l.interests.length ? h('div', null, h('h4', null, 'Interested developers'), h('div', { class: 'list' }, l.interests.map(i => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, i.developer_name), h('span', { class: 'small muted' }, i.message || '')),
-        i.status === 'pending' ? h('div', { class: 'row' }, ['accepted', 'declined'].map(d => h('button', { class: 'btn sm', onclick: e => guard(async () => { await api(`/listings/${l.id}/interests/${i.id}`, { method: 'POST', body: { decision: d } }); location.reload(); }, e.target) }, d === 'accepted' ? 'Share boundary' : 'Decline'))) : chip(i.status, i.status === 'accepted' ? 'good' : ''))))) : null);
+        i.status === 'pending' ? h('div', { class: 'row' }, ['accepted', 'declined'].map(d => h('button', { class: 'btn sm', onclick: e => guard(async () => { await api(`/listings/${l.id}/interests/${i.id}`, { method: 'POST', body: { decision: d } }); draw(); }, e.target) }, d === 'accepted' ? 'Share boundary' : 'Decline'))) : chip(i.status, i.status === 'accepted' ? 'good' : ''))))) : null);
   }
   await draw(); return root;
 }
@@ -393,20 +377,24 @@ export async function developer(q) {
         h('div', { class: 'row' }, type, h('button', { class: 'btn primary', onclick: e => guard(async () => { const r = await api('/pool/portfolio', { method: 'POST', body: { parcel_id: sel.id, project_type: type.value } }); toast(r.status === 'registered' ? `Registered. New matches: ${r.new_matches}` : 'Not added: ' + (r.reasons || []).join('; ')); draw(); }, e.target) }, 'Add to pool'), h('span', { class: 'small muted' }, 'Screening takes up to two minutes.')));
       out.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, step2, h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), pool));
     }
-    out.append(h('div', { class: 'card stack' }, h('h3', null, 'Your pool portfolio'), pf.length ? h('div', { class: 'list' }, pf.map(p => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, `${p.project_type} · ${p.audit?.verdict || ''} ${p.audit?.score ?? ''}`, p.reason ? ' · ' + p.reason : '')),
+    out.append(h('div', { class: 'card stack' }, h('h3', null, 'Your pool portfolio'), pf.length ? h('div', { class: 'list' }, pf.map(p => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, [p.project_type, p.audit?.verdict && `${p.audit.verdict} ${p.audit.score}`, p.reason].filter(Boolean).join(' · '))),
       h('div', { class: 'row' }, chip(p.status, p.status === 'registered' ? 'good' : p.status === 'rejected' ? 'bad' : ''),
-        p.status === 'registered' && h('button', { class: 'btn sm', title: 'Creates a second, labelled demo workspace with a site next to this one', onclick: e => guard(async () => { const r = await api('/demo/counterpart', { method: 'POST', body: { pool_parcel_id: p.id } }); ws.addQuiet(r.user, r.token); toast('Demo counterpart created. Open "Matches & deals" to act as it.'); draw(); }, e.target) }, '+ demo counterpart'),
-        p.status === 'registered' && h('button', { class: 'btn sm danger', onclick: e => guard(async () => { await api('/pool/portfolio/' + p.id, { method: 'DELETE' }); draw(); }, e.target) }, 'Withdraw'))))) : empty('Nothing in the pool yet.')));
+        p.status === 'registered' && h('button', { class: 'btn sm', title: 'Creates a second, labelled demo workspace with a site next to this one', onclick: e => guard(async () => { const r = await api('/demo/counterpart', { method: 'POST', body: { pool_parcel_id: p.id } }); ws.addQuiet(r.user, r.token); if (r.registration.status === 'registered') toast(`Demo counterpart created. New matches: ${r.registration.new_matches}. Open "Matches & deals" to act as it.`); else toast('The counterpart site did not pass the audit: ' + (r.registration.reasons || []).join('; '), true); draw(); }, e.target) }, '+ demo counterpart'),
+        h('button', { class: 'btn sm danger', onclick: e => guard(async () => { await api('/pool/portfolio/' + p.id, { method: 'DELETE' }); draw(); }, e.target) }, p.status === 'registered' ? 'Withdraw' : 'Remove'))))) : empty('Nothing in the pool yet.')));
     // presenter tool, kept out of the way (like the farm page's test-data links)
     out.append(h('details', { class: 'quiet' }, h('summary', null, 'Demo tools'), await neighbourhoodCard(draw)));
     return out;
   }
   async function deals() {
     const [teasers, deals] = await Promise.all([api('/pool/teasers'), api('/pool/deals')]);
+    // the other party acts in its own session: follow the deal so the NDA and the result appear without a manual refresh
+    const stamp = list => JSON.stringify(list.map(d => [d.match_id, d.status, d.own_paid, d.counterpart_paid, d.you, d.counterpart]));
+    const follow = async () => { if (!box.isConnected) return; const now = await api('/pool/deals').catch(() => deals); if (!box.isConnected) return; if (stamp(now) !== stamp(deals)) draw(); else setTimeout(follow, 5000); };
+    setTimeout(follow, 5000);
     const box = h('div', { class: 'stack' }); const byId = new Map(deals.map(d => [d.match_id, d]));
     const ids = [...new Set([...teasers.map(t => t.match_id), ...deals.map(d => d.match_id)])];
     for (const id of ids) box.append(dealCard(id, teasers.find(t => t.match_id === id), byId.get(id), draw));
-    const list = ws.read().list, me2 = ws.current, cp = list.find(x => x.persona === 'demo-counterpart' && x.country === me2.country), back = list.find(x => x.persona !== 'demo-counterpart' && x.role === 'developer');
+    const list = ws.read().list, me2 = ws.current, cp = list.filter(x => x.persona === 'demo-counterpart' && x.country === me2.country).pop(), back = list.find(x => x.persona !== 'demo-counterpart' && x.role === 'developer');
     const switcher = me2.persona === 'demo-counterpart' ? (back ? h('div', { class: 'callout warn row between' }, h('span', null, 'You are acting as the demo counterpart. Its consent and signature are yours to give.'), actAs('Back to ' + back.name, back.id)) : null) : (cp ? h('div', { class: 'callout row between' }, h('span', null, 'The other side of this deal is a demo workspace. Switch to it to give its consent, payment and signature.'), actAs('Act as ' + cp.name, cp.id)) : null);
     return h('div', { class: 'stack' }, switcher, h('div', { class: 'callout' }, 'Process: anonymous teaser → both consent → both payments locked → NDA signed by each party for itself → disclosure plus joint calculation. Proximity alone does not establish a continuous land block or prove a joint benefit.'),
       ids.length ? box : empty('No matches yet. Add a site to the pool; a match appears when another developer has a site within 1.5 km. To try the full flow alone, add a demo counterpart on the Sites tab.'));
@@ -442,7 +430,7 @@ function dealCard(id, teaser, deal, redraw) {
   card.append(head);
   const consent = dec => e => guard(async () => { await api(`/pool/deals/${id}/consent`, { method: 'POST', body: { decision: dec } }); redraw(); }, e.target);
   if (d.status === 'not_started' || d.status === 'pending_consent') {
-    const mine = d.you?.consented;
+    const mine = d.you?.consent === 'accept';
     card.append(h('div', { class: 'row' }, !mine && h('button', { class: 'btn primary', onclick: async e => { const inputs = {}; const dlg = h('div', { class: 'card stack' }, h('b', null, 'Your company details (printed in the NDA; e-mail and phone are shown to the counterpart only after signing)'), ...PROFILE[country()].map(([k, l]) => field(l, inputs[k] = h('input', { value: '' }))), h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: ev => guard(async () => { await api('/pool/profile', { method: 'PUT', body: Object.fromEntries(Object.entries(inputs).map(([k, i]) => [k, i.value])) }); await api(`/pool/deals/${id}/consent`, { method: 'POST', body: { decision: 'accept' } }); redraw(); }, ev.target) }, 'Save details and accept'), h('button', { class: 'btn', onclick: () => dlg.remove() }, 'Cancel'))); card.append(dlg); } }, 'Accept introduction'),
       mine && chip('You accepted - waiting for the other side', 'warn'), h('button', { class: 'btn danger', onclick: consent('decline') }, 'Decline')));
   } else if (d.order) {

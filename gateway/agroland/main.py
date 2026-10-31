@@ -17,8 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from shapely.affinity import translate
 from shapely.geometry import mapping, shape, box
 
-from . import alkis, auth, cropwatch, farm, parcels as parcels_mod
-from .chat import Chat, ChatUnavailable
+from . import alkis, auth, chat, cropwatch, farm, parcels as parcels_mod
 from .db import Database, jdump, new_id, now
 from .geoclient import Geo, GeoUnavailable, in_country
 from .hashing import report_sha256
@@ -63,18 +62,6 @@ class Workspace(BaseModel):
     country: Literal["DE", "IN"]
 
 
-class ChatMessage(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    role: Literal["user", "assistant"]
-    content: str = Field(min_length=1, max_length=8000)
-
-
-class ChatIn(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    messages: list[ChatMessage] = Field(min_length=1, max_length=60)
-    agent: Literal["owner", "farm", "developer"] | None = None
-
-
 class OrderIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     service: Literal["land_audit", "lease_check", "pool_access"]
@@ -97,22 +84,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     listings = Listings(db, engine)
     me = auth.make_dependency(db)
 
-    def maybe_me(authorization: str | None = Header(default=None)) -> dict | None:
-        """Like `me`, but a visitor without a workspace may still use the AI chat."""
-        return me(authorization) if authorization else None
-
-    def chat_workspace(u):
-        if not u:
-            return None
-        with db.tx() as c:
-            n_parcels = c.execute("SELECT COUNT(*) FROM parcels WHERE user_id=?", (u["id"],)).fetchone()[0]
-            n_orders = c.execute("SELECT COUNT(*) FROM orders WHERE user_id=?", (u["id"],)).fetchone()[0]
-        return {"name": u["name"], "role": u["role"], "country": u["country"], "demo": bool(u["persona"]), "parcels": n_parcels, "orders": n_orders}
-
-    chat = Chat(s.llm_base_url, s.llm_api_key, s.llm_model, coverage=lambda: config(), workspace=chat_workspace,
-                orders=lambda u: [{k: o.get(k) for k in ("id", "service", "subject", "state", "created_at")} for o in engine.list_for(u["id"], 20)],
-                report=lambda u, oid: _delivered(oid, u["id"])["result"]["deliverable"]["report"])
-
     @asynccontextmanager
     async def lifespan(app):
         engine.start()
@@ -120,7 +91,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine.stop()
 
     app = FastAPI(title="AgroLand API", version="1.0.0", lifespan=lifespan)
-    app.state.engine, app.state.db, app.state.settings, app.state.chat = engine, db, s, chat
+    app.state.engine, app.state.db, app.state.settings = engine, db, s
 
     def client_ip(request: Request) -> str:
         if s.trust_proxy:
@@ -168,31 +139,32 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 return False
         return {"status": "ok", "payment_mode": s.payment_mode,
                 "geo": {c: {"audit": probe(g.audit_url), "matcher": probe(g.matcher_url), "escrow": probe(g.escrow_url), "architect": probe(g.architect_url)} for c, g in s.geo.items()},
-                "agents_registered": {k: bool(v) for k, v in s.agent_identifiers.items()}, "demo_wallet_configured": bool(s.buyer_mps_url and s.buyer_mps_key)}
+                "agents_registered": {k: bool(v) for k, v in s.agent_identifiers.items()}, "demo_wallet_configured": bool(s.buyer_mps_url and s.buyer_mps_key), "assistant_configured": bool(s.openai_api_key)}
 
     @app.get("/api/config")
     def config():
         t = s.catalog["payment"]["token"]
         svc = {k: {**{kk: vv for kk, vv in v.items() if kk != "price"}, "price": engine.price(k)} for k, v in s.catalog["services"].items()}
-        return {"payment_mode": s.payment_mode, "chat": app.state.chat.configured, "network": s.catalog["payment"]["network"], "token": t["symbol"], "services": svc,
+        return {"payment_mode": s.payment_mode, "network": s.catalog["payment"]["network"], "token": t["symbol"], "services": svc,
                 "coverage": {"DE": {"name": "Germany", "currency": "EUR", "area_unit": "ha", "notes": ["Open ALKIS fragment: Magdeburg / Sachsen-Anhalt (191 agricultural parcels) with A14 corridor screening",
                                                                                                        "Live audits use BKG, OSM, BfN, PVGIS, Open-Meteo; ALKIS closed in some states (e.g. Bavaria)"]},
                              "IN": {"name": "India", "currency": "INR", "area_unit": "acre / ha", "notes": ["Audits: Gujarat and Andhra Pradesh carry state knowledge; other states get a site-wide condition",
                                                                                                          "Protected-area and habitation screens are OpenStreetMap-based and not measured for completeness",
                                                                                                          "Title is never verified; revenue records are not conclusive proof of title"]}}}
 
-    # ---------------------------------------------------------------- AI chat (home page)
+    # ---------------------------------------------------------------- home-page assistant
     @app.post("/api/chat")
-    def chat_reply(body: ChatIn, request: Request, u=Depends(maybe_me)):
-        """One assistant turn. Read-only: the model can look up prices/coverage and the caller's own orders and reports, and suggest a page."""
-        if not limiter.allow("chat:" + (u["id"] if u else client_ip(request)), s.rate_chat_per_hour):
-            raise HTTPException(429, "Too many chat messages. Try again later.")
-        if body.messages[-1].role != "user":
-            raise HTTPException(422, "The last message must be the user's")
+    def assistant(body: dict, request: Request):
+        msgs = chat.clean_messages(body.get("messages"))
+        if not msgs or msgs[-1]["role"] != "user":
+            raise HTTPException(422, "messages must end with a question")
+        if not limiter.allow("chat:" + client_ip(request), s.rate_chat_per_hour):
+            raise HTTPException(429, "Too many questions in the last hour. Try again later.")
+        role, country, agent = body.get("role"), body.get("country"), body.get("agent")
         try:
-            return app.state.chat.reply(u, [m.model_dump() for m in body.messages], body.agent)
-        except ChatUnavailable as exc:
-            raise HTTPException(503, f"AI chat unavailable: {exc}")
+            return chat.reply(s, msgs, role if role in chat.ROLES else None, country if country in ("DE", "IN") else None, agent if agent in chat.AGENTS else None)
+        except chat.ChatUnavailable:
+            raise HTTPException(503, "The assistant is not available right now.")
 
     # ---------------------------------------------------------------- identity
     @app.post("/api/session", status_code=201)
@@ -503,7 +475,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         name = "Solarpark Süd GmbH (demo)" if u["country"] == "DE" else "Surya Solar LLP (demo)"
         cu, token = auth.create_user(db, name, "developer", u["country"], persona="demo-counterpart")
         p = parcels_mod.add(db, cu, {"source": "drawn", "geometry": other, "label": f"Demo counterpart site next to '{mine['label'][:60]}' (illustrative)", "ref": f"demo-{new_id()[:8]}"})
-        reg = pool.register(cu, p["id"], "solar" if mine["project_type"] == "wind" else "wind")
+        # a real audit can reject one technology here (a turbine next to houses), so try the next before giving up
+        for tech in dict.fromkeys(("solar", mine["project_type"], "wind")):
+            reg = pool.register(cu, p["id"], tech)
+            if reg["status"] == "registered":
+                break
         prof = ({"company_name": name, "street": "Musterstraße 12", "postal_code": "39104", "city": "Magdeburg", "representative": "Jörg Schäfer, Prokurist",
                  "commercial_register": "Amtsgericht Stendal, HRB 00000 (demo)", "email": "demo-counterpart@example.invalid", "phone": ""} if u["country"] == "DE" else
                 {"company_name": name, "address": "Plot 12, Demo Industrial Area, Bhuj", "state": "Gujarat", "pin_code": "370001", "representative": "Meera Shah, Designated Partner",
