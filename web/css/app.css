@@ -158,3 +158,12 @@ table.findings td { overflow-wrap: anywhere; line-height: 1.4; }
 .file-grid input[type=file] { font-size: .8rem; padding: .4rem; }
 .testdata { white-space: nowrap; } .testdata a { color: var(--muted); text-decoration: underline dotted; }
 @media (max-width: 1100px) { .data-top { grid-template-columns: 1fr; } .data-run { border-left: 0; padding-left: 0; } .file-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* owner: wide parcel picker, full-width audit and result */
+.pick-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.audit-wide > .stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; align-items: end; } .audit-wide label.f { margin: 0; }
+@media (max-width: 1000px) { .pick-grid { grid-template-columns: 1fr; } }
+
+.form-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; } .form-grid label.f { margin: 0; }
+@media (max-width: 1000px) { .form-grid { grid-template-columns: 1fr; } }
+details > .stack > .btn { align-self: flex-start; }
