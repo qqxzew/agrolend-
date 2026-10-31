@@ -92,3 +92,14 @@ Stop here and tell me; payment setup starts only after you authorize it.
 * **Rate limits are per process.** Set `AGROLAND_TRUST_PROXY=true` only behind Caddy. Caddy limits request bodies to 12 MB; add `rate_limit` (Caddy plugin) or a firewall rule if you expect abuse.
 * **Public-demo hygiene:** the geo services are loopback/private only; the gateway never returns another workspace's data (tested); keep `AGROLAND_PAYMENT_MODE=masumi`; use only fictional farms/owners (GDPR); the local single-operator build of the original owner MVP was **not** exposed — its listings/documents now live behind per-workspace access control.
 * **Known dependency findings:** the quickstart's `npm audit` reports 3 findings (eve, undici, zod). Versions stay pinned as required; review before exposing the worker (it only makes outbound calls and binds Eve to 127.0.0.1).
+
+## D. Coworker (Eve + worker) on the server — container `agroland-agent`
+Runs on the Hack Club host next to the compose stack, so no laptop has to stay on. One container = one Eve (compiled, `eve start`, 127.0.0.1 only) + exactly one worker; never start a second worker for the same Coworker anywhere else.
+* **Image:** built on a workstation (`npm ci` and `eve build` do not fit the server's memory) and shipped:
+  `docker build -f deploy/agent.Dockerfile -t agroland-agent:server . && docker save agroland-agent:server | gzip | ssh mrrobot@hackclub.app 'gunzip | docker load'`
+* **No OS vault on the host:** the Coworker key is in `/opt/agroland-agent/secrets/coworker_key` (root, 600) and reaches the CLI through `--api-key-stdin` (`SOKOSUMI_RUNTIME_KEY_FILE`); the worker lists its Tasks with that key, so no user sign-in is stored on the server.
+* **Env:** `/opt/agroland-agent/agent.env` (root, 600): model (`ZAI_*`, OpenAI-compatible: `https://api.openai.com/v1`, `gpt-4.1-mini`, 128000), `EVE_CLIENT_PASSWORD` (random; the compiled Eve admits only the worker), `COWORKER_ID`, `PAID_TASKS_ENABLED`, `AGROLAND_URL=http://gateway:8080`, `AGROLAND_INTERNAL_KEY` and `BLOCKFROST_API_KEY_PREPROD` copied from `/opt/agroland/.env`.
+* **Run:**
+  `docker run -d --name agroland-agent --restart unless-stopped --network agroland_internal --memory 360m --memory-swap 360m --env-file /opt/agroland-agent/agent.env -v /opt/agroland-agent/secrets/coworker_key:/run/secrets/coworker_key:ro -v /opt/agroland-agent/state:/app/agent/.local -v /opt/agroland-agent/agent/docs:/app/agent/docs:ro agroland-agent:server`
+* **Memory:** the host has 2 GB and no swap; the container idles at ~250–270 MB. The hard limit keeps a runaway agent from taking the payment service down with it.
+* **Logs / state:** `docker logs agroland-agent`; Task journals in `/opt/agroland-agent/state/`.
