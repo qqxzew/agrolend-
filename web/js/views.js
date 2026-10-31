@@ -29,16 +29,31 @@ export function start(q) {
 // ---------------------------------------------------------------- home
 export function home() {
   const w = ws.current;
+  const route = txt => { const s = txt.toLowerCase();
+    if (/lease|rent|farm|contract|pacht/.test(s)) return '#/farm';
+    if (/neighbo|nda|pool|developer|wind|solar|site|audit/.test(s)) return '#/developer';
+    if (/map|explore/.test(s)) return '#/map';
+    return '#/owner'; };
+  const agents = { owner: ['Land Audit', 'owner'], farm: ['Lease Check', 'farm'], developer: ['Pool Access & Audit', 'developer'] };
+  const text = h('input', { placeholder: 'Describe what you need, e.g. "check my leases" or "audit a solar site" - we open the right workflow', 'aria-label': 'What would you like to check?' });
+  const sel = h('select', { 'aria-label': 'Agent' }, h('option', { value: '' }, 'Pick for me'), Object.entries(agents).map(([r, [n]]) => h('option', { value: r, selected: w?.role === r }, n)));
+  const go = () => { const r = sel.value || null; const dest = r ? '#/' + r : route(text.value); location.hash = w ? (r && w.role !== r ? '#/start?role=' + r : dest) : '#/start?role=' + (r || dest.slice(2) || 'owner'); };
+  text.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  const chips = [['Check my parcel', () => location.hash = w?.role === 'owner' ? '#/owner' : '#/start?role=owner'], ['Check my leases', () => location.hash = w?.role === 'farm' ? '#/farm' : '#/start?role=farm'], ['Audit a site', () => location.hash = w?.role === 'developer' ? '#/developer' : '#/start?role=developer'],
+    ['Show me the map', () => location.hash = '#/map'], ['What data do you use?', () => document.getElementById('coverage')?.scrollIntoView({ behavior: 'smooth' })]];
   const cards = [['owner', 'Landowner', 'Audit a parcel, attach documents, publish only when you decide.', ['land_audit']], ['farm', 'Tenant farm', 'Find paid-but-unfarmed land, area mismatches, expensive rents and deadlines.', ['lease_check']], ['developer', 'Energy developer', 'Audit sites, meet neighbouring projects under NDA, get a joint calculation.', ['land_audit', 'pool_access']]];
-  return h('div', { class: 'stack' },
-    w ? h('div', { class: 'callout' }, `Signed in as ${w.name} (${ROLE_TEXT[w.role]}, ${w.country}). `, h('a', { href: '#/' + w.role }, 'Continue your work'), ' or ', h('a', { href: '#/start' }, 'switch workspace')) : h('div', { class: 'callout' }, h('a', { href: '#/start' }, 'Create a workspace'), ' to begin. It takes ten seconds.'),
-    h('div', { class: 'tiles' }, cards.map(([role, title, text, svcs]) => h('div', { class: 'card stack' }, h('h3', null, title), h('p', { class: 'muted' }, text),
+  return h('div', { class: 'home' },
+    h('div', { class: 'hero' }, h('div', { class: 'hero-mark' }, 'A'), h('h2', null, 'What would you like to check?'),
+      h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'dot' }, 'A'), sel), h('a', { class: 'pick-map', href: '#/map' }, '📍 Pick on map'), h('span', { class: 'grow' }), h('button', { class: 'send', 'aria-label': 'Go', onclick: go }, '↑'))),
+      h('div', { class: 'chips' }, chips.map(([l, f]) => h('button', { class: 'chip-btn', onclick: f }, l))),
+      !w && h('p', { class: 'small muted' }, 'You will be asked to create a workspace first (ten seconds, no password).')),
+    h('div', { class: 'tiles' }, cards.map(([role, title, text2, svcs]) => h('div', { class: 'card stack' }, h('h3', null, title), h('p', { class: 'muted' }, text2),
       h('div', { class: 'small' }, svcs.map(s => h('div', null, ctx.config.services[s].title, ' · ', h('b', null, priceOf(s))))),
       h('a', { class: 'btn primary', href: w && w.role === role ? '#/' + role : `#/start?role=${role}` }, w && w.role === role ? 'Open' : 'Start as ' + title.toLowerCase())))),
     h('div', { class: 'card' }, h('h3', null, 'Agents in AgroLand'), h('table', { class: 't' }, h('thead', null, h('tr', null, ['#', 'Agent', 'What you get', 'Price', 'Countries'].map(x => h('th', null, x)))),
       h('tbody', null, Object.entries(ctx.config.services).map(([k, s]) => h('tr', null, h('td', null, 'Agent ' + s.agent), h('td', null, h('b', null, s.title)), h('td', null, s.summary), h('td', null, s.price.display), h('td', null, s.countries.join(' · ')))))),
       h('p', { class: 'small muted' }, 'The same agents answer here and inside Sokosumi. Prices are identical in both places.')),
-    h('div', { class: 'card' }, h('h3', null, 'Coverage'), h('div', { class: 'cols' }, Object.entries(ctx.config.coverage).map(([k, c]) => h('div', null, h('b', null, c.name), h('ul', { class: 'small muted' }, c.notes.map(n => h('li', null, n))))))));
+    h('div', { class: 'card', id: 'coverage' }, h('h3', null, 'Data and sources'), h('div', { class: 'cols' }, Object.entries(ctx.config.coverage).map(([k, c]) => h('div', null, h('b', null, c.name), h('ul', { class: 'small muted' }, c.notes.map(n => h('li', null, n))))))));
 }
 
 // ---------------------------------------------------------------- shared: parcel picker
@@ -76,9 +91,9 @@ function auditComposer(parcel, { onOrder, typeChoices = ['solar', 'wind', 'hybri
 }
 
 // ---------------------------------------------------------------- owner
-export async function owner() {
+export async function owner(q = new URLSearchParams()) {
   const blocked = need('owner'); if (blocked) return blocked;
-  const root = h('div', { class: 'stack' }); let parcels = await api('/parcels'), sel = null, orderBox = h('div', null, empty('Order an audit to see it here.')), tab = 'audit';
+  const root = h('div', { class: 'stack' }); let parcels = await api('/parcels'), sel = null, orderBox = h('div', null, empty('Order an audit to see it here.')), tab = q.get('tab') === 'listings' ? 'listings' : 'audit';
   const listings = await api('/listings');
   async function draw() {
     parcels = await api('/parcels');
@@ -239,9 +254,10 @@ export async function orders(q, params) {
     h('tbody', null, list.map(o => h('tr', null, h('td', null, o.title), h('td', null, o.subject), h('td', null, o.price.display), h('td', null, stateChip(o)), h('td', null, fmtTime(o.created_at)), h('td', null, h('a', { href: '#/orders/' + o.id }, 'Open'))))))) : empty('No orders yet.');
 }
 
-export async function map() {
+export async function map(q = new URLSearchParams()) {
   const blocked = need(); if (blocked) return blocked;
   const w = ws.current, el = h('div', { class: 'map tall' }), out = h('div', { class: 'card' }, 'Click a parcel.');
   const m = await parcelMap(el, { country: w.country, saved: await api('/parcels'), onSelect: p => out.replaceChildren(h('b', null, p.label), h('div', { class: 'small muted' }, `${num(p.area_ha)} ha · ${p.source}`), h('div', { class: 'row', style: 'margin-top:.6rem' }, h('button', { class: 'btn primary sm', onclick: e => guard(async () => { await api('/parcels', { method: 'POST', body: { source: p.source, ref: p.ref } }); toast('Saved to your parcels - open your workflow to audit it'); }, e.target) }, 'Save to my parcels')))});
+  if (q.get('find') && !m.find(q.get('find'))) toast('No parcel matches "' + q.get('find') + '" in the loaded map', true);
   return h('div', { class: 'stack' }, el, m.info, out);
 }

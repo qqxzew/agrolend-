@@ -32,7 +32,7 @@ from .settings import ROOT, Settings, get_settings
 WEB = ROOT / "web"
 
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-       "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://server.arcgisonline.com; "
+       "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.basemaps.cartocdn.com; "
        "connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'")
 
 
@@ -112,7 +112,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 return JSONResponse({"detail": "Cross-origin changes are not allowed"}, status_code=403)
         resp = await call_next(request)
         resp.headers["X-Content-Type-Options"] = "nosniff"
-        resp.headers["Referrer-Policy"] = "same-origin"
+        resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"  # map tile servers require a Referer
         resp.headers["X-Frame-Options"] = "DENY"
         resp.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         if not request.url.path.startswith(("/api/", "/internal/", "/masumi/")):

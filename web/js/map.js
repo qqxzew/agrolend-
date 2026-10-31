@@ -7,10 +7,14 @@ const COLORS = { green: '#2f7d3b', yellow: '#c58a00', red: '#b3261e' };
 export async function parcelMap(el, { country, onSelect, saved = [] }) {
   const L = window.L;
   const map = L.map(el, { zoomControl: true, attributionControl: true }).setView(country === 'DE' ? [52.09, 11.555] : [23.35, 70.56], country === 'DE' ? 13 : 12);
-  const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
+  // Default: OpenStreetMap tiles rendered in a quiet grey "schematic" style (CSS filter on .tiles-schematic); plain street map, satellite and "no tiles" are in the switcher.
+  const light = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'tiles-schematic', attribution: '© OpenStreetMap contributors' }).addTo(map);
+  const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' });
   const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri World Imagery' });
-  L.control.layers({ 'Street map': osm, 'Satellite': sat, 'No tiles (offline)': L.layerGroup() }, {}, { collapsed: true }).addTo(map);
-  let selected = null, parcelLayer = null;
+  L.control.layers({ 'Schematic': light, 'Street map': osm, 'Satellite': sat, 'No tiles (offline)': L.layerGroup() }, {}, { collapsed: true }).addTo(map);
+  let tileWarned = false;
+  for (const l of [light, osm, sat]) l.on('tileerror', () => { if (!tileWarned) { tileWarned = true; toast('Map tiles could not be loaded (offline?). Parcels still work: use the layer switcher > "No tiles".', true); } });
+  let selected = null, parcelLayer = null; const byRef = {};
   const info = h('div', { class: 'small muted', style: 'margin-top:.4rem' });
 
   const select = (layer, payload) => {
@@ -28,17 +32,17 @@ export async function parcelMap(el, { country, onSelect, saved = [] }) {
     }
     L.geoJSON(cor.roads, { style: { color: '#444', weight: 3 }, interactive: false }).addTo(map);
     parcelLayer = L.geoJSON(features, {
-      style: f => ({ color: COLORS[cor.signals[f.properties.cadastral]] || '#888', weight: 1.5, fillOpacity: .3 }),
-      onEachFeature: (f, layer) => layer.on('click', () => select(layer, {
+      style: f => ({ color: COLORS[cor.signals[f.properties.cadastral]] || '#888', weight: 1.5, fillOpacity: .28, lineJoin: 'miter', lineCap: 'butt' }),
+      onEachFeature: (f, layer) => { byRef[f.properties.cadastral] = layer; layer.on('click', () => select(layer, {
         source: 'alkis-demo', ref: f.properties.cadastral, geometry: f.geometry,
         label: `Flurstück ${f.properties.parcel_number} (Flur ${f.properties.flur}), ${f.properties.address}`, area_ha: f.properties.area,
-        signal: cor.signals[f.properties.cadastral], demo: false })),
+        signal: cor.signals[f.properties.cadastral], demo: false })); },
     }).addTo(map);
     info.textContent = 'Colour = preliminary geometric signal from the A14 carriageway axis (green: inside the 500 m corridor, yellow: partly, red: outside). It is not a permission or a guarantee.';
   } else {
     const gj = await api('/geo/in/demo-parcels');
     parcelLayer = L.geoJSON(gj, {
-      style: { color: '#1f6b8f', weight: 2, fillOpacity: .3 },
+      style: { color: '#1f6b8f', weight: 2, fillOpacity: .28, lineJoin: 'miter', lineCap: 'butt' },
       onEachFeature: (f, layer) => layer.on('click', () => select(layer, {
         source: 'in-demo', ref: f.properties.id, geometry: f.geometry, label: `${f.properties.label} - ${f.properties.survey_number}, ${f.properties.village}`,
         area_ha: f.properties.area_ha, demo: true })),
@@ -68,5 +72,10 @@ export async function parcelMap(el, { country, onSelect, saved = [] }) {
     return drawing;
   }
   setTimeout(() => map.invalidateSize(), 50);
-  return { map, info, draw, get drawing() { return drawing; }, clearSelection() { if (selected) selected.layer.setStyle(selected.style); selected = null; }, destroy() { map.remove(); } };
+  function find(q) {
+    q = (q || '').trim().toLowerCase(); if (!q) return false;
+    const key = Object.keys(byRef).find(k => k.toLowerCase().replace(/_/g, '').includes(q.replace(/_/g, '')));
+    if (!key) return false; const l = byRef[key]; map.fitBounds(l.getBounds().pad(2)); l.fire('click'); return true;
+  }
+  return { map, info, draw, find, get drawing() { return drawing; }, clearSelection() { if (selected) selected.layer.setStyle(selected.style); selected = null; }, destroy() { map.remove(); } };
 }
