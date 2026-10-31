@@ -1,5 +1,8 @@
 import { api, ws, h, chip, toast, ApiError, showDevNotices } from './core.js';
 import * as V from './views.js';
+import { mountAssistant } from './assistant.js';
+
+const assistant = mountAssistant();
 
 const ICON = {
   chat: 'M4 5h16v11H9l-5 4z', pin: 'M12 21s-6-5.6-6-10.5a6 6 0 0 1 12 0C18 15.4 12 21 12 21zM12 10.5m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0', map: 'M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14',
@@ -57,20 +60,24 @@ function chrome() {
   const isHome = (ROUTES[base] || ROUTES['']) === ROUTES[''];   // the chat page has no parcel search
   const top = document.getElementById('top');
   top.replaceChildren(...[h('button', { class: 'icon-btn menu-btn', 'aria-label': 'Open menu', onclick: () => document.getElementById('app').classList.add('menu-open') }, ic('menu')), h('h1', null, ROUTES[base]?.title || ''), h('span', { class: 'grow' }),
-    !isHome && h('label', { class: 'search' }, ic('search'), search), !w && h('a', { class: 'btn primary sm', href: '#/start' }, 'Create workspace')].filter(Boolean));
+    !isHome && h('label', { class: 'search' }, ic('search'), search), !isHome && assistant.launcher, !w && h('a', { class: 'btn primary sm', href: '#/start' }, 'Create workspace')].filter(Boolean));
 }
 addEventListener('keydown', e => { if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) { e.preventDefault(); document.getElementById('find')?.focus(); } });
 
-let seq = 0;
+let seq = 0, disposeView = () => {};
 async function route() {
   const my = ++seq, { name, params, q } = parse(), r = ROUTES[name] || ROUTES[''];
   chrome();
+  document.getElementById('app').classList.toggle('is-home', r === ROUTES['']);
+  assistant.update(ROUTES[name] ? name : '');
+  disposeView(); disposeView = () => {};
   const view = document.getElementById('view');
   view.replaceChildren(h('p', { class: 'muted' }, 'Loading…'));
   try {
     const node = await r.fn(q, params);
-    if (my !== seq) return;
-    view.replaceChildren(node); document.title = `${r.title} · AgroLand`; document.getElementById('app').classList.toggle('is-home', r === ROUTES['']);
+    if (my !== seq) { node.dispose?.(); return; }
+    disposeView = () => node.dispose?.();
+    view.replaceChildren(node); document.title = `${r.title} · AgroLand`;
   } catch (e) {
     if (my !== seq) return;
     view.replaceChildren(h('div', { class: 'callout bad' }, h('b', null, 'Something went wrong. '), e.message, h('p', { class: 'small' }, e instanceof ApiError && e.status === 401 ? 'Your workspace token is not valid here. ' : 'Your data is safe on the server; reload to try again. '), h('a', { class: 'btn sm', href: '#/start' }, 'Workspaces')));

@@ -51,9 +51,11 @@ Three paid services are registered in Masumi as separate agents; the language-mo
 | **Configuration** | `AGENT_IDENTIFIER_POOL_ACCESS`. |
 | **Verification** | `gateway/tests/test_pool.py` — runs against the **real** matcher, escrow and architect services for **both DE and IN**: payment gate before the NDA, hash-checked signatures, no delivery before both sign, access control for outsiders, decline path. |
 
-### Home-page assistant
+### Home and workspace assistant
 
-The chat on the app's home page answers questions about AgroLand and offers a button to the right workflow. It uses the OpenAI API from the gateway (`gateway/agroland/chat.py`, `POST /api/chat`; `OPENAI_API_KEY` in `.env`, `OPENAI_MODEL` defaults to `gpt-4.1-mini`). It only talks: no orders, no payment, no access to workspace data. Without a key the page falls back to keyword routing.
+The home chat and the right-hand assistant on workflow pages answer questions about AgroLand and guide the visitor through the current page, tab and step. On smaller screens, **Ask AI** opens the assistant. Both share one conversation per workspace, kept in this tab's `sessionStorage`; switching workspaces also switches conversations, including while a reply is pending. The companion uses the same colours, borders and agent avatars as the rest of the app.
+
+It uses the OpenAI API from the gateway (`gateway/agroland/chat.py`, `POST /api/chat`; `OPENAI_API_KEY` in `.env`, `OPENAI_MODEL` defaults to `gpt-4.1-mini`). It only talks: no orders, no payment, no access to files, parcel boundaries or report contents. Screen context is restricted to predefined navigation states. Failed replies show a retry button; without a key the home page also offers a workflow based on keywords. `node --test web/tests/assistant.test.mjs` checks conversation isolation, pending requests, retries and stored history.
 
 ### Agent 4 — AgroLand Concierge  (Sokosumi Coworker, language model; not a paid registration)
 | | |

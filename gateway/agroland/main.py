@@ -152,7 +152,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                                                                                                          "Protected-area and habitation screens are OpenStreetMap-based and not measured for completeness",
                                                                                                          "Title is never verified; revenue records are not conclusive proof of title"]}}}
 
-    # ---------------------------------------------------------------- home-page assistant
+    # ---------------------------------------------------------------- home and workspace assistant
     @app.post("/api/chat")
     def assistant(body: dict, request: Request):
         msgs = chat.clean_messages(body.get("messages"))
@@ -162,7 +162,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(429, "Too many questions in the last hour. Try again later.")
         role, country, agent = body.get("role"), body.get("country"), body.get("agent")
         try:
-            return chat.reply(s, msgs, role if role in chat.ROLES else None, country if country in ("DE", "IN") else None, agent if agent in chat.AGENTS else None)
+            return chat.reply(s, msgs, role if isinstance(role, str) and role in chat.ROLES else None,
+                              country if country in ("DE", "IN") else None, agent if isinstance(agent, str) and agent in chat.AGENTS else None,
+                              context=body.get("context"))
         except chat.ChatUnavailable:
             raise HTTPException(503, "The assistant is not available right now.")
 

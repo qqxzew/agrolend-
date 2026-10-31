@@ -1,4 +1,4 @@
-"""The assistant on the home page: explains AgroLand, walks the visitor through the app step by step and points to the right page.
+"""The home and workspace assistant: explains AgroLand and guides the visitor through the current step.
 
 It only talks. It never creates orders, spends funds or sees workspace data; `open` is checked against an allow-list and
 the page shows it as a button. The OpenAI key stays on the server.
@@ -20,6 +20,12 @@ MAX_CHARS = 1000
 MAX_REPLY = 900
 MAX_SUGGESTIONS = 3
 MAX_SUGGESTION_CHARS = 60
+SCREEN_PAGES = {**PAGES, "orders": "Orders", "data": "Data and sources", "map": "Map", "start": "New workspace"}
+SCREEN_TABS = {"owner": {"audit": "Audit a parcel", "listings": "My listings"},
+               "developer": {"sites": "Sites", "deals": "Matches & deals", "market": "Owner listings"}}
+SCREEN_STAGES = {"owner": {"choose_parcel": "choosing a parcel", "review_audit": "reviewing the audit setup", "audit_ordered": "viewing an audit order or result", "listings": "managing listings"},
+                 "developer": {"choose_parcel": "choosing a site", "review_audit": "reviewing the audit setup", "audit_ordered": "viewing an audit order or result", "deals": "viewing matches and deals", "listings": "browsing owner listings"},
+                 "farm": {"choose_data": "choosing farm data", "report": "viewing a lease-check order or report"}}
 
 GUIDE = """How the app works (use these steps when you explain; name the buttons exactly as written):
 - Workspaces: the left sidebar lists them like chats; "New workspace" creates one (name, role, country; no password). A workspace has one role: Landowner, Tenant farm or Energy developer. Each role has its own page, so for a different role the visitor creates another workspace first.
@@ -28,6 +34,7 @@ GUIDE = """How the app works (use these steps when you explain; name the buttons
 - Pool Access (Energy developer page): 1) on "Sites" choose a site, optionally audit it, then press "Add to pool" (needs at least 0.5 ha; screening takes up to two minutes); 2) when another developer's site lies within 1.5 km both sides get an anonymous teaser under "Matches & deals"; 3) both accept the introduction, both pay, both sign the NDA; only then the counterpart, a joint calculation and two draft PDFs are revealed. Fastest way to try it alone: add a site (at least 0.5 ha) to the pool, press "+ demo counterpart" under "Your pool portfolio", open "Matches & deals", accept the introduction, then use the "Act as …" button to switch to the demo counterpart and accept, pay and sign for it too, and "Back to …" to return. "Build demo neighbourhood" under "Demo tools" instead creates a neighbouring developer and a landowner's parcel to lease.
 - "Owner listings" tab (Energy developer): published parcels of landowners; a developer asks for the boundary and the owner accepts.
 - Orders (sidebar): history, payment state and results of every order. Data and sources (sidebar): what data AgroLand uses and what it does not claim.
+- The AgroLand assistant stays on the right of workflow pages. On a smaller screen, "Ask AI" opens it and "Close assistant" closes it. It shares this workspace's conversation with "Ask the agent" on the home page; "Start a new conversation" clears it. It knows the current page and step, but cannot inspect maps, files, orders or reports.
 - Money: payments are test tokens (tUSDM) on Cardano preprod through Masumi. The price is shown before anything is paid. Four facts are shown separately: report ready, funds locked, result hash confirmed, seller paid out."""
 
 
@@ -35,7 +42,22 @@ class ChatUnavailable(Exception):
     pass
 
 
-def system_prompt(s: Settings, role: str | None, country: str | None, agent: str | None) -> str:
+def screen_context(raw) -> str:
+    """Only predefined UI states reach the model; never arbitrary DOM, fields or records."""
+    if not isinstance(raw, dict):
+        return ""
+    page = raw.get("page")
+    if not isinstance(page, str) or page not in SCREEN_PAGES:
+        return ""
+    parts = ["Current screen: " + SCREEN_PAGES[page] + " page"]
+    for key, labels in (("tab", SCREEN_TABS.get(page, {})), ("stage", SCREEN_STAGES.get(page, {}))):
+        value = raw.get(key)
+        if isinstance(value, str) and value in labels:
+            parts.append(labels[value])
+    return "; ".join(parts) + ". This is navigation context only, not verified order, payment or report data."
+
+
+def system_prompt(s: Settings, role: str | None, country: str | None, agent: str | None, context=None) -> str:
     token = s.catalog["payment"]["token"]
     services = "\n".join(f"- {v['title']} ({int(v['price']['amount']) / 10 ** token['decimals']:.2f} {token['symbol']}; {', '.join(v['countries'])}; "
                          f"for {', '.join(ROLES.get(r, r) for r in v.get('roles', []))}): {v['summary']}"
@@ -54,11 +76,13 @@ Services:
 Pages you can open (value of "open"): owner (Landowner page), farm (Tenant farm page), developer (Energy developer page), orders, data, none.
 
 {who}{pick}
+{screen_context(context)}
 
 How to answer:
 - Be warm, concrete and brief: two to five short sentences, or up to five short numbered steps when the visitor asks how to do something. Plain text only, no markdown symbols, no emoji.
 - When the visitor's goal matches a service, say which one fits, what they get, what it costs, and the first two or three clicks. Always set "open" to the page where it starts (farm for Lease Check, owner for a landowner's Land Audit, developer for a developer's Land Audit or Pool Access), even when the visitor still needs a workspace of that type. If the visitor's workspace has another role, say they can create a workspace of the right type with "New workspace" in the sidebar.
 - A greeting gets a one-line welcome and the three things you can help with (check a parcel for wind or solar, find overpaid rent in a lease, meet a neighbouring developer), with "open" set to none.
+- When a current screen is supplied, prioritise help with that screen, tab and step. For a greeting there, briefly offer help with the current workflow. If the visitor is already on the right page, explain the next clicks there and set "open" to none; do not send them back to the same page. A visible report stage does not prove that a report is delivered or paid. For a question about their specific data or result, ask them to quote the relevant finding; you cannot see it.
 - Match the goal to the service: checking one's own land, parcel or site for wind or solar is Land Audit (owner page for a landowner, developer page for a developer); rent, leases, contracts or a farm is Lease Check; neighbours, pooling or joint projects is Pool Access. Understand typos and slang.
 - Name pages only as "Landowner page", "Tenant farm page" and "Energy developer page" (or in the visitor's language), never as owner, farm or developer.
 - Always add "suggestions": two or three short natural follow-up questions the visitor might ask next (each under {MAX_SUGGESTION_CHARS} characters, written in the visitor's language).
@@ -100,11 +124,11 @@ def clean_suggestions(raw) -> list[str]:
     return out[:MAX_SUGGESTIONS]
 
 
-def reply(s: Settings, messages: list[dict], role: str | None = None, country: str | None = None, agent: str | None = None) -> dict:
+def reply(s: Settings, messages: list[dict], role: str | None = None, country: str | None = None, agent: str | None = None, context=None) -> dict:
     if not s.openai_api_key:
         raise ChatUnavailable("not configured")
     body = {"model": s.openai_model, "temperature": 0.3, "max_tokens": 600, "response_format": {"type": "json_object"},
-            "messages": [{"role": "system", "content": system_prompt(s, role, country, agent)}, *messages,
+            "messages": [{"role": "system", "content": system_prompt(s, role, country, agent, context)}, *messages,
                          {"role": "system", "content": language_hint(next((m["content"] for m in reversed(messages) if m["role"] == "user"), ""))}]}
     try:
         r = httpx.post(s.openai_base_url + "/chat/completions", json=body, headers={"Authorization": f"Bearer {s.openai_api_key}"}, timeout=30)

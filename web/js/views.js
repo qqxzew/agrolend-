@@ -2,6 +2,8 @@ import { api, ws, h, chip, fmtTime, num, money, toast, guard, download, copy, ha
 import { parcelMap } from './map.js';
 import { orderPanel, stateChip } from './order.js';
 import { fieldMap, fieldDetail, legend } from './crop.js';
+import { AVATAR } from './avatars.js';
+import { conversation, sendQuestion, clearConversation, openAssistantPage } from './assistant.js';
 
 export const ctx = { config: null, rerender: () => {} };
 const country = () => ws.current?.country;
@@ -21,61 +23,42 @@ export function start(q) {
     h('button', { class: 'btn primary', onclick: e => guard(async () => { const res = await api('/session', { method: 'POST', body: { name: name.value, role: r.value, country: c.value } }); ws.add(res.user, res.token); location.hash = '#/' + (res.user.role === 'owner' ? 'owner' : res.user.role === 'farm' ? 'farm' : 'developer'); ctx.rerender(); }, e.target) }, 'Create workspace'));
 }
 
-// Cartoon avatars of the three agents (inline SVG, no external files).
-const AVATAR = {
-  guide: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#e3efe0"/><path d="M32 9v7" stroke="#1f4d2e" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="8" r="4" fill="#e0a43a"/><rect x="13" y="16" width="38" height="31" rx="12" fill="#1f4d2e"/><rect x="18" y="22" width="28" height="19" rx="8" fill="#f4f7f0"/><circle cx="26" cy="31" r="3.2" fill="#1f4d2e"/><circle cx="38" cy="31" r="3.2" fill="#1f4d2e"/><circle cx="27" cy="30" r="1" fill="#fff"/><circle cx="39" cy="30" r="1" fill="#fff"/><path d="M27 36q5 4 10 0" fill="none" stroke="#1f4d2e" stroke-width="2.2" stroke-linecap="round"/><rect x="8" y="27" width="5" height="11" rx="2.5" fill="#8dc86a"/><rect x="51" y="27" width="5" height="11" rx="2.5" fill="#8dc86a"/><path d="M20 55q12-9 24 0" fill="#8dc86a"/></svg>',
-  owner: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#dcefd6"/><circle cx="32" cy="36" r="17" fill="#f6d7b0"/><path d="M14 31a18 18 0 0 1 36 0z" fill="#e0a43a"/><rect x="11" y="30" width="42" height="5" rx="2.5" fill="#c98a1f"/><circle cx="26" cy="39" r="2" fill="#2b2b2b"/><circle cx="38" cy="39" r="2" fill="#2b2b2b"/><path d="M27 45q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><circle cx="46" cy="47" r="7" fill="#fff" fill-opacity=".6" stroke="#1f4d2e" stroke-width="3"/><path d="M51 52l7 7" stroke="#1f4d2e" stroke-width="4" stroke-linecap="round"/></svg>',
-  farm: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#fff0cc"/><path d="M17 33a15 15 0 0 1 30 0z" fill="#8a5a2b"/><circle cx="32" cy="37" r="16" fill="#f6d7b0"/><path d="M15 29q17-12 34 0l-3 6H18z" fill="#8a5a2b"/><circle cx="26" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><circle cx="38" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><path d="M31 38h2" stroke="#2b2b2b" stroke-width="2"/><circle cx="26" cy="38" r="1.6" fill="#2b2b2b"/><circle cx="38" cy="38" r="1.6" fill="#2b2b2b"/><path d="M28 46q4 3 8 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><rect x="38" y="44" width="17" height="18" rx="2" fill="#fff" stroke="#1f4d2e" stroke-width="2.5"/><path d="M42 50h9M42 54h9M42 58h5" stroke="#1f4d2e" stroke-width="2" stroke-linecap="round"/></svg>',
-  developer: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#d9eef8"/><circle cx="32" cy="36" r="16" fill="#f6d7b0"/><path d="M16 33c0-14 32-14 32 0-6-6-26-6-32 0z" fill="#3b2a1a"/><circle cx="26" cy="38" r="2" fill="#2b2b2b"/><circle cx="38" cy="38" r="2" fill="#2b2b2b"/><path d="M27 44q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><path d="M13 36a19 19 0 0 1 38 0" fill="none" stroke="#1f6b8f" stroke-width="3.5" stroke-linecap="round"/><rect x="9" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><rect x="49" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><circle cx="26" cy="56" r="6" fill="none" stroke="#1f4d2e" stroke-width="3"/><circle cx="38" cy="56" r="6" fill="none" stroke="#e0a43a" stroke-width="3"/></svg>',
-};
-
 // ---------------------------------------------------------------- home
 const ACTION = { owner: 'Open Land Audit', farm: 'Open Lease Check', developer: 'Open Pool Access', orders: 'Open my orders', data: 'Open data and sources' };
-// each workspace keeps its own conversation, like separate chats
-const chatKey = () => 'agl.chat.' + (ws.current?.id || 'none');
-const chatRead = () => { try { return JSON.parse(sessionStorage.getItem(chatKey())) || []; } catch { return []; } };
-const chatWrite = v => { try { sessionStorage.setItem(chatKey(), JSON.stringify(v)); } catch {} };
-
 export function home() {
   const w = ws.current;
-  const route = txt => { const s = txt.toLowerCase();
-    if (/lease|rent|farm|contract|pacht/.test(s)) return 'farm';
-    if (/neighbo|nda|pool|developer|wind|solar|site|audit/.test(s)) return 'developer';
-    return 'owner'; };
   const agents = [['owner', 'Land Audit', 'Is this site good for wind or solar?', 'land_audit'], ['farm', 'Lease Check', 'Finds overpaid rent and unfarmed land.', 'lease_check'], ['developer', 'Pool Access', 'Meets neighbouring developers under NDA.', 'pool_access']];
   // a workflow belongs to one workspace role, so another role goes through workspace creation
-  const open = r => { location.hash = !['owner', 'farm', 'developer'].includes(r) || w?.role === r ? '#/' + r : '#/start?role=' + r; };
-  let msgs = chatRead(), busy = false;
+  const open = openAssistantPage, chat = conversation(w);
+  const fallback = () => sel.value || (/lease|rent|farm|contract|pacht/i.test(chat.retry) ? 'farm' : /neighbo|nda|pool|developer|wind|solar|site|audit/i.test(chat.retry) ? 'developer' : 'owner');
   const log = h('div', { class: 'chatlog', 'aria-live': 'polite' });
   const text = h('input', { placeholder: 'Ask anything, e.g. "check my leases" or "is my site good for solar?"', 'aria-label': 'What would you like to check?', maxlength: 1000 });
   const sel = h('select', { 'aria-label': 'Agent' }, h('option', { value: '' }, 'Pick for me'), agents.map(([r, n]) => h('option', { value: r }, n)));
   const send = h('button', { class: 'send', 'aria-label': 'Send', onclick: () => go() }, '↑');
   const page = h('div', { class: 'home' });
-  function paint(pending) {
+  function paint() {
+    const msgs = chat.messages, pending = chat.busy;
+    send.disabled = pending; sel.disabled = pending; back.disabled = pending;
     page.classList.toggle('chatting', msgs.length > 0 || !!pending);
     const last = msgs.length - 1;
     const av = () => h('span', { class: 'msg-av', html: AVATAR[sel.value] || AVATAR.guide });
     log.replaceChildren(...msgs.map((m, i) => h('div', { class: 'msg ' + m.role }, m.role === 'assistant' && av(), h('div', { class: 'msg-body' }, h('div', { class: 'msg-text' }, m.content), m.open && ACTION[m.open] && h('button', { class: 'btn sm primary', onclick: () => open(m.open) }, ACTION[m.open] + ' →'),
       i === last && !pending && m.suggestions?.length ? h('div', { class: 'sugg' }, m.suggestions.map(q => h('button', { class: 'chip-btn', onclick: () => go(q) }, q))) : null))), ...(pending ? [h('div', { class: 'msg assistant' }, av(), h('div', { class: 'msg-body' }, spinner('Thinking…')))] : []));
     log.scrollTop = log.scrollHeight;
+    error.hidden = !chat.error;
+    error.replaceChildren(chat.error || '', chat.error && h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => sendQuestion(chat, chat.retry, { agent: sel.value || undefined }, true) }, 'Try again'), h('button', { class: 'btn sm', onclick: () => open(fallback()) }, ACTION[fallback()] + ' →')));
   }
+  const error = h('div', { class: 'chat-error', role: 'status', hidden: true });
   async function go(preset) {
     const q = (typeof preset === 'string' ? preset : text.value).trim();
     if (!q) { if (sel.value) open(sel.value); return; }
-    if (busy) return;
-    busy = true; send.disabled = true; text.value = '';
-    msgs.push({ role: 'user', content: q }); chatWrite(msgs); paint(true);
-    try {
-      const r = await api('/chat', { method: 'POST', body: { messages: msgs.map(({ role, content }) => ({ role, content })), role: w?.role, country: w?.country, agent: sel.value || undefined } });
-      msgs.push({ role: 'assistant', content: r.reply, open: r.open, suggestions: r.suggestions || [] });
-    } catch (e) {
-      // without the assistant the page still gets the visitor to the right workflow
-      msgs.push({ role: 'assistant', content: e.status === 429 ? e.message : 'The assistant is not available right now, but this workflow looks like the right one.', open: sel.value || route(q) });
-    }
-    busy = false; send.disabled = false; chatWrite(msgs); paint(); text.focus();
+    if (chat.busy) return;
+    text.value = '';
+    await sendQuestion(chat, q, { agent: sel.value || undefined });
+    if (text.isConnected && !text.value) text.focus();
   }
-  text.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  const back = h('button', { class: 'chat-back', 'aria-label': 'Leave the chat', title: 'Back to the start', onclick: () => { msgs = []; chatWrite(msgs); paint(); text.focus(); } }, h('span', { 'aria-hidden': 'true' }, '←'), ' Back');
+  text.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
+  const back = h('button', { class: 'chat-back', 'aria-label': 'Leave the chat', title: 'Back to the start', onclick: () => { clearConversation(chat); text.focus(); } }, h('span', { 'aria-hidden': 'true' }, '←'), ' Back');
   const dot = h('span', { class: 'agent-dot', html: AVATAR.guide });
   sel.addEventListener('change', () => { dot.innerHTML = AVATAR[sel.value] || AVATAR.guide; paint(); });
   page.append(back,
@@ -84,8 +67,12 @@ export function home() {
       h('h2', null, 'What would you like to check?')),
     log,
     h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, dot, sel), h('span', { class: 'grow' }), send)),
+    error,
     h('div', { class: 'agent-row' }, agents.map(([r, name, line, svc]) => h('button', { class: 'agent-card', onclick: () => open(r) },
       h('span', { class: 'agent-av', html: AVATAR[r] }), h('span', { class: 'agent-txt' }, h('b', null, name), h('span', null, line), h('small', null, priceOf(svc)))))));
+  const update = () => paint();
+  addEventListener('agl:chat', update);
+  page.dispose = () => removeEventListener('agl:chat', update);
   paint();
   return page;
 }
@@ -142,6 +129,8 @@ export async function owner(q = new URLSearchParams()) {
   async function draw() {
     [parcels, listings] = await Promise.all([api('/parcels'), api('/listings')]);
     try { sessionStorage.setItem('agl.owner.sel', sel?.id || ''); } catch {}
+    root.dataset.assistantTab = tab;
+    root.dataset.assistantStage = tab === 'listings' ? 'listings' : !sel || changing ? 'choose_parcel' : 'review_audit';
     const tabs = h('div', { class: 'tabs' }, [['audit', 'Audit a parcel'], ['listings', `My listings (${listings.length})`]].map(([k, l]) => h('button', { class: tab === k ? 'on' : '', onclick: () => { tab = k; draw(); } }, l)));
     const body = h('div');
     if (tab === 'audit') {
@@ -161,6 +150,7 @@ export async function owner(q = new URLSearchParams()) {
         const prior = (await latestOrders('land_audit')).find(o => o.subject === sel.label);
         if (prior && orderBox.querySelector('.empty')) orderBox.replaceChildren(orderPanel(prior));
         const audited = !!prior || auditStarted;
+        root.dataset.assistantStage = audited && !auditOpen ? 'audit_ordered' : 'review_audit';
         const composer = h('div', { class: 'audit-wide' }, auditComposer(sel, { onOrder: (o, type) => { auditStarted = true; auditType = type; auditOpen = false; orderBox.replaceChildren(orderPanel(o, { onChange: () => {} })); draw(); } }));
         const step2 = audited && !auditOpen
           ? h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '2 · Audit'), h('span', { class: 'muted' }, `Land Audit${auditType ? ' · ' + auditType : ''} · ${priceOf('land_audit')} · ordered`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { auditOpen = true; draw(); } }, 'Change audit'))
@@ -302,6 +292,7 @@ export async function farm() {
   dataCard.querySelector('h3').after(fold);
   root.prepend(summary);
   setCollapsed = c => {
+    root.dataset.assistantStage = c ? 'report' : 'choose_data';
     grid.classList.toggle('collapsed', c); summary.hidden = !c; fold.hidden = !hasOrder || c;
     if (c) { const d = dataset(); summary.querySelector('.ds-text').textContent = `${d.settings.farm_name} · ${d.contracts.length} leases · ${source === 'saved' ? 'your uploaded files' : 'demo data'}`; }
   };
@@ -341,6 +332,8 @@ export async function developer(q) {
   const root = h('div', { class: 'stack' }); let tab = q.get('tab') || 'sites', sel = null, changing = false, auditStarted = false, auditOpen = false, auditType = '', orderBox = h('div', null, empty('Order an audit to see it here.'));
   const tabs = [['sites', 'Sites'], ['deals', 'Matches & deals'], ['market', 'Owner listings']];
   async function draw() {
+    root.dataset.assistantTab = tab;
+    root.dataset.assistantStage = tab === 'deals' ? 'deals' : tab === 'market' ? 'listings' : 'choose_parcel';
     const nav = h('div', { class: 'tabs' }, tabs.map(([k, l]) => h('button', { class: tab === k ? 'on' : '', onclick: () => { tab = k; draw(); } }, l)));
     const body = h('div'); root.replaceChildren(nav, body);
     body.append(await ({ sites, deals, market }[tab])());
@@ -367,6 +360,7 @@ export async function developer(q) {
       const done = prior.find(o => o.subject === sel.label);
       if (done && orderBox.querySelector('.empty')) orderBox.replaceChildren(orderPanel(done));
       const audited = !!done || auditStarted;
+      root.dataset.assistantStage = audited && !auditOpen ? 'audit_ordered' : 'review_audit';
       const composer = h('div', { class: 'audit-wide' }, auditComposer(sel, { onOrder: (o, t) => { auditStarted = true; auditType = t; auditOpen = false; orderBox.replaceChildren(orderPanel(o)); draw(); } }));
       const step2 = audited && !auditOpen
         ? h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '2 · Audit'), h('span', { class: 'muted' }, `Land Audit${auditType ? ' · ' + auditType : ''} · ${priceOf('land_audit')} · ordered`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { auditOpen = true; draw(); } }, 'Change audit'))
