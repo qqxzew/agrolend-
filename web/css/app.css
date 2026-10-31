@@ -228,3 +228,6 @@ details.quiet { margin-top: .5rem; } details.quiet > summary { color: var(--mute
 
 .chat-back { display: none; width: min(680px, 100%); margin: 0 auto; padding: .1rem 0; border: none; background: none; font: inherit; font-size: .92rem; color: var(--muted); text-align: left; cursor: pointer; }
 .chat-back:hover { color: var(--text); } .home.chatting .chat-back { display: block; }
+
+.map-regions { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; } .map-regions button { font: inherit; font-size: .78rem; padding: .25rem .55rem; border: 1px solid var(--border); background: #fff; color: #202124; cursor: pointer; text-align: left; border-radius: 2px; } .map-regions button:hover { background: #eef1f3; }
+.map-key { display: flex; flex-direction: column; gap: 2px; padding: .4rem .55rem; background: rgba(255,255,255,.92); border: 1px solid var(--border); font-size: .74rem; line-height: 1.25; color: #202124; border-radius: 2px; } .map-key span { display: flex; align-items: center; gap: .4rem; } .map-key i { width: 11px; height: 11px; display: inline-block; opacity: .8; } .map-key i.ln { height: 3px; background: #444; }
