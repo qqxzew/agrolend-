@@ -1,4 +1,4 @@
-import { api, ws, h, chip, fmtTime, num, money, toast, guard, download, copy, hash, kv, field, empty, spinner, ApiError } from './core.js';
+import { api, ws, h, esc, chip, fmtTime, num, money, toast, guard, download, copy, hash, kv, field, empty, spinner, ApiError } from './core.js';
 import { parcelMap } from './map.js';
 import { orderPanel, stateChip } from './order.js';
 import { fieldMap, fieldDetail, legend } from './crop.js';
@@ -34,28 +34,77 @@ const AVATAR = {
   developer: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#d9eef8"/><circle cx="32" cy="36" r="16" fill="#f6d7b0"/><path d="M16 33c0-14 32-14 32 0-6-6-26-6-32 0z" fill="#3b2a1a"/><circle cx="26" cy="38" r="2" fill="#2b2b2b"/><circle cx="38" cy="38" r="2" fill="#2b2b2b"/><path d="M27 44q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><path d="M13 36a19 19 0 0 1 38 0" fill="none" stroke="#1f6b8f" stroke-width="3.5" stroke-linecap="round"/><rect x="9" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><rect x="49" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><circle cx="26" cy="56" r="6" fill="none" stroke="#1f4d2e" stroke-width="3"/><circle cx="38" cy="56" r="6" fill="none" stroke="#e0a43a" stroke-width="3"/></svg>',
 };
 
-// ---------------------------------------------------------------- home
+// ---------------------------------------------------------------- home: AI chat
+// The assistant (POST /api/chat) answers from AgroLand's catalogue and the visitor's own orders and can offer a button into a workflow.
+// It never orders or pays. Without a configured model the box falls back to opening the matching workflow by keywords.
+const CHAT_KEY = 'agroland.chat.v1';
+const chatState = {
+  read() { try { return JSON.parse(sessionStorage.getItem(CHAT_KEY)) || { messages: [], agent: '' }; } catch { return { messages: [], agent: '' }; } },
+  write(v) { try { sessionStorage.setItem(CHAT_KEY, JSON.stringify(v)); } catch { /* private mode: the conversation lives until reload */ } },
+};
+// Tiny, safe formatting for model text: escape first, then **bold**, `code`, "- " / "1. " lists and paragraphs.
+function richText(text) {
+  const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
+  const out = []; let list = null;
+  for (const line of String(text).split('\n')) {
+    const m = line.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)$/);
+    if (m) { if (!list) { list = []; out.push(list); } list.push(inline(m[1])); continue; }
+    list = null; if (line.trim()) out.push(inline(line.trim()));
+  }
+  return out.map(x => Array.isArray(x) ? '<ul>' + x.map(i => `<li>${i}</li>`).join('') + '</ul>' : `<p>${x}</p>`).join('');
+}
+
 export function home() {
   const w = ws.current;
+  const aiOn = !!ctx.config.chat;
+  const st = chatState.read();
   const route = txt => { const s = txt.toLowerCase();
-    if (/lease|rent|farm|contract|pacht/.test(s)) return '#/farm';
-    if (/neighbo|nda|pool|developer|wind|solar|site|audit/.test(s)) return '#/developer';
-    if (/map|explore/.test(s)) return '#/map';
-    return '#/owner'; };
+    if (/lease|rent|farm|contract|pacht|аренд|ферм|договор/.test(s)) return 'farm';
+    if (/neighbo|nda|pool|developer|wind|solar|site|сосед|ветр|солн|девелоп/.test(s)) return 'developer';
+    return 'owner'; };
   const agents = [['owner', 'Land Audit', 'Is this site good for wind or solar?', 'land_audit'], ['farm', 'Lease Check', 'Finds overpaid rent and unfarmed land.', 'lease_check'], ['developer', 'Pool Access', 'Meets neighbouring developers under NDA.', 'pool_access']];
   const open = r => { location.hash = w?.role === r ? '#/' + r : '#/start?role=' + r; };
-  const text = h('input', { placeholder: 'Describe what you need, e.g. "check my leases" or "audit a solar site" - we open the right workflow', 'aria-label': 'What would you like to check?' });
-  const sel = h('select', { 'aria-label': 'Agent' }, h('option', { value: '' }, 'Pick for me'), agents.map(([r, n]) => h('option', { value: r, selected: w?.role === r }, n)));
-  const go = () => { const r = sel.value || null; const dest = r ? '#/' + r : route(text.value); location.hash = w ? (r && w.role !== r ? '#/start?role=' + r : dest) : '#/start?role=' + (r || dest.slice(2) || 'owner'); };
-  text.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  return h('div', { class: 'home' },
+  const text = h('textarea', { rows: 1, placeholder: aiOn ? 'Ask about prices, your parcel, leases or reports…' : 'Describe what you need, e.g. "check my leases"', 'aria-label': 'Message' });
+  const sel = h('select', { 'aria-label': 'Agent', onchange: () => { st.agent = sel.value; chatState.write(st); } }, h('option', { value: '' }, aiOn ? 'Any agent' : 'Pick for me'), agents.map(([r, n]) => h('option', { value: r, selected: st.agent === r }, n)));
+  const sendBtn = h('button', { class: 'send', 'aria-label': 'Send' }, '↑');
+  const thread = h('div', { class: 'chat-thread', 'aria-live': 'polite' });
+  const av = () => h('span', { class: 'msg-av', html: AVATAR[st.agent] || AVATAR.owner });
+  const bubble = m => h('div', { class: 'msg ' + m.role + (m.error ? ' error' : '') }, m.role === 'assistant' && av(),
+    h('div', { class: 'msg-body' }, m.role === 'assistant' ? h('div', { class: 'msg-text', html: richText(m.content) }) : h('div', { class: 'msg-text' }, m.content),
+      m.actions?.length ? h('div', { class: 'msg-actions' }, m.actions.map(a => h('a', { class: 'btn sm primary', href: a.href }, a.label + ' →'))) : null));
+  let busy = false, root;
+  const paint = () => {
+    thread.replaceChildren(...st.messages.map(bubble), busy ? h('div', { class: 'msg assistant typing' }, av(), h('div', { class: 'msg-body' }, h('span', { class: 'dots' }, h('i'), h('i'), h('i')))) : '');
+    root.classList.toggle('chatting', st.messages.length > 0);
+    thread.scrollTop = thread.scrollHeight;
+  };
+  const fit = () => { text.style.height = 'auto'; text.style.height = Math.min(text.scrollHeight, 160) + 'px'; };
+  const send = async () => {
+    const q = text.value.trim(); if (!q || busy) return;
+    if (!aiOn) { const r = sel.value || route(q); location.hash = w?.role === r ? '#/' + r : '#/start?role=' + r; return; }
+    st.messages.push({ role: 'user', content: q }); text.value = ''; fit(); busy = true; sendBtn.disabled = true; chatState.write(st); paint();
+    try {
+      const r = await api('/chat', { method: 'POST', body: { messages: st.messages.filter(m => !m.error).map(({ role, content }) => ({ role, content })).slice(-24), agent: st.agent || null } });
+      st.messages.push({ role: 'assistant', content: r.reply, actions: r.actions });
+    } catch (e) { st.messages.push({ role: 'assistant', content: e.message || String(e), error: true }); }
+    busy = false; sendBtn.disabled = false; chatState.write(st); paint(); text.focus();
+  };
+  sendBtn.addEventListener('click', send);
+  text.addEventListener('input', fit);
+  text.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+  const reset = h('button', { class: 'btn sm chat-reset', onclick: () => { st.messages = []; chatState.write(st); paint(); text.focus(); } }, 'New chat');
+  root = h('div', { class: 'home' },
     h('div', { class: 'hero' },
       h('div', { class: 'logo-lockup' }, h('img', { src: '../img/logo-mark.svg', alt: '', width: 56, height: 56 }), h('div', { class: 'logo-word' }, h('b', null, 'Agro'), 'Land')),
       h('p', { class: 'tagline' }, 'Pay-per-result land intelligence on Cardano'),
-      h('h2', null, 'What would you like to check?'),
-      h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), h('span', { class: 'grow' }), h('button', { class: 'send', 'aria-label': 'Go', onclick: go }, '↑')))),
+      h('h2', null, 'What would you like to check?')),
+    thread,
+    h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), reset, h('span', { class: 'grow' }), sendBtn)),
+    !aiOn && h('p', { class: 'small muted chat-off' }, 'AI chat is switched off on this server; the box opens the matching workflow.'),
     h('div', { class: 'agent-row' }, agents.map(([r, name, line, svc]) => h('button', { class: 'agent-card', onclick: () => open(r) },
       h('span', { class: 'agent-av', html: AVATAR[r] }), h('span', { class: 'agent-txt' }, h('b', null, name), h('span', null, line), h('small', null, priceOf(svc)))))));
+  paint();
+  return root;
 }
 
 // "Data and sources" and the agent table, kept off the chat page so it fits one screen

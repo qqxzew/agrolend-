@@ -18,6 +18,7 @@ from shapely.affinity import translate
 from shapely.geometry import mapping, shape, box
 
 from . import alkis, auth, cropwatch, farm, parcels as parcels_mod
+from .chat import Chat, ChatUnavailable
 from .db import Database, jdump, new_id, now
 from .geoclient import Geo, GeoUnavailable, in_country
 from .hashing import report_sha256
@@ -62,6 +63,18 @@ class Workspace(BaseModel):
     country: Literal["DE", "IN"]
 
 
+class ChatMessage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=8000)
+
+
+class ChatIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    messages: list[ChatMessage] = Field(min_length=1, max_length=60)
+    agent: Literal["owner", "farm", "developer"] | None = None
+
+
 class OrderIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     service: Literal["land_audit", "lease_check", "pool_access"]
@@ -84,6 +97,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     listings = Listings(db, engine)
     me = auth.make_dependency(db)
 
+    def maybe_me(authorization: str | None = Header(default=None)) -> dict | None:
+        """Like `me`, but a visitor without a workspace may still use the AI chat."""
+        return me(authorization) if authorization else None
+
+    def chat_workspace(u):
+        if not u:
+            return None
+        with db.tx() as c:
+            n_parcels = c.execute("SELECT COUNT(*) FROM parcels WHERE user_id=?", (u["id"],)).fetchone()[0]
+            n_orders = c.execute("SELECT COUNT(*) FROM orders WHERE user_id=?", (u["id"],)).fetchone()[0]
+        return {"name": u["name"], "role": u["role"], "country": u["country"], "demo": bool(u["persona"]), "parcels": n_parcels, "orders": n_orders}
+
+    chat = Chat(s.llm_base_url, s.llm_api_key, s.llm_model, coverage=lambda: config(), workspace=chat_workspace,
+                orders=lambda u: [{k: o.get(k) for k in ("id", "service", "subject", "state", "created_at")} for o in engine.list_for(u["id"], 20)],
+                report=lambda u, oid: _delivered(oid, u["id"])["result"]["deliverable"]["report"])
+
     @asynccontextmanager
     async def lifespan(app):
         engine.start()
@@ -91,7 +120,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine.stop()
 
     app = FastAPI(title="AgroLand API", version="1.0.0", lifespan=lifespan)
-    app.state.engine, app.state.db, app.state.settings = engine, db, s
+    app.state.engine, app.state.db, app.state.settings, app.state.chat = engine, db, s, chat
 
     def client_ip(request: Request) -> str:
         if s.trust_proxy:
@@ -145,12 +174,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def config():
         t = s.catalog["payment"]["token"]
         svc = {k: {**{kk: vv for kk, vv in v.items() if kk != "price"}, "price": engine.price(k)} for k, v in s.catalog["services"].items()}
-        return {"payment_mode": s.payment_mode, "network": s.catalog["payment"]["network"], "token": t["symbol"], "services": svc,
+        return {"payment_mode": s.payment_mode, "chat": app.state.chat.configured, "network": s.catalog["payment"]["network"], "token": t["symbol"], "services": svc,
                 "coverage": {"DE": {"name": "Germany", "currency": "EUR", "area_unit": "ha", "notes": ["Open ALKIS fragment: Magdeburg / Sachsen-Anhalt (191 agricultural parcels) with A14 corridor screening",
                                                                                                        "Live audits use BKG, OSM, BfN, PVGIS, Open-Meteo; ALKIS closed in some states (e.g. Bavaria)"]},
                              "IN": {"name": "India", "currency": "INR", "area_unit": "acre / ha", "notes": ["Audits: Gujarat and Andhra Pradesh carry state knowledge; other states get a site-wide condition",
                                                                                                          "Protected-area and habitation screens are OpenStreetMap-based and not measured for completeness",
                                                                                                          "Title is never verified; revenue records are not conclusive proof of title"]}}}
+
+    # ---------------------------------------------------------------- AI chat (home page)
+    @app.post("/api/chat")
+    def chat_reply(body: ChatIn, request: Request, u=Depends(maybe_me)):
+        """One assistant turn. Read-only: the model can look up prices/coverage and the caller's own orders and reports, and suggest a page."""
+        if not limiter.allow("chat:" + (u["id"] if u else client_ip(request)), s.rate_chat_per_hour):
+            raise HTTPException(429, "Too many chat messages. Try again later.")
+        if body.messages[-1].role != "user":
+            raise HTTPException(422, "The last message must be the user's")
+        try:
+            return app.state.chat.reply(u, [m.model_dump() for m in body.messages], body.agent)
+        except ChatUnavailable as exc:
+            raise HTTPException(503, f"AI chat unavailable: {exc}")
 
     # ---------------------------------------------------------------- identity
     @app.post("/api/session", status_code=201)

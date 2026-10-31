@@ -55,6 +55,10 @@ class Settings:
     max_body_bytes: int = 12 * 1024 * 1024
     max_parcels_per_user: int = 200
     cropwatch: str = "live"               # "live": Lease Check reads Sentinel-2 / Open-Meteo for parcels with boundaries; "off": section marked unavailable
+    llm_base_url: str = ""                # AI chat on the home page: any OpenAI-compatible provider (empty = chat switched off)
+    llm_api_key: str = ""
+    llm_model: str = ""
+    rate_chat_per_hour: int = 120         # chat messages per workspace / client IP
 
     @property
     def paid(self) -> bool:
@@ -99,4 +103,9 @@ def get_settings() -> Settings:
         rate_sessions_per_hour=int(e("AGROLAND_RATE_SESSIONS_PER_HOUR", "30")),
         rate_orders_per_hour=int(e("AGROLAND_RATE_ORDERS_PER_HOUR", "120")),
         cropwatch=crop,
+        # the Sokosumi Coworker's ZAI_* variables are the fallback, so one provider setting serves both
+        llm_base_url=e("AGROLAND_LLM_BASE_URL", e("ZAI_BASE_URL", "")).rstrip("/"),
+        llm_api_key=e("AGROLAND_LLM_API_KEY", e("ZAI_API_KEY", "")),
+        llm_model=e("AGROLAND_LLM_MODEL", e("ZAI_MODEL", "")),
+        rate_chat_per_hour=int(e("AGROLAND_RATE_CHAT_PER_HOUR", "120")),
     )
