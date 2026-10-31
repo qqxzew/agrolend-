@@ -59,7 +59,7 @@ body { overflow-x: hidden; }
 /* ---- prototype-style sidebar (LandCheck look) ---- */
 #side { grid-row: 2; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; z-index: 60; }
 .side-top { display: flex; align-items: center; gap: .6rem; padding: .9rem .9rem .5rem; }
-.side-top .mark { width: 34px; height: 34px; border-radius: 3px; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 800; text-decoration: none; }
+.side-top .mark { width: 34px; height: 34px; display: block; } .side-top .mark img { display: block; width: 100%; height: 100%; }
 .side-brand { display: flex; flex-direction: column; line-height: 1.15; flex: 1; } .side-brand strong { font-size: 1.05rem; } .side-brand small { color: var(--muted); font-size: .75rem; }
 .icon-btn { background: none; border: none; cursor: pointer; color: var(--muted); border-radius: 3px; padding: .35rem .5rem; font: inherit; display: inline-flex; align-items: center; }
 .icon-btn:hover { background: var(--surface-2); } .side-top .icon-btn, .menu-btn { display: none; }
@@ -188,3 +188,20 @@ details > pre.json, details > table { margin: 0; border-radius: 0; max-width: 10
 .actions { padding-top: .9rem; border-top: 1px solid var(--border); margin-top: .4rem; }
 .actions .btn { padding: .5rem .95rem; font-size: .92rem; }
 .card .stack > .btn { align-self: flex-start; }
+
+/* home = chat only: logo, composer, three agents; must fit one screen without scrolling */
+#app.is-home { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+#app.is-home #main { min-height: 0; } #app.is-home #view { min-height: 0; overflow: hidden; display: flex; }
+.home { flex: 1; justify-content: center; gap: clamp(.8rem, 3vh, 2rem); min-height: 0; }
+.hero { padding: 0; gap: clamp(.35rem, 1.4vh, .8rem); }
+.logo-lockup { display: flex; align-items: center; gap: .9rem; } .logo-lockup img { width: clamp(40px, 7vh, 64px); height: auto; }
+.logo-word { font-size: clamp(1.9rem, 5.4vh, 2.9rem); font-weight: 300; letter-spacing: -.02em; color: #1f4d2e; line-height: 1; } .logo-word b { font-weight: 700; }
+.tagline { margin: 0 0 clamp(.2rem, 1.5vh, 1rem); color: var(--muted); letter-spacing: .02em; }
+.hero h2 { font-size: clamp(1.15rem, 2.6vh, 1.5rem); font-weight: 700; margin-top: clamp(0rem, 1vh, .6rem); }
+.agent-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; width: min(760px, 100%); margin-inline: auto; }
+.agent-card { display: flex; flex-direction: column; align-items: center; gap: .55rem; padding: clamp(.6rem, 2vh, 1.1rem) .8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font: inherit; color: inherit; text-align: center; cursor: pointer; }
+.agent-card:hover { background: var(--surface-2); border-color: var(--accent); }
+.agent-av { width: clamp(52px, 10vh, 84px); height: clamp(52px, 10vh, 84px); display: block; } .agent-av svg { width: 100%; height: 100%; display: block; }
+.agent-txt { display: flex; flex-direction: column; gap: .15rem; } .agent-txt b { font-size: 1rem; } .agent-txt span { color: var(--muted); font-size: .88rem; line-height: 1.3; } .agent-txt small { color: var(--accent); font-weight: 600; }
+@media (max-width: 640px) { .agent-row { grid-template-columns: 1fr; gap: .5rem; } .agent-card { flex-direction: row; text-align: left; padding: .5rem .7rem; } .agent-av { width: 48px; height: 48px; flex: none; } .tagline { display: none; } }
+@media (max-height: 640px) { .tagline, .agent-txt small { display: none; } .hero h2 { display: none; } }

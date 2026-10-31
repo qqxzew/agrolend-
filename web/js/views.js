@@ -27,6 +27,13 @@ export function start(q) {
       h('p', { class: 'small muted' }, 'Two-party flows (pool deals) need two workspaces: yours, and a clearly labelled demo counterpart that you can create inside the Developer area.')));
 }
 
+// Cartoon avatars of the three agents (inline SVG, no external files).
+const AVATAR = {
+  owner: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#dcefd6"/><circle cx="32" cy="36" r="17" fill="#f6d7b0"/><path d="M14 31a18 18 0 0 1 36 0z" fill="#e0a43a"/><rect x="11" y="30" width="42" height="5" rx="2.5" fill="#c98a1f"/><circle cx="26" cy="39" r="2" fill="#2b2b2b"/><circle cx="38" cy="39" r="2" fill="#2b2b2b"/><path d="M27 45q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><circle cx="46" cy="47" r="7" fill="#fff" fill-opacity=".6" stroke="#1f4d2e" stroke-width="3"/><path d="M51 52l7 7" stroke="#1f4d2e" stroke-width="4" stroke-linecap="round"/></svg>',
+  farm: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#fff0cc"/><path d="M17 33a15 15 0 0 1 30 0z" fill="#8a5a2b"/><circle cx="32" cy="37" r="16" fill="#f6d7b0"/><path d="M15 29q17-12 34 0l-3 6H18z" fill="#8a5a2b"/><circle cx="26" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><circle cx="38" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><path d="M31 38h2" stroke="#2b2b2b" stroke-width="2"/><circle cx="26" cy="38" r="1.6" fill="#2b2b2b"/><circle cx="38" cy="38" r="1.6" fill="#2b2b2b"/><path d="M28 46q4 3 8 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><rect x="38" y="44" width="17" height="18" rx="2" fill="#fff" stroke="#1f4d2e" stroke-width="2.5"/><path d="M42 50h9M42 54h9M42 58h5" stroke="#1f4d2e" stroke-width="2" stroke-linecap="round"/></svg>',
+  developer: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#d9eef8"/><circle cx="32" cy="36" r="16" fill="#f6d7b0"/><path d="M16 33c0-14 32-14 32 0-6-6-26-6-32 0z" fill="#3b2a1a"/><circle cx="26" cy="38" r="2" fill="#2b2b2b"/><circle cx="38" cy="38" r="2" fill="#2b2b2b"/><path d="M27 44q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><path d="M13 36a19 19 0 0 1 38 0" fill="none" stroke="#1f6b8f" stroke-width="3.5" stroke-linecap="round"/><rect x="9" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><rect x="49" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><circle cx="26" cy="56" r="6" fill="none" stroke="#1f4d2e" stroke-width="3"/><circle cx="38" cy="56" r="6" fill="none" stroke="#e0a43a" stroke-width="3"/></svg>',
+};
+
 // ---------------------------------------------------------------- home
 export function home() {
   const w = ws.current;
@@ -35,22 +42,25 @@ export function home() {
     if (/neighbo|nda|pool|developer|wind|solar|site|audit/.test(s)) return '#/developer';
     if (/map|explore/.test(s)) return '#/map';
     return '#/owner'; };
-  const agents = { owner: ['Land Audit', 'owner'], farm: ['Lease Check', 'farm'], developer: ['Pool Access & Audit', 'developer'] };
+  const agents = [['owner', 'Land Audit', 'Is this site good for wind or solar?', 'land_audit'], ['farm', 'Lease Check', 'Finds overpaid rent and unfarmed land.', 'lease_check'], ['developer', 'Pool Access', 'Meets neighbouring developers under NDA.', 'pool_access']];
+  const open = r => { location.hash = w?.role === r ? '#/' + r : '#/start?role=' + r; };
   const text = h('input', { placeholder: 'Describe what you need, e.g. "check my leases" or "audit a solar site" - we open the right workflow', 'aria-label': 'What would you like to check?' });
-  const sel = h('select', { 'aria-label': 'Agent' }, h('option', { value: '' }, 'Pick for me'), Object.entries(agents).map(([r, [n]]) => h('option', { value: r, selected: w?.role === r }, n)));
+  const sel = h('select', { 'aria-label': 'Agent' }, h('option', { value: '' }, 'Pick for me'), agents.map(([r, n]) => h('option', { value: r, selected: w?.role === r }, n)));
   const go = () => { const r = sel.value || null; const dest = r ? '#/' + r : route(text.value); location.hash = w ? (r && w.role !== r ? '#/start?role=' + r : dest) : '#/start?role=' + (r || dest.slice(2) || 'owner'); };
   text.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  const chips = [['Check my parcel', () => location.hash = w?.role === 'owner' ? '#/owner' : '#/start?role=owner'], ['Check my leases', () => location.hash = w?.role === 'farm' ? '#/farm' : '#/start?role=farm'], ['Audit a site', () => location.hash = w?.role === 'developer' ? '#/developer' : '#/start?role=developer'],
-    ['Show me the map', () => location.hash = '#/map'], ['What data do you use?', () => document.getElementById('coverage')?.scrollIntoView({ behavior: 'smooth' })]];
-  const cards = [['owner', 'Landowner', 'Audit a parcel, attach documents, publish only when you decide.', ['land_audit']], ['farm', 'Tenant farm', 'Find paid-but-unfarmed land, area mismatches, expensive rents and deadlines.', ['lease_check']], ['developer', 'Energy developer', 'Audit sites, meet neighbouring projects under NDA, get a joint calculation.', ['land_audit', 'pool_access']]];
   return h('div', { class: 'home' },
-    h('div', { class: 'hero' }, h('div', { class: 'hero-mark' }, 'A'), h('h2', null, 'What would you like to check?'),
-      h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), h('a', { class: 'pick-map', href: '#/map' }, '📍 Pick on map'), h('span', { class: 'grow' }), h('button', { class: 'send', 'aria-label': 'Go', onclick: go }, '↑'))),
-      h('div', { class: 'chips' }, chips.map(([l, f]) => h('button', { class: 'chip-btn', onclick: f }, l))),
-      !w && h('p', { class: 'small muted' }, 'You will be asked to create a workspace first (ten seconds, no password).')),
-    h('div', { class: 'tiles' }, cards.map(([role, title, text2, svcs]) => h('div', { class: 'card stack' }, h('h3', null, title), h('p', { class: 'muted' }, text2),
-      h('div', { class: 'small' }, svcs.map(s => h('div', null, ctx.config.services[s].title, ' · ', h('b', null, priceOf(s))))),
-      h('a', { class: 'btn primary', href: w && w.role === role ? '#/' + role : `#/start?role=${role}` }, w && w.role === role ? 'Open' : 'Start as ' + title.toLowerCase())))),
+    h('div', { class: 'hero' },
+      h('div', { class: 'logo-lockup' }, h('img', { src: '../img/logo-mark.svg', alt: '', width: 56, height: 56 }), h('div', { class: 'logo-word' }, h('b', null, 'Agro'), 'Land')),
+      h('p', { class: 'tagline' }, 'Pay-per-result land intelligence on Cardano'),
+      h('h2', null, 'What would you like to check?'),
+      h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), h('a', { class: 'pick-map', href: '#/map' }, '📍 Pick on map'), h('span', { class: 'grow' }), h('button', { class: 'send', 'aria-label': 'Go', onclick: go }, '↑')))),
+    h('div', { class: 'agent-row' }, agents.map(([r, name, line, svc]) => h('button', { class: 'agent-card', onclick: () => open(r) },
+      h('span', { class: 'agent-av', html: AVATAR[r] }), h('span', { class: 'agent-txt' }, h('b', null, name), h('span', null, line), h('small', null, priceOf(svc)))))));
+}
+
+// "Data and sources" and the agent table, kept off the chat page so it fits one screen
+export function data() {
+  return h('div', { class: 'stack' },
     h('div', { class: 'card' }, h('h3', null, 'Agents in AgroLand'), h('table', { class: 't' }, h('thead', null, h('tr', null, ['#', 'Agent', 'What you get', 'Price', 'Countries'].map(x => h('th', null, x)))),
       h('tbody', null, Object.entries(ctx.config.services).map(([k, s]) => h('tr', null, h('td', null, 'Agent ' + s.agent), h('td', null, h('b', null, s.title)), h('td', null, s.summary), h('td', null, s.price.display), h('td', null, s.countries.join(' · ')))))),
       h('p', { class: 'small muted' }, 'The same agents answer here and inside Sokosumi. Prices are identical in both places.')),

@@ -14,12 +14,12 @@ const ic = k => h('span', { class: 'ico', html: `<svg viewBox="0 0 24 24"><path 
 const NAV = [
   ['What do you want to do?', [['chat', 'Ask the agent', 'Pick the right workflow', '#/', null], ['pin', 'Check a parcel', 'Map, audit, listings', '#/owner', 'owner'], ['euro', 'Audit my leases', 'Reports and rent reminders', '#/farm', 'farm'],
     ['shield', 'Audit a site', 'Map, pool, deals, owner listings', '#/developer', 'developer']]],
-  ['Reference', [['orders', 'Orders', 'History, payment, results', '#/orders', 'any'], ['data', 'Data and sources', 'Where the numbers come from', '#/#coverage', null], ['user', 'Workspaces', 'Switch or create', '#/start', null]]],
+  ['Reference', [['orders', 'Orders', 'History, payment, results', '#/orders', 'any'], ['data', 'Data and sources', 'Where the numbers come from', '#/data', null], ['user', 'Workspaces', 'Switch or create', '#/start', null]]],
 ];
 const ROUTES = {
   '': { title: 'Chat', fn: V.home, nav: 'home' }, start: { title: 'Workspaces', fn: V.start, nav: 'home' }, owner: { title: 'Landowner', fn: V.owner, nav: 'owner' },
   farm: { title: 'Tenant farm', fn: V.farm, nav: 'farm' }, developer: { title: 'Energy developer', fn: V.developer, nav: 'developer' },
-  map: { title: 'Map', fn: V.map, nav: 'map' }, orders: { title: 'Orders', fn: V.orders, nav: 'orders' },
+  map: { title: 'Map', fn: V.map, nav: 'map' }, data: { title: 'Data and sources', fn: V.data, nav: 'data' }, orders: { title: 'Orders', fn: V.orders, nav: 'orders' },
 };
 
 function parse() {
@@ -32,11 +32,11 @@ function chrome() {
   const base = parse().name, q = parse().q;
   const isOn = href => { const [path, qs] = href.replace(/^#\//, '').split('?'); return path === base && (qs ? new URLSearchParams(qs).get('tab') === q.get('tab') : !q.get('tab')); };
   const side = document.getElementById('side');
-  const item = ([i, title, sub, href]) => h('a', { class: 'nav-item' + (isOn(href) ? ' on' : ''), href: href.replace('#/#coverage', '#/'), 'aria-current': isOn(href) ? 'page' : null,
-    onclick: e => { document.getElementById('app').classList.remove('menu-open'); if (href.endsWith('#coverage')) { e.preventDefault(); location.hash = '#/'; setTimeout(() => document.getElementById('coverage')?.scrollIntoView({ behavior: 'smooth' }), 300); } } },
+  const item = ([i, title, sub, href]) => h('a', { class: 'nav-item' + (isOn(href) ? ' on' : ''), href, 'aria-current': isOn(href) ? 'page' : null,
+    onclick: () => document.getElementById('app').classList.remove('menu-open') },
     ic(i), h('span', { class: 'lbl' }, h('b', null, title), h('small', null, sub)));
   side.replaceChildren(
-    h('div', { class: 'side-top' }, h('a', { class: 'mark', href: '../', title: 'AgroLand home' }, 'A'), h('div', { class: 'side-brand' }, h('strong', null, 'AgroLand'), h('small', null, 'Germany · India · preprod')),
+    h('div', { class: 'side-top' }, h('a', { class: 'mark', href: '../', title: 'AgroLand home' }, h('img', { src: '../img/logo-mark.svg', alt: '', width: 34, height: 34 })), h('div', { class: 'side-brand' }, h('strong', null, 'AgroLand'), h('small', null, 'Germany · India · preprod')),
       h('button', { class: 'icon-btn', 'aria-label': 'Close menu', onclick: () => document.getElementById('app').classList.remove('menu-open') }, '✕')),
     h('a', { class: 'side-new', href: '#/' }, ic('plus'), 'New check'),
     h('div', { class: 'side-scroll' }, NAV.map(([g, items]) => [g, items.filter(x => !x[4] || (x[4] === 'any' ? !!w : x[4] === w?.role))]).filter(([, items]) => items.length).map(([g, items]) => h('div', { class: 'side-group' }, h('div', { class: 'side-group-t' }, g), items.map(item)))),
@@ -62,7 +62,7 @@ async function route() {
   try {
     const node = await r.fn(q, params);
     if (my !== seq) return;
-    view.replaceChildren(node); document.title = `${r.title} · AgroLand`;
+    view.replaceChildren(node); document.title = `${r.title} · AgroLand`; document.getElementById('app').classList.toggle('is-home', r === ROUTES['']);
   } catch (e) {
     if (my !== seq) return;
     view.replaceChildren(h('div', { class: 'callout bad' }, h('b', null, 'Something went wrong. '), e.message, h('p', { class: 'small' }, e instanceof ApiError && e.status === 401 ? 'Your workspace token is not valid here. ' : 'Your data is safe on the server; reload to try again. '), h('a', { class: 'btn sm', href: '#/start' }, 'Workspaces')));
