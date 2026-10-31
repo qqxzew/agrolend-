@@ -7,13 +7,14 @@ import { gateway } from './gateway.mjs';
 import { verifySettlement } from './settlement.mjs';
 import { loadSokosumiRuntime } from './sokosumi-runtime.mjs';
 import { assertTaskTarget, verifyRuntimeTask, taskTarget } from './task-target.mjs';
+import { readRuntimeKey } from './runtime-key.mjs';
 
 export const stageTerminal = new Set(['settled', 'failed', 'quote-only']);
 
 export async function createPaidAdapter({ save, paidEnabled, core: providedCore, target = taskTarget(), api = gateway, sellerAddress, unit }) {
   let core = providedCore;
   const getCore = async () => {
-    if (!core) { const { readRuntimeCredential, createCoworkerHttpClient } = await loadSokosumiRuntime(); core = createCoworkerHttpClient({ apiKey: readRuntimeCredential(target.coworkerId) }); }
+    if (!core) { const runtime = await loadSokosumiRuntime(); core = runtime.createCoworkerHttpClient({ apiKey: readRuntimeKey(target.coworkerId, runtime) }); }
     return core;
   };
   const persist = async (task, state, paid) => { const next = { ...state, paid }; await save(task.id, next); return next; };

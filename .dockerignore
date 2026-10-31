@@ -1,0 +1,17 @@
+# secrets and local state never go into an image
+**/.env
+**/.env.*
+!**/.env.example
+**/.local
+agent/.eve
+agent/docs/payment-state.json
+agent/docs/registration-state.json
+state/
+# build noise
+.git
+**/node_modules
+.venv*
+**/__pycache__
+.pytest_cache
+*.tar
+*.tar.gz

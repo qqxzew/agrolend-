@@ -2,9 +2,11 @@ import {readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {client} from './client.mjs';
 import {loadSokosumiRuntime} from './sokosumi-runtime.mjs';
 import {taskTarget,assertTaskTarget,verifyRuntimeTask} from './task-target.mjs';
+import {readRuntimeKey} from './runtime-key.mjs';
 const target=taskTarget();
-const {readRuntimeCredential,createCoworkerHttpClient,fetchTaskEvents,createTaskEvent}=await loadSokosumiRuntime();
-const runtime=createCoworkerHttpClient({apiKey:readRuntimeCredential(target.coworkerId)});
+const sokosumiRuntime=await loadSokosumiRuntime();
+const {createCoworkerHttpClient,fetchTaskEvents,createTaskEvent}=sokosumiRuntime;
+const runtime=createCoworkerHttpClient({apiKey:readRuntimeKey(target.coworkerId,sokosumiRuntime)});
 export async function reply(task){
  assertTaskTarget(task,target);
  const taskId=task.id;
