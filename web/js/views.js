@@ -88,13 +88,13 @@ function auditComposer(parcel, { onOrder, typeChoices = ['solar', 'wind', 'hybri
   const survey = country() === 'IN' ? h('input', { placeholder: 'Survey number (optional, not verified)' }) : null;
   return h('div', { class: 'stack' }, field('Project type', t), survey && field('Land-record reference', survey, 'Format check only. No state registry offers a public lookup, so it is never verified.'),
     h('div', { class: 'row between' }, h('div', null, 'Land Audit · ', h('b', null, priceOf('land_audit')), h('div', { class: 'small muted' }, 'Price is fixed before you pay.')),
-      h('button', { class: 'btn primary', onclick: e => guard(async () => { const o = await api('/orders', { method: 'POST', body: { service: 'land_audit', input: { parcel_id: parcel.id, project_type: t.value, ...(survey?.value ? { survey_number: survey.value } : {}) }, idempotency_key: crypto.randomUUID() } }); onOrder(o); }, e.target) }, 'Review order')));
+      h('button', { class: 'btn primary', onclick: e => guard(async () => { const o = await api('/orders', { method: 'POST', body: { service: 'land_audit', input: { parcel_id: parcel.id, project_type: t.value, ...(survey?.value ? { survey_number: survey.value } : {}) }, idempotency_key: crypto.randomUUID() } }); onOrder(o, t.value); }, e.target) }, 'Review order')));
 }
 
 // ---------------------------------------------------------------- owner
 export async function owner(q = new URLSearchParams()) {
   const blocked = need('owner'); if (blocked) return blocked;
-  const root = h('div', { class: 'stack' }); let parcels = await api('/parcels'), sel = null, changing = false, orderBox = h('div', null, empty('Order an audit to see it here.')), tab = q.get('tab') === 'listings' ? 'listings' : 'audit';
+  const root = h('div', { class: 'stack' }); let parcels = await api('/parcels'), sel = null, changing = false, auditStarted = false, auditOpen = false, auditType = '', orderBox = h('div', null, empty('Order an audit to see it here.')), tab = q.get('tab') === 'listings' ? 'listings' : 'audit';
   const listings = await api('/listings');
   try { const sid = sessionStorage.getItem('agl.owner.sel'); sel = parcels.find(x => x.id === sid) || null; } catch {}   // the chosen parcel survives a page refresh
   async function draw() {
@@ -105,7 +105,7 @@ export async function owner(q = new URLSearchParams()) {
     if (tab === 'audit') {
       // Same principle as the farm page: step 1 folds into a summary bar once a parcel is chosen; audit and result then get the full width.
       const delParcel = async p => { await guard(() => api('/parcels/' + p.id, { method: 'DELETE' })); if (sel?.id === p.id) sel = null; draw(); };
-      const choose = p => { sel = p; changing = false; draw(); };
+      const choose = p => { sel = p; changing = false; auditStarted = false; auditOpen = false; auditType = ''; orderBox.replaceChildren(empty('Order an audit to see it here.')); draw(); };
       if (!sel || changing) {
         const mapCol = await parcelPicker({ saved: parcels, onSaved: choose });
         body.append(h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, '1 · Choose the parcel'), sel && h('button', { class: 'btn sm ghost', onclick: () => { changing = false; draw(); } }, 'Collapse ↑')),
@@ -115,11 +115,15 @@ export async function owner(q = new URLSearchParams()) {
       }
       if (!sel) body.append(h('p', { class: 'small muted' }, 'Next: audit the parcel, then publish it when you decide.'));
       else {
-        body.append(h('div', { class: 'stack', style: 'margin-top:1rem' },
-          h('div', { class: 'card stack' }, h('h3', null, '2 · Audit'), h('div', { class: 'audit-wide' }, auditComposer(sel, { onOrder: o => { orderBox.replaceChildren(orderPanel(o, { onChange: () => {} })); orderBox.scrollIntoView({ behavior: 'smooth' }); } }))),
-          h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), listingForm(sel, draw)));
+        // Step 2 folds into a summary bar once the audit is ordered (like step 1), and unfolds with "Change audit".
         const prior = (await latestOrders('land_audit')).find(o => o.subject === sel.label);
         if (prior && orderBox.querySelector('.empty')) orderBox.replaceChildren(orderPanel(prior));
+        const audited = !!prior || auditStarted;
+        const composer = h('div', { class: 'audit-wide' }, auditComposer(sel, { onOrder: (o, type) => { auditStarted = true; auditType = type; auditOpen = false; orderBox.replaceChildren(orderPanel(o, { onChange: () => {} })); draw(); } }));
+        const step2 = audited && !auditOpen
+          ? h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '2 · Audit'), h('span', { class: 'muted' }, `Land Audit${auditType ? ' · ' + auditType : ''} · ${priceOf('land_audit')} · ordered`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { auditOpen = true; draw(); } }, 'Change audit'))
+          : h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, '2 · Audit'), audited && h('button', { class: 'btn sm ghost', onclick: () => { auditOpen = false; draw(); } }, 'Collapse ↑')), composer);
+        body.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, step2, h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), listingForm(sel, draw)));
       }
     } else {
       body.append(listings.length ? h('div', { class: 'stack' }, (await api('/listings')).map(listingCard)) : empty('No listings yet. Audit a parcel and publish it when you are ready.'));
