@@ -1,0 +1,465 @@
+{
+  "network": "cardano-preprod",
+  "seller_address": "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+  "token_unit": "16a55b2a349361ff88c03788f93e1e966e5d689605d044fef722ddde0014df10745553444d",
+  "observed_utc": "2026-10-31 08:57",
+  "seller_balance": [
+    {
+      "unit": "lovelace",
+      "quantity": "991429908"
+    },
+    {
+      "unit": "16a55b2a349361ff88c03788f93e1e966e5d689605d044fef722ddde0014df10745553444d",
+      "quantity": "11000000"
+    }
+  ],
+  "collect_transactions": [
+    {
+      "collect_tx": "4147608f672f8fe6c9b1b4cf83d0176b5ec8efb22e9b31a9573487085f5a507b",
+      "block": "48c4938a0a0bb8ae7218285e8793a77bdb78bcd003917d56e840c99ca347104b",
+      "block_height": 5355337,
+      "block_time": 1793411653,
+      "escrow_address": "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g",
+      "locks": [
+        {
+          "lock_tx": "be9ff8384c897d8a2950391ec439dfd56e083fbc32ca5b6564d5e22ef0aab3d2",
+          "output_index": 0,
+          "tUSDM_units": 1000000,
+          "lock_block_time": 1793407595,
+          "buyer_input_addresses": [
+            "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+            "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g"
+          ],
+          "step": "seller input (result-hash submission)",
+          "meta": [
+            {
+              "msg": [
+                "Masumi",
+                "SubmitResult"
+              ]
+            }
+          ],
+          "origin": [
+            {
+              "tx": "69f54064e43f4e970cd7325a97cfe9ce28b7c7b3018cd8c1a47bb49a6c2366ed",
+              "time": 1793407503,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "collect_tx": "ca27bce104f01b778707f408e2676747fa955d0e7d98ee8e3f4c53dc98675307",
+      "block": "cb77eaf7f68d55dedf6d62e075936558d240c067d42ed13ceff35c3c34ddb267",
+      "block_height": 5355382,
+      "block_time": 1793412833,
+      "escrow_address": "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g",
+      "locks": [
+        {
+          "lock_tx": "0740166e5c51f0fae0f848a08b0e13f87f00d8a71d76f1eb84c59e32a9126805",
+          "output_index": 0,
+          "tUSDM_units": 1000000,
+          "lock_block_time": 1793408967,
+          "buyer_input_addresses": [
+            "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+            "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g"
+          ],
+          "step": "seller input (result-hash submission)",
+          "meta": [
+            {
+              "msg": [
+                "Masumi",
+                "SubmitResult",
+                "SubmitResult"
+              ]
+            }
+          ],
+          "origin": [
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            },
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "lock_tx": "0740166e5c51f0fae0f848a08b0e13f87f00d8a71d76f1eb84c59e32a9126805",
+          "output_index": 1,
+          "tUSDM_units": 1000000,
+          "lock_block_time": 1793408967,
+          "buyer_input_addresses": [
+            "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+            "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g"
+          ],
+          "step": "seller input (result-hash submission)",
+          "meta": [
+            {
+              "msg": [
+                "Masumi",
+                "SubmitResult",
+                "SubmitResult"
+              ]
+            }
+          ],
+          "origin": [
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            },
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "lock_tx": "7f23e1e0e5d6892ecc702be62b35f0ed7364e91544bf036218ea526cd0239795",
+          "output_index": 0,
+          "tUSDM_units": 2000000,
+          "lock_block_time": 1793408725,
+          "buyer_input_addresses": [
+            "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+            "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g"
+          ],
+          "step": "seller input (result-hash submission)",
+          "meta": [
+            {
+              "msg": [
+                "Masumi",
+                "SubmitResult",
+                "SubmitResult"
+              ]
+            }
+          ],
+          "origin": [
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            },
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "lock_tx": "7f23e1e0e5d6892ecc702be62b35f0ed7364e91544bf036218ea526cd0239795",
+          "output_index": 1,
+          "tUSDM_units": 2000000,
+          "lock_block_time": 1793408725,
+          "buyer_input_addresses": [
+            "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+            "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g"
+          ],
+          "step": "seller input (result-hash submission)",
+          "meta": [
+            {
+              "msg": [
+                "Masumi",
+                "SubmitResult",
+                "SubmitResult"
+              ]
+            }
+          ],
+          "origin": [
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            },
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "lock_tx": "b8f0aa6058350c001f029a270f60a8c74559995e64ea28dd3646963fa73d7d2c",
+          "output_index": 0,
+          "tUSDM_units": 1000000,
+          "lock_block_time": 1793409041,
+          "buyer_input_addresses": [
+            "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+            "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g"
+          ],
+          "step": "seller input (result-hash submission)",
+          "meta": [
+            {
+              "msg": [
+                "Masumi",
+                "SubmitResult"
+              ]
+            }
+          ],
+          "origin": [
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "lock_tx": "c008ca59bc173b9fbeb407ddedd92a9e4568c1e7ec7f8cdb72b2128684ce6656",
+          "output_index": 0,
+          "tUSDM_units": 1000000,
+          "lock_block_time": 1793408747,
+          "buyer_input_addresses": [
+            "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+            "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g"
+          ],
+          "step": "seller input (result-hash submission)",
+          "meta": [
+            {
+              "msg": [
+                "Masumi",
+                "SubmitResult",
+                "SubmitResult"
+              ]
+            }
+          ],
+          "origin": [
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            },
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "lock_tx": "c008ca59bc173b9fbeb407ddedd92a9e4568c1e7ec7f8cdb72b2128684ce6656",
+          "output_index": 1,
+          "tUSDM_units": 1000000,
+          "lock_block_time": 1793408747,
+          "buyer_input_addresses": [
+            "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+            "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g"
+          ],
+          "step": "seller input (result-hash submission)",
+          "meta": [
+            {
+              "msg": [
+                "Masumi",
+                "SubmitResult",
+                "SubmitResult"
+              ]
+            }
+          ],
+          "origin": [
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            },
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "collect_tx": "763bb816e288910673ba6f585baa70552fdafde851346e0489ac7b3151c5713e",
+      "block": "8e286a5ac4bf0b54d5165666e6f2d4d05aea2eacf0a17eb414a3cce813de1b62",
+      "block_height": 5355384,
+      "block_time": 1793412869,
+      "escrow_address": "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g",
+      "locks": [
+        {
+          "lock_tx": "e1ba5b39b086d43c72b10448f37f453c3c296cd50378d32f4e383e8f013f9ad8",
+          "output_index": 0,
+          "tUSDM_units": 1000000,
+          "lock_block_time": 1793408852,
+          "buyer_input_addresses": [
+            "addr_test1qqymrsxu2yhfpc9e2vqwcfwadgv2cnfunrh7g3kuuuqtskazy9lfldexrs2hd0y2ga363dqksg84mlhffnxxw4u043qqcrg536",
+            "addr_test1wzs4e6wc95hkwezlccjw9mdvq0r0rsgx6zk34avptga3ftgn37w4g"
+          ],
+          "step": "seller input (result-hash submission)",
+          "meta": [
+            {
+              "msg": [
+                "Masumi",
+                "SubmitResult"
+              ]
+            }
+          ],
+          "origin": [
+            {
+              "tx": "0563bd77aa9f07e482eb9070c63c99a9e262eee1f1f7b5bb68537859171ae671",
+              "time": 1793408669,
+              "input_addrs": [
+                "addr_test1qz2aac04ekm83yyy6d0wwah870939s52a3d704saq7fqagm606t6gx6v3cg7sy9g652dvg2v5qf3mdmz0d9vl77shr6s0h5dsg"
+              ],
+              "meta": [
+                {
+                  "msg": [
+                    "Masumi",
+                    "PaymentBatched"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
