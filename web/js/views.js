@@ -305,28 +305,52 @@ function actAs(label, targetId) { const b = h('button', { class: 'btn sm', oncli
 // ---------------------------------------------------------------- developer
 export async function developer(q) {
   const blocked = need('developer'); if (blocked) return blocked;
-  const root = h('div', { class: 'stack' }); let tab = q.get('tab') || 'sites', sel = null, orderBox = h('div', null, empty('Order an audit to see it here.'));
+  const root = h('div', { class: 'stack' }); let tab = q.get('tab') || 'sites', sel = null, changing = false, auditStarted = false, auditOpen = false, auditType = '', orderBox = h('div', null, empty('Order an audit to see it here.'));
   const tabs = [['sites', 'Sites'], ['deals', 'Matches & deals'], ['market', 'Owner listings']];
   async function draw() {
     const nav = h('div', { class: 'tabs' }, tabs.map(([k, l]) => h('button', { class: tab === k ? 'on' : '', onclick: () => { tab = k; draw(); } }, l)));
     const body = h('div'); root.replaceChildren(nav, body);
     body.append(await ({ sites, deals, market }[tab])());
   }
+  // Same flow as the landowner page: step 1 folds into a summary bar once a site is chosen, step 2 folds after the audit is ordered, results get the full width.
   async function sites() {
-    const [parcels, pf, market0] = await Promise.all([api('/parcels'), api('/pool/portfolio'), api('/marketplace').catch(() => [])]);
+    try { if (!sel) sel = JSON.parse(sessionStorage.getItem('agl.dev.sel') || 'null'); } catch {}   // the chosen site survives a page refresh
+    const [parcels, pf, market0, prior] = await Promise.all([api('/parcels'), api('/pool/portfolio'), api('/marketplace').catch(() => []), latestOrders('land_audit')]);
+    sel = sel && parcels.find(x => x.id === sel.id) || null;
+    try { sessionStorage.setItem('agl.dev.sel', sel ? JSON.stringify({ id: sel.id }) : ''); } catch {}
     const leased = market0.filter(m => m.my_interest.disclosed_boundary).map(m => ({ geometry: m.my_interest.disclosed_boundary, label: m.agent_demo ? 'Leased from the Landowner agent (demo)' : 'Leased parcel' }));
-    const mapCol = await parcelPicker({ saved: parcels, leased, onSaved: p => { sel = p; draw(); } });
-    const type = h('select', null, ['wind', 'solar', 'hybrid'].map(x => h('option', { value: x }, x)));
-    return h('div', { class: 'stack' }, await neighbourhoodCard(draw), h('div', { class: 'cols wide-r' }, h('div', { class: 'card stack' }, h('h3', null, '1 · Choose a site'), mapCol, parcelList(parcels, sel?.id, p => { sel = p; draw(); }, async p => { await guard(() => api('/parcels/' + p.id, { method: 'DELETE' })); draw(); })),
-      h('div', { class: 'stack' }, h('div', { class: 'card stack' }, h('h3', null, '2 · Audit or add to the pool'),
-        sel ? [h('b', null, sel.label), auditComposer(sel, { onOrder: o => orderBox.replaceChildren(orderPanel(o)) }), h('hr'),
-          h('div', null, h('b', null, 'Add this site to the pool'), h('p', { class: 'small muted' }, 'The matcher audits it internally, then looks for other developers\' sites within 1.5 km and sends both sides an anonymous teaser (technology, area band, verdict band, distance band). Names, coordinates and parcel ids are never in a teaser.')),
-          field('Project type', type), h('button', { class: 'btn', onclick: e => guard(async () => { const r = await api('/pool/portfolio', { method: 'POST', body: { parcel_id: sel.id, project_type: type.value } }); toast(r.status === 'registered' ? `Registered. New matches: ${r.new_matches}` : 'Not added: ' + (r.reasons || []).join('; ')); draw(); }, e.target) }, 'Add to pool (screening takes up to two minutes)')] : empty('Select a site first.')),
-        h('div', { class: 'card stack' }, h('h3', null, 'Audit result'), orderBox),
-        h('div', { class: 'card stack' }, h('h3', null, 'Your pool portfolio'), pf.length ? h('div', { class: 'list' }, pf.map(p => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, `${p.project_type} · ${p.audit?.verdict || ''} ${p.audit?.score ?? ''}`, p.reason ? ' · ' + p.reason : '')),
-          h('div', { class: 'row' }, chip(p.status, p.status === 'registered' ? 'good' : p.status === 'rejected' ? 'bad' : ''),
-            p.status === 'registered' && h('button', { class: 'btn sm', title: 'Creates a second, labelled demo workspace with a site next to this one', onclick: e => guard(async () => { const r = await api('/demo/counterpart', { method: 'POST', body: { pool_parcel_id: p.id } }); ws.addQuiet(r.user, r.token); toast('Demo counterpart created. Open "Matches & deals" to act as it.'); draw(); }, e.target) }, '+ demo counterpart'),
-            p.status === 'registered' && h('button', { class: 'btn sm danger', onclick: e => guard(async () => { await api('/pool/portfolio/' + p.id, { method: 'DELETE' }); draw(); }, e.target) }, 'Withdraw'))))) : empty('Nothing in the pool yet.')))));
+    const choose = p => { sel = p; changing = false; auditStarted = false; auditOpen = false; auditType = ''; orderBox.replaceChildren(empty('Order an audit to see it here.')); draw(); };
+    const delParcel = async p => { await guard(() => api('/parcels/' + p.id, { method: 'DELETE' })); if (sel?.id === p.id) sel = null; draw(); };
+    const out = h('div', { class: 'stack' });
+    if (!sel || changing) {
+      const mapCol = await parcelPicker({ saved: parcels, leased, onSaved: choose });
+      out.append(h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, '1 · Choose the site'), sel && h('button', { class: 'btn sm ghost', onclick: () => { changing = false; draw(); } }, 'Collapse ↑')),
+        h('div', { class: 'pick-grid' }, mapCol, h('div', { class: 'stack tight' }, h('h4', { class: 'sec' }, 'Your sites'), parcelList(parcels, sel?.id, choose, delParcel)))));
+    } else {
+      out.append(h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '1 · Site'), h('span', { class: 'muted' }, `${sel.label} · ${num(sel.area_ha)} ha`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { changing = true; draw(); } }, 'Change site')));
+    }
+    if (!sel) out.append(h('p', { class: 'small muted' }, 'Next: audit the site, then add it to the pool if you want to meet neighbouring developers.'));
+    else {
+      const done = prior.find(o => o.subject === sel.label);
+      if (done && orderBox.querySelector('.empty')) orderBox.replaceChildren(orderPanel(done));
+      const audited = !!done || auditStarted;
+      const composer = h('div', { class: 'audit-wide' }, auditComposer(sel, { onOrder: (o, t) => { auditStarted = true; auditType = t; auditOpen = false; orderBox.replaceChildren(orderPanel(o)); draw(); } }));
+      const step2 = audited && !auditOpen
+        ? h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '2 · Audit'), h('span', { class: 'muted' }, `Land Audit${auditType ? ' · ' + auditType : ''} · ${priceOf('land_audit')} · ordered`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { auditOpen = true; draw(); } }, 'Change audit'))
+        : h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, '2 · Audit'), audited && h('button', { class: 'btn sm ghost', onclick: () => { auditOpen = false; draw(); } }, 'Collapse ↑')), composer);
+      const type = h('select', { 'aria-label': 'Project type' }, ['wind', 'solar', 'hybrid'].map(x => h('option', { value: x }, x[0].toUpperCase() + x.slice(1))));
+      const pool = h('div', { class: 'card stack' }, h('h3', { style: 'margin:0' }, '4 · Add to the pool (optional)'),
+        h('p', { class: 'small muted', style: 'margin:0' }, 'The matcher audits the site internally, then looks for other developers\' sites within 1.5 km and sends both sides an anonymous teaser (technology, area band, verdict band, distance band). Names, coordinates and parcel ids are never in a teaser.'),
+        h('div', { class: 'row' }, type, h('button', { class: 'btn primary', onclick: e => guard(async () => { const r = await api('/pool/portfolio', { method: 'POST', body: { parcel_id: sel.id, project_type: type.value } }); toast(r.status === 'registered' ? `Registered. New matches: ${r.new_matches}` : 'Not added: ' + (r.reasons || []).join('; ')); draw(); }, e.target) }, 'Add to pool'), h('span', { class: 'small muted' }, 'Screening takes up to two minutes.')));
+      out.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, step2, h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), pool));
+    }
+    out.append(h('div', { class: 'card stack' }, h('h3', null, 'Your pool portfolio'), pf.length ? h('div', { class: 'list' }, pf.map(p => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, `${p.project_type} · ${p.audit?.verdict || ''} ${p.audit?.score ?? ''}`, p.reason ? ' · ' + p.reason : '')),
+      h('div', { class: 'row' }, chip(p.status, p.status === 'registered' ? 'good' : p.status === 'rejected' ? 'bad' : ''),
+        p.status === 'registered' && h('button', { class: 'btn sm', title: 'Creates a second, labelled demo workspace with a site next to this one', onclick: e => guard(async () => { const r = await api('/demo/counterpart', { method: 'POST', body: { pool_parcel_id: p.id } }); ws.addQuiet(r.user, r.token); toast('Demo counterpart created. Open "Matches & deals" to act as it.'); draw(); }, e.target) }, '+ demo counterpart'),
+        p.status === 'registered' && h('button', { class: 'btn sm danger', onclick: e => guard(async () => { await api('/pool/portfolio/' + p.id, { method: 'DELETE' }); draw(); }, e.target) }, 'Withdraw'))))) : empty('Nothing in the pool yet.')));
+    // presenter tool, kept out of the way (like the farm page's test-data links)
+    out.append(h('details', { class: 'quiet' }, h('summary', null, 'Demo tools'), await neighbourhoodCard(draw)));
+    return out;
   }
   async function deals() {
     const [teasers, deals] = await Promise.all([api('/pool/teasers'), api('/pool/deals')]);
