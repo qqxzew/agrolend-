@@ -28,7 +28,7 @@ def test_demo_farm_uses_real_registry_boundaries():
     feats = ds["boundaries"]["features"]
     assert len(feats) == 6 and all(len(f["properties"]["registry"]["tx_hash"]) == 64 for f in feats)
     assert {f["properties"]["parcel_id"] for f in feats} == {c["parcel_id"] for c in ds["contracts"]}
-    assert [d["id"] for d in farm.demo_list("IN")] == ["in", "in-mh"] and farm.demo_list("DE")[0]["boundaries"] == 0
+    assert [d["id"] for d in farm.demo_list("IN")] == ["in", "in-mh"] and farm.demo_list("DE")[0]["boundaries"] == 22  # fictional outlines (scripts/make_de_farm_boundaries.py), no registry links
     with pytest.raises(farm.DataError):
         farm.load_demo("IN", "../de")
     # the lease check itself is unchanged by boundaries

@@ -141,3 +141,42 @@ def test_decline_ends_deal_without_delivery(make_client, geo_stack):
     c.post(f"/api/pool/deals/{mid}/consent", headers=ha, json={"decision": "accept"})
     d = c.post(f"/api/pool/deals/{mid}/consent", headers=hb, json={"decision": "decline"}).json()
     assert d["status"] == "declined" and d["order"] is None
+
+
+def test_demo_neighbourhood_scenario(make_client, geo_stack):
+    """One click builds: our site in the pool, another developer's site (teaser), and a Landowner agent's listed parcel that we can take on lease."""
+    ports, k, cty = geo_stack
+    env = stack.gateway_env(k, Path("/unused"), 0, de_ports=ports, in_ports=ports)
+    env.pop("AGROLAND_STATE_DIR")
+    c, app = make_client(**env)
+    ha, _ = workspace(c, "Windkraft Nord GmbH", "developer", cty)
+    assert c.post("/api/demo/neighbourhood", headers=ha).status_code == 202
+    end = time.time() + 90
+    while time.time() < end:
+        job = c.get("/api/demo/neighbourhood", headers=ha).json()
+        if job["status"] != "running":
+            break
+        time.sleep(1)
+    assert job["status"] == "done", job
+    assert [s["status"] for s in job["steps"]] == ["done", "done", "done"]
+    # another developer's anonymous teaser exists
+    assert len(c.get("/api/pool/teasers", headers=ha).json()) == 1
+    # the Landowner agent's parcel is listed; taking it on lease is accepted by the demo owner and reveals the boundary
+    m = c.get("/api/marketplace", headers=ha).json()
+    assert len(m) == 1 and m[0]["agent_demo"] is True and m[0]["my_interest"]["status"] == "none"
+    r = c.post(f"/api/marketplace/{m[0]['id']}/interest", headers=ha, json={"message": "Lease for our wind project"}).json()
+    assert r["status"] == "accepted" and r["disclosed_boundary"]["type"] == "Polygon"
+    # the seed order is labelled and carries no payment
+    owner_order = [o for o in app.state.engine.list_for(job["result"]["counterpart"]["user"]["id"])]
+    assert owner_order == []
+    # a real (non-demo) owner is never auto-accepted
+    ho, _ = workspace(c, "Real Owner", "owner", cty)
+    p = parcel_for(c, ho, cty)
+    c.post("/api/documents/sample", headers=ho, json={"label": p["label"]})
+    o = c.post("/api/orders", headers=ho, json={"service": "land_audit", "input": {"parcel_id": p["id"], "project_type": "solar"}}).json()
+    c.post(f"/api/orders/{o['id']}/pay", headers=ho)
+    wait_state(c, ho, o["id"], {"delivered"}, 40)
+    l = c.post("/api/listings", headers=ho, json={"parcel_id": p["id"], "deal_type": "lease", "price": 1000, "consent": True, "audit_order_id": o["id"]}).json()
+    m2 = [x for x in c.get("/api/marketplace", headers=ha).json() if x["id"] == l["id"]][0]
+    assert m2["agent_demo"] is False
+    assert c.post(f"/api/marketplace/{l['id']}/interest", headers=ha, json={"message": "x"}).json()["status"] == "pending"

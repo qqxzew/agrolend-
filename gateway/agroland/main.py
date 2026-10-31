@@ -32,7 +32,7 @@ from .settings import ROOT, Settings, get_settings
 WEB = ROOT / "web"
 
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-       "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://server.arcgisonline.com; "
+       "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.basemaps.cartocdn.com; "
        "connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'")
 
 
@@ -114,13 +114,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 return JSONResponse({"detail": "Cross-origin changes are not allowed"}, status_code=403)
         resp = await call_next(request)
         resp.headers["X-Content-Type-Options"] = "nosniff"
-        resp.headers["Referrer-Policy"] = "same-origin"
+        resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"  # map tile servers require a Referer
         resp.headers["X-Frame-Options"] = "DENY"
         resp.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         if not request.url.path.startswith(("/api/", "/internal/", "/masumi/")):
             resp.headers["Content-Security-Policy"] = CSP
         if request.url.path.startswith(("/api/", "/internal/")):
             resp.headers["Cache-Control"] = "no-store"
+        elif not request.url.path.startswith("/masumi/"):
+            resp.headers["Cache-Control"] = "no-cache"  # pages/scripts/styles: always revalidate (ETag), so a redeploy is never hidden by a stale browser cache
         return resp
 
     def internal(x_internal_key: str = Header(default="")):
@@ -447,22 +449,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         data, name = pool.document(u, mid, kind)
         return Response(data, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
-    @app.post("/api/demo/counterpart", status_code=201)
-    def demo_counterpart(body: dict, u=Depends(dev)):
-        """Creates a second, clearly labelled DEMO developer next to one of your registered sites so a genuine two-party deal can be walked through
-        with two identities. The counterpart is a real workspace: it registers its parcel with the real matcher and must consent and sign itself."""
-        pp = pool.portfolio(u)
-        mine = next((p for p in pp if p["id"] == body.get("pool_parcel_id") and p["status"] == "registered"), None)
-        if not mine:
-            raise HTTPException(422, "Register a site first, then add a demo counterpart next to it")
+    def shifted(geom: dict, metres_east: float) -> dict:
+        import math
+        g = shape(parcels_mod.largest_polygon(geom))
+        return mapping(translate(g, xoff=metres_east / (111_320.0 * math.cos(math.radians(g.centroid.y)))))
+
+    def make_counterpart(u, mine: dict) -> tuple[dict, str, dict]:
         with db.tx() as c:
             src = c.execute("SELECT * FROM parcels WHERE user_id=? AND label=? ORDER BY created_at DESC", (u["id"], mine["label"])).fetchone()
-        geom = json.loads(src["geometry"])
-        g = shape(parcels_mod.largest_polygon(geom))
-        lat = g.centroid.y
-        import math
-        dx = 800 / (111_320.0 * math.cos(math.radians(lat)))
-        other = mapping(translate(g, xoff=dx))
+        other = shifted(json.loads(src["geometry"]), 800)
         name = "Solarpark Süd GmbH (demo)" if u["country"] == "DE" else "Surya Solar LLP (demo)"
         cu, token = auth.create_user(db, name, "developer", u["country"], persona="demo-counterpart")
         p = parcels_mod.add(db, cu, {"source": "drawn", "geometry": other, "label": f"Demo counterpart site next to '{mine['label'][:60]}' (illustrative)", "ref": f"demo-{new_id()[:8]}"})
@@ -472,7 +467,112 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 {"company_name": name, "address": "Plot 12, Demo Industrial Area, Bhuj", "state": "Gujarat", "pin_code": "370001", "representative": "Meera Shah, Designated Partner",
                  "registration_no": "AAA-0000 (demo)", "gstin": "", "email": "demo-counterpart@example.invalid", "phone": ""})
         pool.put_profile(cu, prof)
+        return cu, token, reg
+
+    @app.post("/api/demo/counterpart", status_code=201)
+    def demo_counterpart(body: dict, u=Depends(dev)):
+        """Creates a second, clearly labelled DEMO developer next to one of your registered sites so a genuine two-party deal can be walked through
+        with two identities. The counterpart is a real workspace: it registers its parcel with the real matcher and must consent and sign itself."""
+        mine = next((p for p in pool.portfolio(u) if p["id"] == body.get("pool_parcel_id") and p["status"] == "registered"), None)
+        if not mine:
+            raise HTTPException(422, "Register a site first, then add a demo counterpart next to it")
+        cu, token, reg = make_counterpart(u, mine)
         return {"token": token, "user": cu, "registration": reg, "note": "Demo counterpart. Switch to it to give its consent and signature; nothing is done on its behalf."}
+
+    # ---- demo neighbourhood: our site + another developer's site + a landowner's parcel, all adjacent, created through the real services
+    neighbourhood: dict[str, dict] = {}
+
+    def run_neighbourhood(u, job):
+        import threading
+        import time as _t
+        def step(sid, status, detail=None):
+            for s_ in job["steps"]:
+                if s_["id"] == sid:
+                    s_["status"], s_["detail"] = status, detail
+        try:
+            step("site", "running")
+            mine = next((p for p in pool.portfolio(u) if p["status"] == "registered"), None)
+            if not mine:
+                ref = {"source": "alkis-demo", "ref": alkis.demo_id()} if u["country"] == "DE" else {"source": "in-demo", "ref": "IN-DEMO-1"}
+                p = parcels_mod.add(db, u, ref)
+                reg = pool.register(u, p["id"], "wind")
+                if reg["status"] != "registered":
+                    raise RuntimeError("Your demo site was not accepted by the matcher: " + "; ".join(reg.get("reasons") or []))
+                mine = next(x for x in pool.portfolio(u) if x["id"] == reg["id"])
+            step("site", "done", mine["label"])
+            with db.tx() as c:
+                src = c.execute("SELECT * FROM parcels WHERE user_id=? AND label=? ORDER BY created_at DESC", (u["id"], mine["label"])).fetchone()
+            site_geom = json.loads(src["geometry"])
+            out: dict = {}
+            errors: list = []
+
+            def other_developer():
+                try:
+                    step("developer", "running")
+                    cu, token, reg = make_counterpart(u, mine)
+                    out["counterpart"] = {"token": token, "user": cu}
+                    step("developer", "done", cu["name"] + (" - teaser sent to both sides" if reg.get("status") == "registered" else " - not matched: " + "; ".join(reg.get("reasons") or [])))
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(f"developer: {exc}")
+                    step("developer", "error", str(exc)[:200])
+
+            def landowner():
+                try:
+                    step("owner", "running")
+                    name = "Landowner agent (demo)"
+                    ou, _tok = auth.create_user(db, name, "owner", u["country"], persona="demo-owner")
+                    p = parcels_mod.add(db, ou, {"source": "drawn", "geometry": shifted(site_geom, -650), "label": "Parcel offered by the Landowner agent (demo, illustrative boundary)", "ref": f"demo-{new_id()[:8]}"})
+                    doc = listings.save_document(ou, sample_pdf(p["label"], ou["country"]), "SAMPLE-ownership-extract.pdf", sample=True)
+                    o = engine.create(ou, "land_audit", ou["country"], {"parcel_id": p["id"], "project_type": "solar"})
+                    engine.seed_pay(o["id"])
+                    step("owner", "running", "auditing the parcel with live data (up to two minutes)")
+                    end = _t.time() + 420
+                    while _t.time() < end:
+                        st = engine.get(o["id"])["state"]
+                        if st == "delivered":
+                            break
+                        if st == "failed":
+                            raise RuntimeError("the audit of the owner's parcel failed: " + str(engine.get(o["id"])["error"]))
+                        _t.sleep(2)
+                    else:
+                        raise RuntimeError("the audit of the owner's parcel timed out")
+                    price = 1800 if u["country"] == "DE" else 45000
+                    l = listings.create(ou, {"parcel_id": p["id"], "deal_type": "lease", "price": price, "consent": True, "document_id": doc["id"], "audit_order_id": o["id"]})
+                    out["listing_id"] = l["id"]
+                    step("owner", "done", "listed for lease")
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(f"owner: {exc}")
+                    step("owner", "error", str(exc)[:200])
+
+            ts = [threading.Thread(target=other_developer), threading.Thread(target=landowner)]
+            [x.start() for x in ts]
+            [x.join() for x in ts]
+            job["result"] = out
+            job["status"] = "error" if errors else "done"
+            job["error"] = "; ".join(errors) or None
+        except Exception as exc:  # noqa: BLE001
+            job["status"], job["error"] = "error", str(exc)[:300]
+            step("site", "error", str(exc)[:200])
+
+    @app.post("/api/demo/neighbourhood", status_code=202)
+    def start_neighbourhood(u=Depends(dev)):
+        """Builds a demo neighbourhood next to the caller's site through the REAL services (matcher, audit, listings). Platform-provided example
+        parties are labelled demo; the Landowner agent's audit is a `demo-seed` order. Runs in the background (live audits take minutes)."""
+        cur = neighbourhood.get(u["id"])
+        if cur and cur["status"] == "running":
+            return cur
+        job = {"status": "running", "error": None, "result": None, "started": now(), "steps": [
+            {"id": "site", "label": "Your site registered in the pool", "status": "pending", "detail": None},
+            {"id": "developer", "label": "Another developer's site next to yours", "status": "pending", "detail": None},
+            {"id": "owner", "label": "Landowner agent's parcel next to yours, listed for lease", "status": "pending", "detail": None}]}
+        neighbourhood[u["id"]] = job
+        import threading
+        threading.Thread(target=run_neighbourhood, args=(u, job), daemon=True).start()
+        return job
+
+    @app.get("/api/demo/neighbourhood")
+    def neighbourhood_status(u=Depends(dev)):
+        return neighbourhood.get(u["id"]) or {"status": "none", "steps": []}
 
     # ---------------------------------------------------------------- internal (Node agent layer / Sokosumi Coworker)
     def channel_user(ref: str, country: str, role: str):

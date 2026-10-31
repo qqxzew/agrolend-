@@ -1,6 +1,6 @@
 // The order panel: price before payment, the four separate payment facts, the timeline, and the result renderers.
 // The same panel serves all three services; it reloads from the server by order id, so a refresh never loses state.
-import { api, h, chip, fmtTime, fmtMs, num, money, toast, guard, download, copy, hash, kv, spinner, empty } from './core.js';
+import { showDevNotices, api, h, chip, fmtTime, fmtMs, num, money, toast, guard, download, copy, hash, kv, spinner, empty } from './core.js';
 import { cropSection } from './crop.js';
 
 const ACTIVE = ['quoted', 'awaiting_payment', 'paid', 'waiting', 'running', 'delivered'];
@@ -11,6 +11,8 @@ export function stateChip(o) { return chip(STATE_TEXT[o.state] || o.state, STATE
 
 function facts(o) {
   const p = o.payment;
+  if (p.mode === 'demo-seed') return h('div', { class: 'callout' }, h('b', null, 'Demo seed. '), 'This audit belongs to the platform-provided Landowner agent. No payment and no Cardano transaction: it only exists so the neighbourhood demo has a parcel to lease.');
+  if (p.mode !== 'masumi' && !showDevNotices) return null;
   if (p.mode !== 'masumi') return h('div', { class: 'callout bad' }, h('b', null, 'UNPAID DEV MODE. '), 'No payment and no Cardano transaction exist for this order. This mode is for developers only.');
   const step = (title, done, text, tx) => h('div', { class: 'step ' + (done ? 'done' : (o.state === 'failed' ? 'bad' : 'wait')) }, h('b', null, (done ? '✓ ' : '') + title), text, tx && h('div', { class: 'hash' }, 'tx ' + tx));
   return h('div', { class: 'stepper', 'aria-label': 'Payment facts' },
@@ -26,8 +28,8 @@ function payBlock(o, refresh) {
     return h('div', { class: 'callout' }, h('div', { class: 'row between' },
       h('div', null, 'Price: ', price, h('div', { class: 'small muted' }, o.payment.mode === 'masumi'
         ? 'Funds are locked in a Masumi smart contract on Cardano preprod (test funds). They are released to the agent only after the result hash is confirmed and the dispute window has passed.'
-        : 'Dev mode: nothing is charged.')),
-      h('button', { class: 'btn primary', onclick: e => guard(async () => { await api(`/orders/${o.id}/pay`, { method: 'POST' }); refresh(); }, e.target) }, o.payment.mode === 'masumi' ? 'Create payment request' : 'Start (unpaid dev)')));
+        : (showDevNotices ? 'Dev mode: nothing is charged.' : ''))),
+      h('button', { class: 'btn primary', onclick: e => guard(async () => { await api(`/orders/${o.id}/pay`, { method: 'POST' }); refresh(); }, e.target) }, o.payment.mode === 'masumi' ? 'Create payment request' : (showDevNotices ? 'Start (unpaid dev)' : 'Start'))));
   }
   if (o.state === 'awaiting_payment') {
     return h('div', { class: 'callout warn' }, h('b', null, 'Waiting for ', o.price.display, ' to be locked'),
@@ -56,10 +58,12 @@ export function orderPanel(initial, { onChange } = {}) {
     const o = order;
     const children = [h('div', { class: 'row between' }, h('div', null, h('b', null, o.title), ' ', h('span', { class: 'muted' }, '· ' + o.subject), h('div', { class: 'small muted' }, `${o.country} · ${fmtTime(o.created_at)} · order ${o.id.slice(0, 8)}`)), stateChip(o)),
       facts(o), payBlock(o, load)];
-    if (o.state === 'delivered') children.push(h('div', { id: 'result-slot' }, spinner('Loading result…')));
-    children.push(h('details', null, h('summary', null, 'Technical details and timeline'), kv([['Order id', hash(o.id)], ['Input hash', hash(o.input_hash)], ['Result hash', o.result_hash ? hash(o.result_hash) : '-'], ['Channel', o.channel], ['Price (base units)', o.price.amount + ' ' + o.price.symbol + ' units'],
+    if (o.state === 'delivered') children.push(h('div', { id: 'result-slot', class: 'stack' }, spinner('Loading result…')));
+    const tech = () => h('details', null, h('summary', null, 'Technical details and timeline'), kv([['Order id', hash(o.id)], ['Input hash', hash(o.input_hash)], ['Result hash', o.result_hash ? hash(o.result_hash) : '-'], ['Channel', o.channel], ['Price (base units)', o.price.amount + ' ' + o.price.symbol + ' units'],
       ['Payment state', o.payment.on_chain_state || o.payment.stage || '-']]),
-      h('div', { class: 'stack', style: 'margin-top:.6rem' }, (o.events || []).map(e => h('div', { class: 'bubble' }, h('time', null, fmtTime(e.at)), e.event.replace(/_/g, ' '), e.data && Object.keys(e.data).length ? ' - ' + Object.entries(e.data).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(', ') : '')))));
+      h('div', { class: 'stack', style: 'margin-top:.6rem' }, (o.events || []).map(e => h('div', { class: 'bubble' }, h('time', null, fmtTime(e.at)), e.event.replace(/_/g, ' '), e.data && Object.keys(e.data).length ? ' - ' + Object.entries(e.data).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(', ') : ''))));
+    if (o.state !== 'delivered') children.push(tech());
+    root._tech = tech;
     root.replaceChildren(...children.filter(Boolean));
     if (o.state === 'delivered') loadResult();
   }
@@ -67,7 +71,7 @@ export function orderPanel(initial, { onChange } = {}) {
     const slot = root.querySelector('#result-slot'); if (!slot) return;
     try {
       const r = await api(`/orders/${order.id}/result`);
-      slot.replaceChildren(renderResult(order, r), resultActions(order, r));
+      slot.replaceChildren(renderResult(order, r), root._tech(), resultActions(order, r));
     } catch (e) { slot.replaceChildren(empty(e.message)); }
   }
   load();
@@ -76,8 +80,8 @@ export function orderPanel(initial, { onChange } = {}) {
 
 function resultActions(o, r) {
   const out = h('div', { class: 'stack' });
-  out.append(h('div', { class: 'row' },
-    h('button', { class: 'btn', onclick: async e => guard(async () => {
+  out.append(h('div', { class: 'row actions' },
+    h('button', { class: 'btn primary', onclick: async e => guard(async () => {
       const v = await api(`/orders/${o.id}/verify`);
       box.replaceChildren(h('div', { class: v.report_hash_matches && (!v.recomputation || v.recomputation.status === 'pass') ? 'callout good' : 'callout bad' },
         h('b', null, v.report_hash_matches ? '✓ Stored report matches its hash' : '✗ Hash mismatch'), v.recomputation && h('div', null, `Recomputation of ${v.recomputation.checked_findings} findings: `, h('b', null, v.recomputation.status)),
@@ -116,13 +120,14 @@ function leaseResult(o, rep) {
   const s = rep.summary, m = rep.meta, cur = m.currency;
   const fm = n => money(n, cur);
   return h('div', { class: 'stack' },
-    h('div', { class: 'tiles' },
+    h('div', { class: 'tiles stats' },
       h('div', { class: 'tile warn' }, h('div', { class: 'n' }, fm(s.identified_per_year)), h('div', { class: 'l' }, 'Identified from your documents / year')),
       h('div', { class: 'tile info' }, h('div', { class: 'n' }, fm(s.negotiable_per_year)), h('div', { class: 'l' }, 'Negotiation opportunity / year (not a loss)')),
       h('div', { class: 'tile good', id: 'achieved' }, h('div', { class: 'n' }, fm(s.achieved_per_year)), h('div', { class: 'l' }, 'Savings achieved (you record these)')),
       h('div', { class: 'tile' }, h('div', { class: 'n' }, s.expiring_contracts.length), h('div', { class: 'l' }, 'Leases expiring soon'))),
     h('p', { class: 'small muted' }, `${m.farm_name} · ${s.contracts_count} leases · ${num(s.total_area_contract)} ${m.area_unit} · rent ${fm(s.total_rent_per_year)}/year · verification: `, chip(rep.verification.status, rep.verification.status === 'pass' ? 'good' : 'bad')),
-    h('table', { class: 't' }, h('thead', null, h('tr', null, ['Type', 'Lease', 'Finding', `${cur}/year`, ''].map(x => h('th', null, x)))),
+    h('h4', { class: 'sec' }, 'Findings'),
+    h('table', { class: 't findings' }, h('thead', null, h('tr', null, ['Type', 'Lease', 'Finding', `${cur}/year`, ''].map(x => h('th', null, x)))),
       h('tbody', null, rep.findings.map(f => h('tr', null,
         h('td', null, chip(f.category, f.category === 'identified' ? 'warn' : f.category === 'negotiable' ? 'info' : '')), h('td', null, f.contract_id), h('td', null, f.explanation), h('td', null, f.amount_per_year ? fm(f.amount_per_year) : '-'),
         h('td', null, f.category !== 'expiring' && h('button', { class: 'btn sm', onclick: e => recordOutcome(o, f, e.target) }, 'Record saving')))))),

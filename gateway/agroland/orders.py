@@ -164,6 +164,17 @@ class Engine:
         self.event(oid, "payment_requested", {"blockchain_identifier": terms["blockchainIdentifier"]})
         return self.public(self.get(oid))
 
+    def seed_pay(self, oid: str) -> dict:
+        """DEMO SEED ONLY: platform-provided example entities (the demo Landowner agent) get their audit without a customer payment.
+        The order is labelled `demo-seed` everywhere, never carries a transaction, and is never used for a customer's own order."""
+        o = self.get(oid)
+        if o["state"] != "quoted":
+            return self.public(o)
+        pay = {"mode": "demo-seed", "stage": "demo-seed", "label": "DEMO SEED - platform-provided example, not a customer order; no payment, no Cardano transaction"}
+        self._save(oid, payment=pay, state="paid")
+        self.event(oid, "paid", pay)
+        return self.public(self.get(oid))
+
     def pay_with_demo_wallet(self, oid: str, user_id: str | None) -> dict:
         """Lock funds with the operator's funded preprod buyer wallet (web demo). Real transaction, test funds."""
         o = self.get(oid, user_id)

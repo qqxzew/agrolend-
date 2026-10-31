@@ -5,6 +5,7 @@ export const ws = {
   write(v) { try { localStorage.setItem(LS, JSON.stringify(v)); } catch { /* private mode: workspace lives for this tab only */ mem = v; } },
   get current() { const s = this.read(); return s.list.find(w => w.id === s.current) || null; },
   add(user, token) { const s = this.read(); s.list = s.list.filter(w => w.id !== user.id).concat([{ ...user, token }]); s.current = user.id; this.write(s); },
+  addQuiet(user, token) { const s = this.read(); s.list = s.list.filter(w => w.id !== user.id).concat([{ ...user, token }]); this.write(s); },
   use(id) { const s = this.read(); s.current = id; this.write(s); },
   drop(id) { const s = this.read(); s.list = s.list.filter(w => w.id !== id); if (s.current === id) s.current = s.list[0]?.id || null; this.write(s); },
 };
@@ -63,3 +64,6 @@ export const kv = rows => h('table', { class: 't' }, rows.filter(Boolean).map(([
 export const field = (label, input, hint) => h('label', { class: 'f' }, label, input, hint && h('small', null, hint));
 export const empty = text => h('div', { class: 'empty' }, text);
 export const spinner = text => h('span', null, h('span', { class: 'spin' }), ' ', text || '');
+
+// The red "UNPAID DEV MODE" notices are hidden for clean demos. Open the app with ?dev=1 (e.g. /app/?dev=1) to show them again; the mode itself is unchanged.
+export const showDevNotices = (() => { try { return new URLSearchParams(location.search).has('dev'); } catch { return false; } })();

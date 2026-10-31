@@ -280,7 +280,7 @@ def build_report(inp: LandCheckInput, site: Site, gis: GisResult) -> AuditReport
         slope_degrees=round(slope["slope_deg"], 1) if slope else None,
         elevation_m=round(elevation, 0) if elevation is not None else None,
     )
-    if wind:
+    if wind and inp.project_type in ("wind", "hybrid"):   # not relevant to a solar-only audit
         warnings.append("wind speed is an ERA5 reanalysis mean on a ~25 km grid - confirm with an annual on-site / NIWE wind study")
 
     # ---- per-technology assessment
