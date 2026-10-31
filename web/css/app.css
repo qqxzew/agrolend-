@@ -220,3 +220,7 @@ details.quiet { margin-top: .5rem; } details.quiet > summary { color: var(--mute
 .side-empty { color: var(--muted); font-size: .85rem; padding: .2rem .6rem; }
 
 .brand-name { font-size: clamp(1.8rem, 5vh, 2.8rem); font-weight: 300; letter-spacing: -.02em; color: #1f4d2e; line-height: 1; } .brand-name b { font-weight: 700; }
+
+.msg-text { white-space: pre-wrap; }
+.sugg { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .15rem; } .sugg .chip-btn { font-size: .82rem; padding: .3rem .65rem; text-align: left; }
+.msg { animation: fold-in .25s ease-out; }

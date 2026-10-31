@@ -52,18 +52,20 @@ export function home() {
   const page = h('div', { class: 'home' });
   function paint(pending) {
     page.classList.toggle('chatting', msgs.length > 0 || !!pending);
-    log.replaceChildren(...msgs.map(m => h('div', { class: 'msg ' + m.role }, h('div', null, m.content), m.open && ACTION[m.open] && h('button', { class: 'btn sm primary', onclick: () => open(m.open) }, ACTION[m.open] + ' →'))), ...(pending ? [h('div', { class: 'msg assistant' }, spinner('Thinking…'))] : []));
+    const last = msgs.length - 1;
+    log.replaceChildren(...msgs.map((m, i) => h('div', { class: 'msg ' + m.role }, h('div', { class: 'msg-text' }, m.content), m.open && ACTION[m.open] && h('button', { class: 'btn sm primary', onclick: () => open(m.open) }, ACTION[m.open] + ' →'),
+      i === last && !pending && m.suggestions?.length ? h('div', { class: 'sugg' }, m.suggestions.map(q => h('button', { class: 'chip-btn', onclick: () => go(q) }, q))) : null)), ...(pending ? [h('div', { class: 'msg assistant' }, spinner('Thinking…'))] : []));
     log.scrollTop = log.scrollHeight;
   }
-  async function go() {
-    const q = text.value.trim();
+  async function go(preset) {
+    const q = (typeof preset === 'string' ? preset : text.value).trim();
     if (!q) { if (sel.value) open(sel.value); return; }
     if (busy) return;
     busy = true; send.disabled = true; text.value = '';
     msgs.push({ role: 'user', content: q }); chatWrite(msgs); paint(true);
     try {
       const r = await api('/chat', { method: 'POST', body: { messages: msgs.map(({ role, content }) => ({ role, content })), role: w?.role, country: w?.country, agent: sel.value || undefined } });
-      msgs.push({ role: 'assistant', content: r.reply, open: r.open });
+      msgs.push({ role: 'assistant', content: r.reply, open: r.open, suggestions: r.suggestions || [] });
     } catch (e) {
       // without the assistant the page still gets the visitor to the right workflow
       msgs.push({ role: 'assistant', content: e.status === 429 ? e.message : 'The assistant is not available right now, but this workflow looks like the right one.', open: sel.value || route(q) });

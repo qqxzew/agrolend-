@@ -23,10 +23,11 @@ def test_reply_and_allow_listed_action(make_client, monkeypatch):
     monkeypatch.setattr(chat.httpx, "post", post)
     c, _ = make_client(OPENAI_API_KEY="test-key")
     r = c.post("/api/chat", json={**Q, "role": "farm", "country": "DE", "agent": "farm"}).json()
-    assert r == {"reply": "Lease Check fits.", "open": "farm"}
+    assert r == {"reply": "Lease Check fits.", "open": "farm", "suggestions": []}
     assert seen["url"].endswith("/chat/completions") and seen["auth"] == "Bearer test-key"
     system = seen["body"]["messages"][0]["content"]
-    assert "2.00 tUSDM" in system and "tenant farm" in system and "Lease Check" in system
+    assert "2.00 tUSDM" in system and "Tenant farm page" in system and "Lease Check" in system
+    assert "LATEST message" in system and "English" in system and "Review order" in system
 
 
 @pytest.mark.parametrize("content,expected", [('{"reply": "Hi", "open": "https://evil.example"}', None), ('{"reply": "Hi", "open": "none"}', None), ('{"reply": "Hi"}', None)])
@@ -63,3 +64,12 @@ def test_rate_limit(make_client, monkeypatch):
     monkeypatch.setattr(chat.httpx, "post", answer('{"reply": "ok", "open": "none"}'))
     c, _ = make_client(OPENAI_API_KEY="k", AGROLAND_RATE_CHAT_PER_HOUR="2")
     assert [c.post("/api/chat", json=Q).status_code for _ in range(3)] == [200, 200, 429]
+
+
+def test_follow_up_suggestions_are_cleaned(make_client, monkeypatch):
+    raw = '{"reply": "Ok", "open": "farm", "suggestions": ["How much?", "How much?", "", 5, "Which farms?", "Can I upload files?", "Fourth"]}'
+    monkeypatch.setattr(chat.httpx, "post", answer(raw))
+    c, _ = make_client(OPENAI_API_KEY="k")
+    assert c.post("/api/chat", json=Q).json()["suggestions"] == ["How much?", "Which farms?", "Can I upload files?"]
+    monkeypatch.setattr(chat.httpx, "post", answer('{"reply": "Ok", "suggestions": "nope"}'))
+    assert c.post("/api/chat", json=Q).json()["suggestions"] == []
