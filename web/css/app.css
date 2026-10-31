@@ -73,7 +73,7 @@ body { overflow-x: hidden; }
 .nav-item.on .ico svg { stroke: var(--accent); }
 .lbl { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; } .lbl b { font-size: .92rem; font-weight: 600; } .lbl small { color: var(--muted); font-size: .76rem; }
 .side-user { display: flex; align-items: center; gap: .7rem; padding: .8rem .9rem; border-top: 1px solid var(--border); color: var(--text); text-decoration: none; }
-.side-user:hover { background: var(--surface-2); } .side-user .lbl { flex: 1; } .chev { color: var(--muted); }
+.side-user .lbl { flex: 1; }
 .avatar { width: 34px; height: 34px; border-radius: 3px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 700; flex: none; }
 #top { background: var(--bg); padding: .65rem 1.25rem; min-height: 56px; } #top h1 { font-size: 1rem; font-weight: 600; }
 .search { display: flex; align-items: center; gap: .5rem; border: 1px solid var(--border); border-radius: 3px; padding: .1rem .7rem; min-width: min(380px, 100%); background: var(--surface); }
@@ -194,25 +194,27 @@ details > pre.json, details > table { margin: 0; border-radius: 0; max-width: 10
 #app.is-home #main { min-height: 0; } #app.is-home #view { min-height: 0; overflow: hidden; display: flex; }
 .home { flex: 1; justify-content: center; gap: clamp(.8rem, 3vh, 2rem); min-height: 0; }
 .hero { padding: 0; gap: clamp(.35rem, 1.4vh, .8rem); }
-.logo-lockup { display: flex; align-items: center; gap: .9rem; } .logo-lockup img { width: clamp(40px, 7vh, 64px); height: auto; }
-.logo-word { font-size: clamp(1.9rem, 5.4vh, 2.9rem); font-weight: 300; letter-spacing: -.02em; color: #1f4d2e; line-height: 1; } .logo-word b { font-weight: 700; }
-.tagline { margin: 0 0 clamp(.2rem, 1.5vh, 1rem); color: var(--muted); letter-spacing: .02em; }
 .hero h2 { font-size: clamp(1.15rem, 2.6vh, 1.5rem); font-weight: 700; margin-top: clamp(0rem, 1vh, .6rem); }
 .agent-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; width: min(760px, 100%); margin-inline: auto; }
 .agent-card { display: flex; flex-direction: column; align-items: center; gap: .55rem; padding: clamp(.6rem, 2vh, 1.1rem) .8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font: inherit; color: inherit; text-align: center; cursor: pointer; }
 .agent-card:hover { background: var(--surface-2); border-color: var(--accent); }
 .agent-av { width: clamp(52px, 10vh, 84px); height: clamp(52px, 10vh, 84px); display: block; } .agent-av svg { width: 100%; height: 100%; display: block; }
 .agent-txt { display: flex; flex-direction: column; gap: .15rem; } .agent-txt b { font-size: 1rem; } .agent-txt span { color: var(--muted); font-size: .88rem; line-height: 1.3; } .agent-txt small { color: var(--accent); font-weight: 600; }
-@media (max-width: 640px) { .agent-row { grid-template-columns: 1fr; gap: .5rem; } .agent-card { flex-direction: row; text-align: left; padding: .5rem .7rem; } .agent-av { width: 48px; height: 48px; flex: none; } .tagline { display: none; } }
-@media (max-height: 640px) { .tagline, .agent-txt small { display: none; } .hero h2 { display: none; } }
+@media (max-width: 640px) { .agent-row { grid-template-columns: 1fr; gap: .5rem; } .agent-card { flex-direction: row; text-align: left; padding: .5rem .7rem; } .agent-av { width: 48px; height: 48px; flex: none; } }
+@media (max-height: 640px) { .agent-txt small { display: none; } }
 details.quiet { margin-top: .5rem; } details.quiet > summary { color: var(--muted); font-size: .88rem; font-weight: 500; padding: .3rem 0; } details.quiet[open] > summary { margin-bottom: .5rem; }
 
 /* home chat: the log takes the free height and scrolls by itself, so the page never does */
 .composer { margin-inline: auto; flex: none; } .pick-map { background: none; border: none; cursor: pointer; font: inherit; font-size: .88rem; padding: .2rem; }
 .home:not(.chatting) .pick-map, .home:not(.chatting) .chatlog { display: none; }
 .home.chatting { justify-content: flex-start; gap: .7rem; }
-.home.chatting .tagline, .home.chatting .hero h2 { display: none; } .home.chatting .logo-lockup img { width: 32px; } .home.chatting .logo-word { font-size: 1.4rem; }
+.home.chatting .hero { display: none; }
 .chatlog { flex: 1; min-height: 0; overflow-y: auto; width: min(680px, 100%); margin-inline: auto; display: flex; flex-direction: column; gap: .6rem; padding: .2rem; }
 .msg { max-width: 85%; padding: .55rem .8rem; border-radius: 4px; line-height: 1.4; display: flex; flex-direction: column; gap: .45rem; align-items: flex-start; overflow-wrap: anywhere; }
 .msg.user { align-self: flex-end; background: var(--accent-soft); } .msg.assistant { align-self: flex-start; background: var(--surface-2); }
 .home.chatting .agent-card { flex-direction: row; text-align: left; padding: .4rem .6rem; gap: .5rem; } .home.chatting .agent-av { width: 36px; height: 36px; flex: none; } .home.chatting .agent-txt span, .home.chatting .agent-txt small { display: none; }
+.ws-item { display: flex; align-items: center; gap: .4rem; padding: .45rem .6rem; border-radius: 3px; color: var(--text); text-decoration: none; } .ws-item .lbl { flex: 1; } .ws-item .lbl b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-item:hover, .ws-item.on { background: var(--surface-2); }
+.ws-x { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 1.05rem; line-height: 1; padding: .1rem .3rem; border-radius: 3px; opacity: 0; } .ws-item:hover .ws-x, .ws-x:focus-visible { opacity: 1; } .ws-x:hover { background: var(--border); color: var(--bad); }
+@media (hover: none) { .ws-x { opacity: 1; } }
+.side-empty { color: var(--muted); font-size: .85rem; padding: .2rem .6rem; }

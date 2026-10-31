@@ -15,16 +15,10 @@ export function start(q) {
   const name = h('input', { placeholder: 'Your name or company', maxlength: 80, value: '' });
   const r = h('select', null, ['owner', 'farm', 'developer'].map(x => h('option', { value: x, selected: x === role }, ROLE_TEXT[x])));
   const c = h('select', null, h('option', { value: 'DE' }, 'Germany'), h('option', { value: 'IN' }, 'India'));
-  const list = ws.read().list;
-  return h('div', { class: 'cols' },
-    h('div', { class: 'card' }, h('h2', null, 'Create a workspace'),
-      h('p', { class: 'muted' }, 'A workspace keeps your parcels, documents, orders and deals private to you. There is no password: your browser keeps a secret token, so do not clear site data if you want to come back.'),
-      field('Name', name), field('I am a…', r), field('Country', c, 'Data, units, currency and documents follow the country.'),
-      h('button', { class: 'btn primary', onclick: e => guard(async () => { const res = await api('/session', { method: 'POST', body: { name: name.value, role: r.value, country: c.value } }); ws.add(res.user, res.token); location.hash = '#/' + (res.user.role === 'owner' ? 'owner' : res.user.role === 'farm' ? 'farm' : 'developer'); ctx.rerender(); }, e.target) }, 'Create workspace')),
-    h('div', { class: 'card' }, h('h2', null, 'Your workspaces on this device'), list.length ? h('div', { class: 'list' }, list.map(w => h('div', { class: 'item' + (w.id === ws.current?.id ? ' sel' : '') },
-      h('div', { class: 't' }, h('b', null, w.name), h('span', { class: 'small muted' }, `${ROLE_TEXT[w.role]} · ${w.country}${w.persona ? ' · demo' : ''}`)),
-      h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => { ws.use(w.id); ctx.rerender(); location.hash = '#/'; } }, 'Use'), h('button', { class: 'btn sm danger', onclick: () => { if (confirm('Forget this workspace on this device? Its data stays on the server but you lose access without the token.')) { ws.drop(w.id); ctx.rerender(); } } }, 'Forget'))))) : empty('None yet.'),
-      h('p', { class: 'small muted' }, 'Two-party flows (pool deals) need two workspaces: yours, and a clearly labelled demo counterpart that you can create inside the Developer area.')));
+  return h('div', { class: 'card', style: 'max-width:560px;margin-inline:auto' }, h('h2', null, 'Create a workspace'),
+    h('p', { class: 'muted' }, 'A workspace keeps your parcels, documents, orders and deals private to you. There is no password: your browser keeps a secret token, so do not clear site data if you want to come back.'),
+    field('Name', name), field('I am a…', r), field('Country', c, 'Data, units, currency and documents follow the country.'),
+    h('button', { class: 'btn primary', onclick: e => guard(async () => { const res = await api('/session', { method: 'POST', body: { name: name.value, role: r.value, country: c.value } }); ws.add(res.user, res.token); location.hash = '#/' + (res.user.role === 'owner' ? 'owner' : res.user.role === 'farm' ? 'farm' : 'developer'); ctx.rerender(); }, e.target) }, 'Create workspace'));
 }
 
 // Cartoon avatars of the three agents (inline SVG, no external files).
@@ -35,16 +29,17 @@ const AVATAR = {
 };
 
 // ---------------------------------------------------------------- home
-const CHAT_KEY = 'agl.chat', ACTION = { owner: 'Open Land Audit', farm: 'Open Lease Check', developer: 'Open Pool Access', map: 'Open the map', orders: 'Open my orders', data: 'Open data and sources' };
-const chatRead = () => { try { return JSON.parse(sessionStorage.getItem(CHAT_KEY)) || []; } catch { return []; } };
-const chatWrite = v => { try { sessionStorage.setItem(CHAT_KEY, JSON.stringify(v)); } catch {} };
+const ACTION = { owner: 'Open Land Audit', farm: 'Open Lease Check', developer: 'Open Pool Access', orders: 'Open my orders', data: 'Open data and sources' };
+// each workspace keeps its own conversation, like separate chats
+const chatKey = () => 'agl.chat.' + (ws.current?.id || 'none');
+const chatRead = () => { try { return JSON.parse(sessionStorage.getItem(chatKey())) || []; } catch { return []; } };
+const chatWrite = v => { try { sessionStorage.setItem(chatKey(), JSON.stringify(v)); } catch {} };
 
 export function home() {
   const w = ws.current;
   const route = txt => { const s = txt.toLowerCase();
     if (/lease|rent|farm|contract|pacht/.test(s)) return 'farm';
     if (/neighbo|nda|pool|developer|wind|solar|site|audit/.test(s)) return 'developer';
-    if (/map|explore/.test(s)) return 'map';
     return 'owner'; };
   const agents = [['owner', 'Land Audit', 'Is this site good for wind or solar?', 'land_audit'], ['farm', 'Lease Check', 'Finds overpaid rent and unfarmed land.', 'lease_check'], ['developer', 'Pool Access', 'Meets neighbouring developers under NDA.', 'pool_access']];
   // a workflow belongs to one workspace role, so another role goes through workspace creation
@@ -79,8 +74,6 @@ export function home() {
   const clear = h('button', { class: 'pick-map', onclick: () => { msgs = []; chatWrite(msgs); paint(); text.focus(); } }, 'New chat');
   page.append(
     h('div', { class: 'hero' },
-      h('div', { class: 'logo-lockup' }, h('img', { src: '../img/logo-mark.svg', alt: '', width: 56, height: 56 }), h('div', { class: 'logo-word' }, h('b', null, 'Agro'), 'Land')),
-      h('p', { class: 'tagline' }, 'Pay-per-result land intelligence on Cardano'),
       h('h2', null, 'What would you like to check?')),
     log,
     h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), clear, h('span', { class: 'grow' }), send)),

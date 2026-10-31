@@ -11,7 +11,7 @@ import httpx
 
 from .settings import Settings
 
-ACTIONS = ("owner", "farm", "developer", "map", "orders", "data", "none")
+ACTIONS = ("owner", "farm", "developer", "orders", "data", "none")
 AGENTS = {"owner": "Land Audit", "farm": "Lease Check", "developer": "Pool Access"}
 ROLES = {"owner": "landowner", "farm": "tenant farm", "developer": "energy developer"}
 MAX_TURNS = 12
@@ -38,7 +38,6 @@ Where each thing lives (value of "open"):
 - owner: the Landowner page. Pick a parcel, run a Land Audit, attach a document, publish a listing.
 - farm: the Tenant farm page. Upload leases, parcel records and fields, run a Lease Check, calendar reminders.
 - developer: the Energy developer page. Audit sites, add them to the pool, meet neighbours under NDA, read owner listings.
-- map: the parcel map.
 - orders: history, payment state and results of orders.
 - data: agents, data sources and coverage.
 - none: when no page helps.

@@ -14,10 +14,10 @@ const ic = k => h('span', { class: 'ico', html: `<svg viewBox="0 0 24 24"><path 
 const NAV = [
   ['What do you want to do?', [['chat', 'Ask the agent', 'Pick the right workflow', '#/', null], ['pin', 'Check a parcel', 'Map, audit, listings', '#/owner', 'owner'], ['euro', 'Audit my leases', 'Reports and rent reminders', '#/farm', 'farm'],
     ['shield', 'Audit a site', 'Map, pool, deals, owner listings', '#/developer', 'developer']]],
-  ['Reference', [['map', 'Map', 'All parcels, find by number', '#/map', 'any'], ['orders', 'Orders', 'History, payment, results', '#/orders', 'any'], ['data', 'Data and sources', 'Where the numbers come from', '#/data', null], ['user', 'Workspaces', 'Switch or create', '#/start', null]]],
+  ['Reference', [['orders', 'Orders', 'History, payment, results', '#/orders', 'any'], ['data', 'Data and sources', 'Where the numbers come from', '#/data', null]]],
 ];
 const ROUTES = {
-  '': { title: 'Chat', fn: V.home, nav: 'home' }, start: { title: 'Workspaces', fn: V.start, nav: 'home' }, owner: { title: 'Landowner', fn: V.owner, nav: 'owner' },
+  '': { title: 'Chat', fn: V.home, nav: 'home' }, start: { title: 'New workspace', fn: V.start, nav: 'home' }, owner: { title: 'Landowner', fn: V.owner, nav: 'owner' },
   farm: { title: 'Tenant farm', fn: V.farm, nav: 'farm' }, developer: { title: 'Energy developer', fn: V.developer, nav: 'developer' },
   map: { title: 'Map', fn: V.map, nav: 'map' }, data: { title: 'Data and sources', fn: V.data, nav: 'data' }, orders: { title: 'Orders', fn: V.orders, nav: 'orders' },
 };
@@ -31,16 +31,23 @@ function chrome() {
   const w = ws.current, cur = location.hash.replace(/^#\/?/, '');
   const base = parse().name, q = parse().q;
   const isOn = href => { const [path, qs] = href.replace(/^#\//, '').split('?'); return path === base && (qs ? new URLSearchParams(qs).get('tab') === q.get('tab') : !q.get('tab')); };
-  const side = document.getElementById('side');
+  const side = document.getElementById('side'), closeMenu = () => document.getElementById('app').classList.remove('menu-open');
+  // Workspaces sit in the sidebar like chats: one click switches, the x forgets it on this device.
+  const LABEL = { owner: 'Landowner', farm: 'Tenant farm', developer: 'Energy developer' };
+  const switchTo = id => { ws.use(id); closeMenu(); location.hash = '#/'; V.ctx.rerender(); };
+  const forget = (e, x) => { e.preventDefault(); e.stopPropagation(); if (confirm('Forget this workspace on this device? Its data stays on the server but you lose access without the token.')) { ws.drop(x.id); V.ctx.rerender(); } };
+  const workspaces = () => { const list = ws.read().list; return h('div', { class: 'side-group' }, h('div', { class: 'side-group-t' }, 'Workspaces'),
+    list.length ? [...list].reverse().map(x => h('a', { class: 'ws-item' + (x.id === w?.id ? ' on' : ''), href: '#/', 'aria-current': x.id === w?.id ? 'true' : null, onclick: e => { e.preventDefault(); switchTo(x.id); } },
+      h('span', { class: 'lbl' }, h('b', null, x.name), h('small', null, `${LABEL[x.role]} · ${x.country}${x.persona ? ' · demo' : ''}`)), h('button', { class: 'ws-x', 'aria-label': 'Forget ' + x.name, title: 'Forget on this device', onclick: e => forget(e, x) }, '×'))) : h('div', { class: 'side-empty' }, 'None yet.')); };
   const item = ([i, title, sub, href]) => h('a', { class: 'nav-item' + (isOn(href) ? ' on' : ''), href, 'aria-current': isOn(href) ? 'page' : null,
-    onclick: () => document.getElementById('app').classList.remove('menu-open') },
+    onclick: closeMenu },
     ic(i), h('span', { class: 'lbl' }, h('b', null, title), h('small', null, sub)));
   side.replaceChildren(
-    h('div', { class: 'side-top' }, h('a', { class: 'mark', href: '../', title: 'AgroLand home' }, h('img', { src: '../img/logo-mark.svg', alt: '', width: 34, height: 34 })), h('div', { class: 'side-brand' }, h('strong', null, 'AgroLand'), h('small', null, 'Germany · India · preprod')),
+    h('div', { class: 'side-top' }, h('a', { class: 'mark', href: '../', title: 'AgroLand home' }, h('img', { src: '../img/logo-mark.svg', alt: '', width: 34, height: 34 })), h('div', { class: 'side-brand' }, h('strong', null, 'AgroLand')),
       h('button', { class: 'icon-btn', 'aria-label': 'Close menu', onclick: () => document.getElementById('app').classList.remove('menu-open') }, '✕')),
-    h('a', { class: 'side-new', href: '#/' }, ic('plus'), 'New check'),
-    h('div', { class: 'side-scroll' }, NAV.map(([g, items]) => [g, items.filter(x => !x[4] || (x[4] === 'any' ? !!w : x[4] === w?.role))]).filter(([, items]) => items.length).map(([g, items]) => h('div', { class: 'side-group' }, h('div', { class: 'side-group-t' }, g), items.map(item)))),
-    h('a', { class: 'side-user', href: '#/start' }, h('span', { class: 'avatar' }, (w?.name || '?')[0].toUpperCase()), h('span', { class: 'lbl' }, h('b', null, w ? w.name : 'No workspace'), h('small', null, w ? `${{ owner: 'Landowner', farm: 'Tenant farm', developer: 'Energy developer' }[w.role]} · ${w.country}${w.persona ? ' · demo' : ''}` : 'Create one to start')), h('span', { class: 'chev' }, '⇅')));
+    h('a', { class: 'side-new', href: '#/start', onclick: closeMenu }, ic('plus'), 'New workspace'),
+    h('div', { class: 'side-scroll' }, NAV.map(([g, items]) => [g, items.filter(x => !x[4] || (x[4] === 'any' ? !!w : x[4] === w?.role))]).filter(([, items]) => items.length).map(([g, items]) => h('div', { class: 'side-group' }, h('div', { class: 'side-group-t' }, g), items.map(item))), workspaces()),
+    h('div', { class: 'side-user' }, h('span', { class: 'avatar' }, (w?.name || '?')[0].toUpperCase()), h('span', { class: 'lbl' }, h('b', null, w ? w.name : 'No workspace'), h('small', null, w ? `${{ owner: 'Landowner', farm: 'Tenant farm', developer: 'Energy developer' }[w.role]} · ${w.country}${w.persona ? ' · demo' : ''}` : 'Create one to start'))));
   const banner = document.getElementById('banner'), c = V.ctx.config;
   banner.hidden = c.payment_mode !== 'masumi' && !showDevNotices;
   banner.className = c.payment_mode === 'masumi' ? 'live' : 'dev';
