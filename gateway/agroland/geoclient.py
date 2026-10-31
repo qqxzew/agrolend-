@@ -45,6 +45,13 @@ class Geo:
             raise GeoUnavailable(f"audit HTTP {r.status_code}")
         return r.json()["report"]
 
+    def registry_verify(self, tx_hash: str) -> dict:
+        """India only: check a 5am.earth (Project Swaminathan) registration on Cardano mainnet and fetch its IPFS boundary (read-only)."""
+        r = self._call("GET", f"{self.s.audit_url}/registry/verify", self.s.audit_key, params={"tx_hash": tx_hash, "with_document": "true"}, timeout=90.0)
+        if r.status_code >= 400:
+            raise GeoUnavailable(f"registry HTTP {r.status_code}")
+        return r.json()
+
     # --- matcher
     def register_parcel(self, developer_id: str, body: dict) -> tuple[int, dict]:
         r = self._call("POST", f"{self.s.matcher_url}/register_parcel", self.s.matcher_key, json={"developer_id": developer_id, **body})

@@ -28,15 +28,15 @@ Three paid services are registered in Masumi as separate agents; the language-mo
 ### Agent 2 — Lease Check  (paid Masumi service)
 | | |
 |---|---|
-| **Purpose** | Compares a tenant farm's **lease contracts**, the **official parcel record** (ALKIS extract / 7-12 Record of Rights) and the **fields actually farmed**. Findings: paid-but-unfarmed land, billed area above the record, rent above a labelled benchmark, expiring leases. It separates **identified** (follows from your own documents), **negotiable** (an opportunity, not a loss) and **achieved** (only what *you* record after acting — the engine never computes it). Produces a calendar `.ics` with rent and expiry reminders. |
-| **Input** | `country`; data source: the labelled demo farm, saved CSV upload (`contracts`, `cadastre`, `fields`), or inline CSV (MIP-003). |
-| **Output** | Report (every finding carries numbers and source rows), Markdown, `.ics`, SHA-256. Delivered **only if every finding is recomputed from the source rows and passes** (`verify_report`). |
+| **Purpose** | Compares a tenant farm's **lease contracts**, the **official parcel record** (ALKIS extract / 7-12 Record of Rights) and the **fields actually farmed**. Findings: paid-but-unfarmed land, billed area above the record, rent above a labelled benchmark, expiring leases. It separates **identified** (follows from your own documents), **negotiable** (an opportunity, not a loss) and **achieved** (only what *you* record after acting — the engine never computes it). Produces a calendar `.ics` with rent and expiry reminders. When the farm has **field outlines**, the report adds a **crop-and-biomass section** (Sentinel-2) and, for fields registered with **5am.earth on Cardano mainnet**, a check of each registration (section 8). |
+| **Input** | `country`; data source: a labelled demo farm (`demo`: `de`, `in`, or `in-mh` = Maharashtra with real 5am.earth field outlines), saved upload (`contracts`, `cadastre`, `fields` CSV + optional `boundaries` GeoJSON), or inline CSV (MIP-003; `demo_farm` picks the demo). |
+| **Output** | Report (every finding carries numbers and source rows), Markdown, `.ics`, SHA-256. Delivered **only if every finding is recomputed from the source rows and passes** (`verify_report`), and every number of the crop section is recomputed from the stored satellite observations (`cropwatch.verify`). |
 | **Relationships** | Standalone. Country packs: DE (ha, EUR) and IN (acre, INR). One maintained engine: `gateway/agroland/farm.py` (identical numbers to the original `case3-farm` JavaScript on the German data: €1,440 identified, €720 negotiable). |
 | **From our app** | Farm → *Lease Check*. `POST /api/orders {service:"lease_check"}` |
 | **From Sokosumi** | MIP-003 `/masumi/lease_check`; or a Coworker Task ("check my leases, India demo"). |
 | **Paid** | Yes — **2.00 tUSDM**. |
 | **Configuration** | `AGENT_IDENTIFIER_LEASE_CHECK`. |
-| **Verification** | `gateway/tests/test_farm.py` (parity, forged-report rejection, CSV validation, calendar syntax), `test_listings.py::test_farm_upload_and_outcomes`. |
+| **Verification** | `gateway/tests/test_farm.py` (parity, forged-report rejection, CSV validation, calendar syntax), `test_listings.py::test_farm_upload_and_outcomes`, `test_cropwatch.py` (recorded live section of 2026-10-31, forged-section rejection, offset/cloud/artefact handling, sources down, boundary uploads). |
 
 ### Agent 3 — Pool Access  (paid Masumi service; started on the website)
 | | |
@@ -130,6 +130,7 @@ Demonstration data: `.venv/bin/python scripts/seed_demo.py --pool` (workspaces f
 | Audit sources | BKG VG250, OSM Overpass, BfN (EEA fallback), PVGIS, Open-Meteo/DWD, Copernicus DEM; ALKIS WFS only for NRW/Brandenburg | Nominatim, OSM Overpass, PVGIS 5.3, Open-Meteo ERA5, Copernicus DEM. State knowledge only for **Gujarat and Andhra Pradesh** |
 | Corridor signal | A14 200 m / 500 m (OSM carriageway **axis**, not the legal outer edge) | none |
 | Lease Check | EUR, hectares, ALKIS record, Gemarkung-Flur-Flurstück | INR, acres, Record of Rights (7/12), Village-Survey no. |
+| Crop & biomass (Lease Check) | Sentinel-2 for uploaded field outlines (the DE demo farm has none) | Sentinel-2 for uploaded outlines; demo farm `in-mh` (Nandur, Beed, Maharashtra): 6 real 5am.earth-registered fields, each checked on Cardano mainnet |
 | Pool documents | German NDA (NDA-DE-1.0), Flächenpoolvertrag, Netzanschlussbegehren | English NDA (NDA-IN-1.0), Land Pooling Agreement, Grid Connectivity Application |
 | Not provided | ownership/Grundbuch lookup, Bavaria ALKIS, planning-permission or grid-availability confirmation, Flächennutzungsplan/wind zones | ownership/title verification (no public API), non-GJ/AP state rules, protected-area completeness (OSM-based, completeness unmeasured) |
 
@@ -166,3 +167,19 @@ data/                  ALKIS fragment, India demo parcels, farm datasets (DE, IN
 deploy/  scripts/  docs/
 ```
 Raw inputs (`*.tar`, `_src_*`) are git-ignored: the supplied `geo-pooler.tar` contained a live `.env` with a wallet seed — it was not copied anywhere in this project. **If that seed was ever used for anything beyond a throwaway test wallet, treat it as compromised.**
+
+---
+
+## 8. Crop, biomass and the 5am.earth registry on Cardano (Lease Check section)
+
+**What is on Cardano (checked on mainnet with Koios on 2026-10-31).** 5am.earth's *Project Swaminathan* (Syngenta Foundation India agri-entrepreneurs, Maharashtra) registers smallholder **field boundaries**. The registry wallet `addr1q85m2c3n…n9aj4t` spends one state UTXO per registration: the token `global-farm` (policy `c4f37d2b…50ef`) moves to the script `addr1w8z0xlft…yemglm` with an inline datum `[ref_1, farm_id, field-agent code, value_1, ipfs://CID, value_2, Constr 0]` and **no transaction metadata**. The IPFS document holds the polygon, centre, bounds, status and timestamps. Measured on 399 recent registrations: `value_1` is the polygon area in m² (ratio to our geodesic area 1.003–1.006); `value_2` is an integer between −20 and 100 whose meaning is **not documented** and which does **not** track the fields' satellite vegetation (correlation with season peak, mean, latest NDVI and NDVI at registration all |r| ≤ 0.21 on 149 fields around Nandur). **No biomass, crop or yield value is on-chain** in these registrations; press reports of "12 years of biomass data" refer to off-chain partner data (DigiFarm, Seedstars) that needs a data-access agreement (`info@5am.earth`). So AgroLand reads what is public and computes the rest itself, and says which is which.
+
+**What the Lease Check adds per field outline** (`gateway/agroland/cropwatch.py`):
+* **On-chain check** (fields linked to a registration): the transaction is spent from the registry wallet and carries the farm token; the datum decodes; the IPFS document's bytes hash to the CID in the datum; the outline used is *identical* to the registered one. Reused from `services/geo/india/registry/swaminathan.py` (IN audit service, `GET /registry/verify`). A verified anchor proves who published the record and when — not that the boundary is right or who owns the land.
+* **Satellite crop status**: Sentinel-2 L2A (10 m) through the Microsoft Planetary Computer, one small pixel window per scene for the whole farm; SCL cloud mask; processing-baseline offset removed; negative-reflectance artefacts dropped. Canopy status from the latest clear view (dense / green / after peak / no crop canopy).
+* **Season biomass estimate**: Monteith light-use efficiency with daily radiation from Open-Meteo (ERA5): `Σ LUE × fAPAR(NDVI) × 0.48 × radiation`, soil level = the field's own minimum NDVI + 0.10, generic LUE per crop group, ±30 % range. It is an **upper-range screening estimate** (rain-fed fields under stress produce less); the comparison with the same weeks last year is more robust than the absolute value.
+* **Observations worth a look** (not money findings): listed as farmed but no crop canopy; not listed but a crop canopy; lease area vs the registered boundary; biomass ≥ 30 % below last year.
+* **Recomputable**: the report stores every clear observation (date, Sentinel-2 item id, NDVI, percentiles, pixel counts) and the daily radiation; `cropwatch.verify` recomputes all derived numbers and the order is not delivered unless it passes. A source that does not answer is reported as unavailable, never guessed. `AGROLAND_CROPWATCH=off` switches the satellite part off (tests run offline).
+
+**Demo farm `in-mh`** (`data/farm/in-mh/`): *Nandur Kisan Farm (demo)*, Ashti taluka, Beed district. The six outlines are real registrations (transaction hashes in `boundaries.geojson`, geometry copied unchanged from IPFS); owners, survey numbers, rents and leases are fictional. On 2026-10-31 it shows: a field listed as bajra with no canopy all season, a paid-but-unlisted field with a crop canopy, two leases billing more than the registered boundary, and a cotton field 59 % below last year's biomass.
+

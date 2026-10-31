@@ -87,7 +87,7 @@ body { overflow-x: hidden; }
 .composer > input { border: none; outline: none; padding: .7rem .2rem; }
 .composer-row { display: flex; align-items: center; gap: .6rem; padding-bottom: .2rem; } .composer-row .grow { flex: 1; }
 .agent-pick { display: inline-flex; align-items: center; gap: .4rem; } .agent-pick select { border: none; padding: .2rem; width: auto; color: var(--muted); font-size: .88rem; background: none; }
-.dot { width: 20px; height: 20px; border-radius: 2px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: .7rem; font-weight: 700; }
+.agent-dot { width: 20px; height: 20px; border-radius: 2px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: .7rem; font-weight: 700; }
 .pick-map { color: var(--muted); text-decoration: none; font-size: .88rem; }
 .send { width: 38px; height: 38px; border-radius: 3px; border: none; background: var(--ink); color: #fff; font-size: 1.1rem; cursor: pointer; }
 .chips { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; }
@@ -106,3 +106,25 @@ body { overflow-x: hidden; }
 h1, h2, h3 { letter-spacing: 0; }
 
 .tiles-schematic { filter: grayscale(1) contrast(.85) brightness(1.08); }
+/* crop and biomass (crop.js) */
+.stack.tight { gap: .4rem; }
+.legend { display: flex; flex-wrap: wrap; gap: .3rem .9rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.fieldpanel { min-height: 300px; }
+.status-text { margin: 0; font-weight: 600; }
+figure.chart { margin: 0; }
+figure.chart svg { width: 100%; height: auto; display: block; background: var(--surface-2); border-radius: var(--r-md); }
+svg.ndvi .grid { stroke: var(--border); stroke-width: 1; } svg.ndvi .grid.v { stroke-dasharray: 2 4; }
+svg.ndvi .ax { fill: var(--muted); font: 11px var(--font); }
+svg.ndvi .cur { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; }
+svg.ndvi .prev { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+svg.ndvi .soil { stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 2 3; }
+svg.ndvi .pt { fill: var(--accent); stroke: var(--surface); stroke-width: 1; } svg.ndvi .pt.prev { fill: var(--muted); }
+.key { display: inline-block; width: 18px; height: 0; border-top: 3px solid var(--accent); vertical-align: middle; margin: 0 .3rem 0 .6rem; }
+.key.prev { border-top: 2px dashed var(--muted); } .key.soil { border-top: 2px dotted var(--warn); }
+.registry { border: 1px solid var(--border); border-left: 4px solid var(--info); border-radius: var(--r-md); padding: .8rem 1rem; background: var(--surface); display: flex; flex-direction: column; gap: .5rem; }
+.registry.ok { border-left-color: var(--good); } .registry.bad { border-left-color: var(--bad); }
+table.t tr.click { cursor: pointer; } table.t tr.click:hover, table.t tr.sel { background: var(--accent-soft); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: .45rem; vertical-align: 0; }
+.card.inset { box-shadow: none; background: var(--bg); }

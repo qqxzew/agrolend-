@@ -1,0 +1,242 @@
+{
+ "type": "FeatureCollection",
+ "note": "Boundaries are real 5am.earth (Project Swaminathan) registrations on Cardano mainnet: geometry copied unchanged from the IPFS document named in each registration's datum. Survey numbers, owners and leases are fictional.",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "parcel_id": "Nandur-112/1",
+    "registry": {
+     "tx_hash": "bfa85cf590fcf0523148489c50e9ba7fdc3e21ddbda0f574b517762a735d4df0",
+     "farm_id": "108289",
+     "document_cid": "Qme5CKFfziPu25iCfK1EA4AyJ3HJENu9pVrMY7PjZWg76R"
+    }
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.94716014,
+       18.958808372
+      ],
+      [
+       74.947176058,
+       18.959204584
+      ],
+      [
+       74.947915274,
+       18.959259883
+      ],
+      [
+       74.947969641,
+       18.958923418
+      ],
+      [
+       74.94716014,
+       18.958808372
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "parcel_id": "Nandur-112/4",
+    "registry": {
+     "tx_hash": "5e4f55dcf640955beadf061208f68f9bf489f4206f679d81bfbee8cd64946cd3",
+     "farm_id": "108285",
+     "document_cid": "QmaLkPJYgSg3Md1TsuRxFFawzQhpW4h69kpvG9Zn6dk44B"
+    }
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.947989156,
+       18.959253747
+      ],
+      [
+       74.948773057,
+       18.959548454
+      ],
+      [
+       74.948880569,
+       18.959110557
+      ],
+      [
+       74.948097416,
+       18.958836617
+      ],
+      [
+       74.947989156,
+       18.959253747
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "parcel_id": "Nandur-115/2",
+    "registry": {
+     "tx_hash": "6f6d0763a6ac1e1893c142f1372647663f3838fe82ed87ef2f26eebfd85168ff",
+     "farm_id": "108293",
+     "document_cid": "QmNP3yQDkQ2dGmv8KNUFt42Q19JAtoVCniWDA1AXBegkqu"
+    }
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.946913872,
+       18.959029465
+      ],
+      [
+       74.946941875,
+       18.958619983
+      ],
+      [
+       74.946556133,
+       18.958584484
+      ],
+      [
+       74.946614141,
+       18.958914939
+      ],
+      [
+       74.946913872,
+       18.959029465
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "parcel_id": "Nandur-118",
+    "registry": {
+     "tx_hash": "2f474667d8d841628d94de18d23f2f3537832a28d424ec6f3bb90c45b708a6ee",
+     "farm_id": "108333",
+     "document_cid": "QmUxYiz28MEtvWHgqsfVCFGZUKEkgdaWqmkwwY5BJRX51w"
+    }
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.947597786,
+       18.958767557
+      ],
+      [
+       74.947664682,
+       18.95843118
+      ],
+      [
+       74.947146347,
+       18.958465956
+      ],
+      [
+       74.947202062,
+       18.958697175
+      ],
+      [
+       74.947597786,
+       18.958767557
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "parcel_id": "Nandur-121/3",
+    "registry": {
+     "tx_hash": "575004d7702692b516526c923dd8aa96dfb88b9f84a22465804dac3942deb71b",
+     "farm_id": "108156",
+     "document_cid": "QmfNZNSznMBdRf7HCLKtydVW6Fj6NY6C978PXSyg2hRmvS"
+    }
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.946163033,
+       18.960158958
+      ],
+      [
+       74.94698444,
+       18.960036866
+      ],
+      [
+       74.947399413,
+       18.959826879
+      ],
+      [
+       74.947136558,
+       18.959594643
+      ],
+      [
+       74.946494583,
+       18.959585423
+      ],
+      [
+       74.945882253,
+       18.959893854
+      ],
+      [
+       74.946163033,
+       18.960158958
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "parcel_id": "Nandur-124/1",
+    "registry": {
+     "tx_hash": "8f5ca047ea8be77a2f140fa2ce356edf2d1788f38d60939220760abc2a0d55b9",
+     "farm_id": "108226",
+     "document_cid": "QmT69gRwSB5jVH7q9LYDeXWEoEZG5kpFMwaPks6728uLZo"
+    }
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.947193244,
+       18.95952935
+      ],
+      [
+       74.947503089,
+       18.959563734
+      ],
+      [
+       74.94751119,
+       18.959252364
+      ],
+      [
+       74.947135363,
+       18.959262523
+      ],
+      [
+       74.947193244,
+       18.95952935
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

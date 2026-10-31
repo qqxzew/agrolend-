@@ -12,6 +12,7 @@ from fastapi import APIRouter, Body, Header, HTTPException, Query, Request
 from pydantic import ValidationError
 
 from ..common.jobstore import JobStore
+from ..registry.swaminathan import SwaminathanRegistry
 from ..common.masumi import DEAD_STATES, PAID_STATES, PaymentClient, input_hash, output_hash, unix
 from .config import AuditSettings
 from .gis_engine import GisEngine, build_site
@@ -190,6 +191,16 @@ def build_router() -> APIRouter:
             raise HTTPException(422, detail=_input_errors(e))
         gis = await svc.engine.run(site)
         return {"status": "completed", "report": json.loads(canonical_report(build_report(inp, site, gis)))}
+
+    @router.get("/registry/verify")
+    async def registry_verify(request: Request, tx_hash: str = Query(...), with_document: bool = Query(False)):
+        """Check that a transaction is a 5am.earth (Project Swaminathan) registration on Cardano mainnet. Read-only, free."""
+        return await SwaminathanRegistry(_service(request).engine.client).verify_tx(tx_hash, with_document)
+
+    @router.get("/registry/records")
+    async def registry_records(request: Request, limit: int = Query(10, ge=1, le=25)):
+        """Latest registrations anchored by the registry (not tied to a parcel)."""
+        return await SwaminathanRegistry(_service(request).engine.client).recent_records(limit)
 
     @router.get("/status")
     async def status(request: Request, job_id: str = Query(...)):
