@@ -1,6 +1,8 @@
 import { Client } from 'eve/client';
 import { writeFileSync } from 'node:fs';
-export const client=new Client({host:process.env.EVE_URL});
+// A compiled agent (server) requires the worker's HTTP Basic credential; `eve dev` admits loopback callers without it.
+const password=process.env.EVE_CLIENT_PASSWORD?.trim();
+export const client=new Client({host:process.env.EVE_URL,...(password?{auth:{basic:{username:'agroland-worker',password}},redirect:'error'}:{})});
 export async function answer(input,journal,deadline) {
  if(typeof input!=='string'||!input.trim()||input.length>16000) throw new Error('Input must contain 1 to 16000 characters');
  const {session}=await client.sessions.create();
