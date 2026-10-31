@@ -74,6 +74,7 @@ export function home() {
   const clear = h('button', { class: 'pick-map', onclick: () => { msgs = []; chatWrite(msgs); paint(); text.focus(); } }, 'New chat');
   page.append(
     h('div', { class: 'hero' },
+      h('div', { class: 'brand-name' }, h('b', null, 'Agro'), 'Land'),
       h('h2', null, 'What would you like to check?')),
     log,
     h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), clear, h('span', { class: 'grow' }), send)),
