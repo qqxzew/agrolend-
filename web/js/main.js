@@ -47,9 +47,10 @@ function chrome() {
   banner.textContent = c.payment_mode === 'masumi' ? `Cardano ${c.network} · test funds only (${c.token}) · every payment is a real preprod transaction` : 'UNPAID DEV MODE - orders are not paid and no Cardano transaction exists. Not for demos.';
   const search = h('input', { id: 'find', placeholder: 'Find a parcel by cadastral number ( / )', 'aria-label': 'Find a parcel by cadastral number' });
   search.addEventListener('keydown', e => { if (e.key === 'Enter' && search.value.trim()) location.hash = '#/map?find=' + encodeURIComponent(search.value.trim()); });
+  const isHome = (ROUTES[base] || ROUTES['']) === ROUTES[''];   // the chat page has no parcel search
   const top = document.getElementById('top');
   top.replaceChildren(...[h('button', { class: 'icon-btn menu-btn', 'aria-label': 'Open menu', onclick: () => document.getElementById('app').classList.add('menu-open') }, ic('menu')), h('h1', null, ROUTES[base]?.title || ''), h('span', { class: 'grow' }),
-    h('label', { class: 'search' }, ic('search'), search), !w && h('a', { class: 'btn primary sm', href: '#/start' }, 'Create workspace')].filter(Boolean));
+    !isHome && h('label', { class: 'search' }, ic('search'), search), !w && h('a', { class: 'btn primary sm', href: '#/start' }, 'Create workspace')].filter(Boolean));
 }
 addEventListener('keydown', e => { if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) { e.preventDefault(); document.getElementById('find')?.focus(); } });
 
