@@ -1,4 +1,4 @@
-import { api, ws, h, chip, toast, ApiError } from './core.js';
+import { api, ws, h, chip, toast, ApiError, showDevNotices } from './core.js';
 import * as V from './views.js';
 
 const ICON = {
@@ -42,6 +42,7 @@ function chrome() {
     h('div', { class: 'side-scroll' }, NAV.map(([g, items]) => [g, items.filter(x => !x[4] || (x[4] === 'any' ? !!w : x[4] === w?.role))]).filter(([, items]) => items.length).map(([g, items]) => h('div', { class: 'side-group' }, h('div', { class: 'side-group-t' }, g), items.map(item)))),
     h('a', { class: 'side-user', href: '#/start' }, h('span', { class: 'avatar' }, (w?.name || '?')[0].toUpperCase()), h('span', { class: 'lbl' }, h('b', null, w ? w.name : 'No workspace'), h('small', null, w ? `${{ owner: 'Landowner', farm: 'Tenant farm', developer: 'Energy developer' }[w.role]} · ${w.country}${w.persona ? ' · demo' : ''}` : 'Create one to start')), h('span', { class: 'chev' }, '⇅')));
   const banner = document.getElementById('banner'), c = V.ctx.config;
+  banner.hidden = c.payment_mode !== 'masumi' && !showDevNotices;
   banner.className = c.payment_mode === 'masumi' ? 'live' : 'dev';
   banner.textContent = c.payment_mode === 'masumi' ? `Cardano ${c.network} · test funds only (${c.token}) · every payment is a real preprod transaction` : 'UNPAID DEV MODE - orders are not paid and no Cardano transaction exists. Not for demos.';
   const search = h('input', { id: 'find', placeholder: 'Find a parcel by cadastral number ( / )', 'aria-label': 'Find a parcel by cadastral number' });

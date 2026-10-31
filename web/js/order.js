@@ -1,6 +1,6 @@
 // The order panel: price before payment, the four separate payment facts, the timeline, and the result renderers.
 // The same panel serves all three services; it reloads from the server by order id, so a refresh never loses state.
-import { api, h, chip, fmtTime, fmtMs, num, money, toast, guard, download, copy, hash, kv, spinner, empty } from './core.js';
+import { showDevNotices, api, h, chip, fmtTime, fmtMs, num, money, toast, guard, download, copy, hash, kv, spinner, empty } from './core.js';
 import { cropSection } from './crop.js';
 
 const ACTIVE = ['quoted', 'awaiting_payment', 'paid', 'waiting', 'running', 'delivered'];
@@ -12,6 +12,7 @@ export function stateChip(o) { return chip(STATE_TEXT[o.state] || o.state, STATE
 function facts(o) {
   const p = o.payment;
   if (p.mode === 'demo-seed') return h('div', { class: 'callout' }, h('b', null, 'Demo seed. '), 'This audit belongs to the platform-provided Landowner agent. No payment and no Cardano transaction: it only exists so the neighbourhood demo has a parcel to lease.');
+  if (p.mode !== 'masumi' && !showDevNotices) return null;
   if (p.mode !== 'masumi') return h('div', { class: 'callout bad' }, h('b', null, 'UNPAID DEV MODE. '), 'No payment and no Cardano transaction exist for this order. This mode is for developers only.');
   const step = (title, done, text, tx) => h('div', { class: 'step ' + (done ? 'done' : (o.state === 'failed' ? 'bad' : 'wait')) }, h('b', null, (done ? '✓ ' : '') + title), text, tx && h('div', { class: 'hash' }, 'tx ' + tx));
   return h('div', { class: 'stepper', 'aria-label': 'Payment facts' },
@@ -27,8 +28,8 @@ function payBlock(o, refresh) {
     return h('div', { class: 'callout' }, h('div', { class: 'row between' },
       h('div', null, 'Price: ', price, h('div', { class: 'small muted' }, o.payment.mode === 'masumi'
         ? 'Funds are locked in a Masumi smart contract on Cardano preprod (test funds). They are released to the agent only after the result hash is confirmed and the dispute window has passed.'
-        : 'Dev mode: nothing is charged.')),
-      h('button', { class: 'btn primary', onclick: e => guard(async () => { await api(`/orders/${o.id}/pay`, { method: 'POST' }); refresh(); }, e.target) }, o.payment.mode === 'masumi' ? 'Create payment request' : 'Start (unpaid dev)')));
+        : (showDevNotices ? 'Dev mode: nothing is charged.' : ''))),
+      h('button', { class: 'btn primary', onclick: e => guard(async () => { await api(`/orders/${o.id}/pay`, { method: 'POST' }); refresh(); }, e.target) }, o.payment.mode === 'masumi' ? 'Create payment request' : (showDevNotices ? 'Start (unpaid dev)' : 'Start'))));
   }
   if (o.state === 'awaiting_payment') {
     return h('div', { class: 'callout warn' }, h('b', null, 'Waiting for ', o.price.display, ' to be locked'),
