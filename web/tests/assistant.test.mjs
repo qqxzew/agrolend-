@@ -30,9 +30,19 @@ test('a pending reply stays with its original workspace after switching conversa
   await pending;
   assert.equal(requests, 1);
   assert.equal(owner.messages.length, 2);
+  assert.equal(owner.messages.at(-1).agent, 'owner');
   assert.deepEqual(farm.messages, []);
   assert.equal(JSON.parse(sessionStorage.getItem(owner.key)).at(-1).role, 'assistant');
   assert.equal(sessionStorage.getItem(farm.key), null);
+});
+
+test('each reply keeps the agent that answered even when the active task changes', async () => {
+  const chat = conversation({ id: 'agent-history', role: 'developer', country: 'DE' });
+  globalThis.fetch = async () => response('A short answer.');
+  await sendQuestion(chat, 'How do I audit this site?', { agent: 'owner' });
+  await sendQuestion(chat, 'How do clusters work?', { agent: 'developer' });
+  const replies = JSON.parse(sessionStorage.getItem(chat.key)).filter(m => m.role === 'assistant');
+  assert.deepEqual(replies.map(m => m.agent), ['owner', 'developer']);
 });
 
 test('a failed reply can be retried without duplicating the question or faking an answer', async () => {

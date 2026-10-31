@@ -26,6 +26,7 @@ from . import mip003
 from .masumi import verify_tx_on_blockfrost
 from .orders import Engine
 from .pool import PoolAccessRunner, PoolService
+from .clusters import LandNetwork
 from .services import LandAuditRunner, LeaseCheckRunner
 from .settings import ROOT, Settings, get_settings
 
@@ -76,6 +77,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     holder: dict = {}
     limiter = Limiter()
     pool = PoolService(db, geo, lambda: holder["engine"])
+    land = LandNetwork(db)
     crop = cropwatch.Fetcher(cache_dir=s.state_dir / "cropwatch") if s.cropwatch == "live" else None
     runners = {"land_audit": LandAuditRunner(db, geo), "lease_check": LeaseCheckRunner(db, crop, geo["IN"].registry_verify),
                "pool_access": PoolAccessRunner(pool, s.state_dir)}
@@ -419,6 +421,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if u["role"] != "developer":
             raise HTTPException(403, "Developer workspaces only")
         return u
+
+    @app.get("/api/land/sites")
+    def land_sites(project_type: Literal["solar", "wind", "hybrid"] | None = None, region: str = Query(default="", max_length=100),
+                   min_area_ha: float = Query(default=0, ge=0, le=1_000_000), mine: bool = False, u=Depends(dev)):
+        return land.directory(u, project_type, region, min_area_ha, mine=mine, include_withdrawn=mine)
+
+    @app.post("/api/land/sites", status_code=201)
+    def register_land(body: dict, u=Depends(dev)):
+        return land.register(u, body)
+
+    @app.delete("/api/land/sites/{sid}", status_code=204)
+    def withdraw_land(sid: str, u=Depends(dev)):
+        land.withdraw(u, sid)
+
+    @app.get("/api/land/clusters")
+    def energy_clusters(u=Depends(dev)):
+        return land.clusters(u)
+
+    @app.post("/api/land/clusters/{cid}/decision")
+    def cluster_decision(cid: str, body: dict, u=Depends(dev)):
+        return land.decide(u, cid, body.get("decision"))
 
     @app.get("/api/pool/portfolio")
     def portfolio(u=Depends(dev)):

@@ -26,12 +26,12 @@ export function clearConversation(chat) {
 export async function sendQuestion(chat, question, options = {}, retry = false) {
   const content = String(question || '').trim().slice(0, 1000);
   if (!content || chat.busy) return;
-  chat.busy = true; chat.error = ''; chat.retry = content;
+  chat.busy = true; chat.error = ''; chat.retry = content; chat.pendingAgent = options.agent || chat.role || 'guide';
   if (!retry || chat.messages.at(-1)?.role !== 'user' || chat.messages.at(-1)?.content !== content) chat.messages.push({ role: 'user', content });
   save(chat);
   try {
     const r = await api('/chat', { method: 'POST', body: { messages: chat.messages.slice(-12).map(({ role, content }) => ({ role, content })), role: chat.role, country: chat.country, ...options } });
-    chat.messages.push({ role: 'assistant', content: r.reply, open: r.open, suggestions: r.suggestions || [] });
+    chat.messages.push({ role: 'assistant', content: r.reply, open: r.open, suggestions: r.suggestions || [], agent: chat.pendingAgent });
   } catch (e) {
     chat.error = e.status === 429 ? e.message : 'The assistant could not reply. Please try again. You can keep working on this page.';
   } finally { chat.busy = false; save(chat); }
@@ -51,10 +51,14 @@ const SCREENS = {
   map: ['Parcel map', 'Find your starting point', 'Get help choosing a parcel or drawing an outline for an audit.', ['How do I select a parcel?', 'Can I draw my own outline?', 'Which countries are covered?']],
   start: ['New workspace', 'A little help getting started', 'Choose the workspace that fits the work you want to do.', ['Which workspace should I choose?', 'Can I use different roles?', 'How is my workspace saved?']],
 };
-const TABS = { audit: 'Audit a parcel', listings: 'My listings', sites: 'Sites', deals: 'Matches & deals', market: 'Owner listings' };
+const TABS = { audit: 'Audit a parcel', listings: 'My listings', find: 'Find land', sites: 'Site workspace', registered: 'My sites', clusters: 'Clusters', deals: 'Private introductions', market: 'Owner listings' };
+const AGENT_LABEL = { guide: 'AgroLand', owner: 'Land Audit', farm: 'Lease Check', developer: 'Pool Access' };
 const TAB_SCREENS = {
   'owner.listings': ['My listings', 'Publish on your terms', 'Get help with listings, consent and deciding when to share a boundary.', ['How do I publish a listing?', 'Who can see my boundary?', 'Can I withdraw a listing?']],
-  'developer.deals': ['Matches & deals', 'From match to introduction', 'I can explain consent, payment and the NDA before either site is disclosed.', ['What happens after a match?', 'When do both parties sign?', 'When are site details shared?']],
+  'developer.find': ['Find land', 'Find the right starting point', 'Explore parcels, owner offers and sites registered for a shared solar or wind project.', ['How do I find land?', 'How do I register a site?', 'Which sites can form a cluster?']],
+  'developer.registered': ['My sites', 'Your sites, your decision', 'I can help with database registration, consent and withdrawing a site from matching.', ['How do I register a site?', 'Can I withdraw my site?', 'Who can see my boundary?']],
+  'developer.clusters': ['Clusters', 'Bring neighbouring sites together', 'Every participant agrees separately. I can explain how proposals and approval work.', ['How does a cluster form?', 'Does everyone need to agree?', 'What if a new member joins?']],
+  'developer.deals': ['Private introductions', 'From match to introduction', 'I can explain consent, payment and the NDA before either site is disclosed.', ['What happens after a match?', 'When do both parties sign?', 'When are site details shared?']],
   'developer.market': ['Owner listings', 'Find a parcel to lease', 'Get help with owner listings and requesting access to an exact boundary.', ['How do I request a boundary?', 'What can I see before consent?', 'Is ownership verified?']],
 };
 
@@ -63,7 +67,10 @@ export function mountAssistant() {
   const narrow = matchMedia('(max-width: 1100px)');
   let page = '', chat = conversation(), signature = '', lastFocus = null;
   const context = () => { const root = view.firstElementChild; return { page, tab: root?.dataset.assistantTab, stage: root?.dataset.assistantStage }; };
-  const avatar = () => h('span', { class: 'agent-dot', 'aria-hidden': 'true', html: AVATAR[['owner', 'farm', 'developer'].includes(page) ? page : 'guide'] });
+  const activeAgent = () => page === 'developer' ? (context().tab === 'find' || ['choose_parcel', 'review_audit', 'audit_ordered'].includes(context().stage) ? 'owner' : 'developer') : page === 'map' ? 'owner' : ['owner', 'farm'].includes(page) ? page : 'guide';
+  const avatar = agent => h('span', { class: 'agent-dot', 'aria-hidden': 'true', html: AVATAR[agent] || AVATAR[activeAgent()] });
+  const headAvatar = h('span', { class: 'assistant-mark', 'aria-hidden': 'true' });
+  const agentTitle = h('b', { id: 'assistant-title' });
   const screenLabel = h('span', { class: 'assistant-screen' });
   const intro = h('div', { class: 'assistant-intro' });
   const log = h('div', { class: 'assistant-log', role: 'log', 'aria-label': 'Conversation with AgroLand assistant', 'aria-live': 'polite', 'aria-relevant': 'additions text', tabindex: 0 });
@@ -77,7 +84,7 @@ export function mountAssistant() {
   const scrim = h('div', { class: 'assistant-scrim', hidden: true, onclick: () => setOpen(false) });
   panel.before(scrim);
   panel.replaceChildren(
-    h('div', { class: 'assistant-head' }, h('span', { class: 'assistant-mark', 'aria-hidden': 'true', html: AVATAR.guide }), h('div', { class: 'lbl' }, h('b', { id: 'assistant-title' }, 'AgroLand assistant'), h('small', null, 'A hand with every step')), reset, close),
+    h('div', { class: 'assistant-head' }, headAvatar, h('div', { class: 'lbl' }, agentTitle, h('small', null, 'AgroLand · a hand with every step')), reset, close),
     h('div', { class: 'assistant-context' }, h('span', { class: 'assistant-context-dot', 'aria-hidden': 'true' }), screenLabel, h('span', { class: 'assistant-ai' }, 'AI')),
     log, suggestions, error,
     h('form', { class: 'assistant-composer', onsubmit: e => { e.preventDefault(); ask(); } }, input,
@@ -114,21 +121,24 @@ export function mountAssistant() {
     const q = (typeof question === 'string' ? question : input.value).trim(), target = chat;
     if (!q || target.busy) return;
     target.draft = ''; input.value = '';
-    await sendQuestion(target, q, { context: context() });
+    await sendQuestion(target, q, { context: context(), agent: activeAgent() });
     if (target === chat && !panel.hidden && (!narrow.matches || app.classList.contains('assistant-open')) && !input.value) input.focus();
   }
   function paint() {
     const c = context(), screen = TAB_SCREENS[page + '.' + c.tab] || SCREENS[page] || SCREENS.start;
+    const agent = activeAgent();
+    headAvatar.innerHTML = AVATAR[agent]; agentTitle.textContent = AGENT_LABEL[agent] + ' assistant';
+    panel.dataset.agent = agent;
     screenLabel.textContent = [TABS[c.tab] || screen[0], { DE: 'Germany', IN: 'India' }[chat.country]].filter(Boolean).join(' · ');
-    intro.replaceChildren(h('span', { class: 'assistant-intro-avatar', 'aria-hidden': 'true', html: AVATAR.guide }), h('h2', null, screen[1]), h('p', null, screen[2]));
+    intro.replaceChildren(h('span', { class: 'assistant-intro-avatar', 'aria-hidden': 'true', html: AVATAR[agent] }), h('h2', null, screen[1]), h('p', null, screen[2]));
     log.setAttribute('aria-busy', String(chat.busy));
     log.replaceChildren(...(!chat.messages.length ? [intro] : chat.messages.map(m => h('div', { class: 'assistant-msg ' + m.role },
-      m.role === 'assistant' && avatar(), h('div', { class: 'msg-body' }, h('div', { class: 'msg-text' }, m.content), m.open && ACTION[m.open] && m.open !== page && h('button', { class: 'btn sm', onclick: () => { setOpen(false); openAssistantPage(m.open); } }, ACTION[m.open] + ' →'))))),
-    ...(chat.busy ? [h('div', { class: 'assistant-msg assistant' }, avatar(), spinner('Thinking…'))] : []));
+      m.role === 'assistant' && avatar(m.agent), h('div', { class: 'msg-body' }, h('div', { class: 'msg-text' }, m.content), m.open && ACTION[m.open] && m.open !== page && h('button', { class: 'btn sm', onclick: () => { setOpen(false); openAssistantPage(m.open); } }, ACTION[m.open] + ' →'))))),
+    ...(chat.busy ? [h('div', { class: 'assistant-msg assistant' }, avatar(chat.pendingAgent), spinner('Thinking…'))] : []));
     const last = chat.messages.at(-1), questions = chat.messages.length ? last?.role === 'assistant' ? last.suggestions || [] : [] : screen[3];
     suggestions.replaceChildren(...(!chat.busy ? questions.map(q => h('button', { class: 'chip-btn', onclick: () => ask(q) }, q)) : []));
     error.hidden = !chat.error;
-    error.replaceChildren(chat.error || '', chat.error && h('button', { class: 'btn sm', onclick: () => sendQuestion(chat, chat.retry, { context: context() }, true) }, 'Try again'));
+    error.replaceChildren(chat.error || '', chat.error && h('button', { class: 'btn sm', onclick: () => sendQuestion(chat, chat.retry, { context: context(), agent: activeAgent() }, true) }, 'Try again'));
     send.disabled = reset.disabled = chat.busy;
     log.scrollTop = log.scrollHeight;
   }

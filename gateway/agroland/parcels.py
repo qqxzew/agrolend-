@@ -111,4 +111,6 @@ def remove(db: Database, user_id: str, pid: str) -> None:
     with db.tx() as c:
         if c.execute("SELECT 1 FROM listings WHERE parcel_id=? AND user_id=?", (pid, user_id)).fetchone():
             raise HTTPException(409, "Withdraw the listing before removing this parcel")
+        if c.execute("SELECT 1 FROM land_sites WHERE parcel_id=? AND user_id=?", (pid, user_id)).fetchone():
+            raise HTTPException(409, "This parcel is kept for the land database and cluster history. Withdraw its database entry to stop matching.")
         c.execute("DELETE FROM parcels WHERE id=? AND user_id=?", (pid, user_id))

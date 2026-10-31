@@ -16,7 +16,7 @@ const ic = k => h('span', { class: 'ico', html: `<svg viewBox="0 0 24 24"><path 
 // Items are tagged with the role that uses them (null = common). Each workflow page holds its own tabs (parcel map, listings, deals), so no duplicate entries.
 const NAV = [
   ['What do you want to do?', [['chat', 'Ask the agent', 'Pick the right workflow', '#/', null], ['pin', 'Check a parcel', 'Map, audit, listings', '#/owner', 'owner'], ['euro', 'Audit my leases', 'Reports and rent reminders', '#/farm', 'farm'],
-    ['shield', 'Audit a site', 'Map, pool, deals, owner listings', '#/developer', 'developer']]],
+    ['shield', 'Find land & clusters', 'Solar, wind and shared projects', '#/developer', 'developer']]],
   ['Reference', [['orders', 'Orders', 'History, payment, results', '#/orders', 'any'], ['data', 'Data and sources', 'Where the numbers come from', '#/data', null]]],
 ];
 const ROUTES = {
