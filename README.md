@@ -4,7 +4,9 @@ AgroLand helps three kinds of customers work with land — **landowners**, **ten
 
 Built for the Cardano track of the TUM Blockchain & AI Hackathon (Munich, 30–31 Oct 2026).
 
-> **Status in one paragraph.** The product, the shared execution engine, the three workflows (both countries), the website, the Masumi seller side, the MIP-003 agent API and the Sokosumi Coworker are implemented and tested locally. **No real Cardano payment, Masumi registration, Sokosumi Task or model call has been made yet** — those need accounts, keys, funded test wallets and your authorization (see [docs/DEPLOY.md](docs/DEPLOY.md)). Evidence fields in [docs/EVIDENCE.md](docs/EVIDENCE.md) are marked **PENDING**; nothing there is invented.
+**Live demo:** https://audit.mrrobot.hackclub.app · **Repository:** https://github.com/qqxzew/agrolend-
+
+> **Status in one paragraph (31 Oct 2026).** The product, the shared execution engine, the three workflows (both countries), the website, the Masumi seller side, the MIP-003 agent API and the Sokosumi Coworker are implemented and tested. The stack runs on a public server, the three agents were submitted to the Masumi registry, a real language model answers Sokosumi Tasks, and **real preprod payments have been observed on-chain** (buyer escrow locks, seller result submissions and collections, ≈11 tUSDM received by the seller; see [docs/EVIDENCE.md](docs/EVIDENCE.md)). **Still open:** linking each on-chain transaction to its specific order and Task id, and the per-Task evidence table in `docs/EVIDENCE.md`, which is filled only from real records — fields without a source stay **PENDING**, nothing is invented.
 
 ---
 
@@ -64,7 +66,7 @@ The chat on the app's home page answers questions about AgroLand and offers a bu
 | **Invocation** | Create a Task for the Coworker in Sokosumi (`agent/worker.mjs` polls). |
 | **Paid** | The order inside it is (Agent 1 or 2 price). The Coworker itself is not a separate registry entry. |
 | **Configuration** | `agent/.env` (`ZAI_*` model, `COWORKER_ID`, `AGROLAND_INTERNAL_KEY`, `PAID_TASKS_ENABLED`). |
-| **Verification** | `agent/*.test.mjs` (25 tests: planner validation, paid-order journal with fake gateway/Core, no-replay, quickstart tests). **Model replies and Tasks: PENDING (needs a model key and Sokosumi login).** |
+| **Verification** | `agent/*.test.mjs` (25 tests: planner validation, paid-order journal with fake gateway/Core, no-replay, quickstart tests). **Model replies and Tasks (verified 2026-10-30/31, Personal Workspace, execution-only):** Task `01a18f28-c334-7267-9d80-77be89c8a2f1` (answer from the `coverage` tool, prices match the catalog) and Task `01a18f29-340b-7458-8279-b5bc967425cb` (quote only, nothing run or charged) both COMPLETED; paid Tasks (e.g. "TEST A4", wind audit in India) also completed — see [docs/EVIDENCE.md](docs/EVIDENCE.md). |
 
 ---
 
@@ -115,9 +117,9 @@ Demonstration data: `.venv/bin/python scripts/seed_demo.py --pool` (workspaces f
 `scripts/test_all.sh` runs everything below (offline; no accounts, keys or payments).
 
 ```bash
-.venv/bin/python -m pytest gateway/tests -q            # 30 tests, ~60 s (starts real geo services as subprocesses)
+.venv/bin/python -m pytest gateway/tests -q            # 31 tests, ~60 s (starts real geo services as subprocesses)
 (cd services/geo && for t in tests/test_*.py; do ../../.venv/bin/python $t; done)   # original service suites
-(cd agent && npm ci && npm test)                       # 25 tests, Node 24
+(cd agent && npm ci && npm test)                       # 27 tests, Node 24
 (cd agent && AGROLAND_URL=… AGROLAND_INTERNAL_KEY=… npm run e2e:fake)   # real Eve + tools + gateway, scripted stand-in model
 ```
 
@@ -154,7 +156,9 @@ Demonstration datasets are labelled "demo" in data, API and UI. Unavailable sour
 
 **Implemented and verified (locally)** — details and evidence in [docs/VERIFICATION.md](docs/VERIFICATION.md): shared order engine with idempotent payment journal; Masumi seller client with fake-payment-service tests of every transition; MIP-003 API; all three workflows for DE and IN (Pool Access verified against the real matcher/escrow/architect for both countries); live DE and IN audits through the gateway; website (landing + app) checked in a browser; Node worker/planner/paid-order state machine tested with fakes; deployment files and preflight.
 
-**Ready but awaiting external access or authorization**: Sokosumi sign-in, Vendor/Coworker, model reply and execution-only Task check; payment service + funded wallets; Masumi registration (immutable, spends test ADA); paid preprod job + tx hash; Sokosumi TUM-workspace grant; public domain/TLS; Docker/compose first start. Exact steps: [docs/DEPLOY.md](docs/DEPLOY.md).
+**Verified against real external services (2026-10-30/31)** — details in [docs/VERIFICATION.md](docs/VERIFICATION.md) and [docs/EVIDENCE.md](docs/EVIDENCE.md): Sokosumi sign-in; Coworker `AgroLand Concierge` in the Personal Workspace; real model replies (`gpt-4.1-mini`) and execution-only Tasks; Masumi payment service with a funded preprod seller wallet; the three agents submitted to the registry from the public server (registration is immutable, so it must not be repeated); paid Sokosumi Tasks completed with on-chain buyer locks, result submissions and seller collections observed through Blockfrost.
+
+**Still to finish or confirm**: map each lock / result / collection transaction to its order and Task id (`python scripts/evidence.py --state <production state dir>` on the server, `runtime receipt` per Task) and fill the evidence table; confirm every registration reached the confirmed state (`register-agents.mjs status`) and that `AGENT_IDENTIFIER_*` are set on the server; Sokosumi TUM-workspace grant; a first full Docker-compose start of the whole stack (the payment service and Postgres were started from it; the rest runs from the server's own setup). Exact steps: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 **Not implemented**: x402 pay-per-request path (not needed for qualification; the Masumi paid-job path is the integration); CIP-30 browser-wallet payment on the website (the website supports paying from a Masumi/Sokosumi wallet using the payment identifier, or an operator-funded demo wallet); qualified e-signatures; ownership verification; Bavaria data; strong user authentication; an Indian farm record lookup.
 
