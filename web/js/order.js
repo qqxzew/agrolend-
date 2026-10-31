@@ -79,7 +79,7 @@ export function orderPanel(initial, { onChange } = {}) {
 function resultActions(o, r) {
   const out = h('div', { class: 'stack' });
   out.append(h('div', { class: 'row actions' },
-    h('button', { class: 'btn', onclick: async e => guard(async () => {
+    h('button', { class: 'btn primary', onclick: async e => guard(async () => {
       const v = await api(`/orders/${o.id}/verify`);
       box.replaceChildren(h('div', { class: v.report_hash_matches && (!v.recomputation || v.recomputation.status === 'pass') ? 'callout good' : 'callout bad' },
         h('b', null, v.report_hash_matches ? '✓ Stored report matches its hash' : '✗ Hash mismatch'), v.recomputation && h('div', null, `Recomputation of ${v.recomputation.checked_findings} findings: `, h('b', null, v.recomputation.status)),

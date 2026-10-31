@@ -117,7 +117,7 @@ export async function owner(q = new URLSearchParams()) {
       else {
         body.append(h('div', { class: 'stack', style: 'margin-top:1rem' },
           h('div', { class: 'card stack' }, h('h3', null, '2 · Audit'), h('div', { class: 'audit-wide' }, auditComposer(sel, { onOrder: o => { orderBox.replaceChildren(orderPanel(o, { onChange: () => {} })); orderBox.scrollIntoView({ behavior: 'smooth' }); } }))),
-          h('div', { class: 'card stack' }, h('h3', null, '3 · Result and listing'), orderBox, listingForm(sel, draw))));
+          h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), listingForm(sel, draw)));
         const prior = (await latestOrders('land_audit')).find(o => o.subject === sel.label);
         if (prior && orderBox.querySelector('.empty')) orderBox.replaceChildren(orderPanel(prior));
       }
@@ -147,7 +147,7 @@ function listingForm(parcel, redraw) {
   const type = h('select', null, h('option', { value: 'lease' }, 'Lease'), h('option', { value: 'sale' }, 'Sale'));
   const price = h('input', { type: 'number', min: 1, step: 'any', placeholder: country() === 'DE' ? 'EUR per ha per year (lease) or total (sale)' : 'INR per acre per year (lease) or total (sale)' });
   const consent = h('input', { type: 'checkbox' });
-  return h('details', { open: true }, h('summary', null, 'List this parcel'), h('div', { class: 'stack', style: 'margin-top:.6rem' }, h('div', { class: 'form-grid' }, h('div', { class: 'stack tight' }, field('Document (PDF, private)', file), h('div', { class: 'row' }, sample, docInfo)), field('Offer', type), field('Price', price)),
+  return h('div', { class: 'card stack' }, h('h3', null, '4 · List this parcel'), h('div', { class: 'stack' }, h('div', { class: 'form-grid' }, h('div', { class: 'stack tight' }, field('Document (PDF, private)', file), h('div', { class: 'row' }, sample, docInfo)), field('Offer', type), field('Price', price)),
     h('label', { class: 'check' }, consent, h('span', null, 'I agree that developers may see the allow-listed summary (area, region, price, audit result). My name, document and exact boundary stay hidden until I accept a specific developer.')),
     h('button', { class: 'btn primary', onclick: e => guard(async () => {
       const audit = (await latestOrders('land_audit')).find(o => o.state === 'delivered' && o.subject === parcel.label);

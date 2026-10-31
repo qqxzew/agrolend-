@@ -174,3 +174,18 @@ details > .stack > .btn { align-self: flex-start; }
 .item > .row .btn.sm { min-width: 88px; justify-content: center; }
 .item > .row .btn.icon { min-width: 0; width: 34px; padding-left: 0; padding-right: 0; }
 .item.sel .btn { background: var(--surface); }
+
+/* expandable sections: clear, bordered rows with +/- instead of bare triangles */
+details { border: 1px solid var(--border); border-radius: 3px; background: var(--surface); }
+details > summary { list-style: none; cursor: pointer; padding: .7rem .95rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after { content: "+"; font-size: 1.2rem; line-height: 1; color: var(--muted); font-weight: 500; }
+details[open] > summary::after { content: "\2013"; }
+details > summary:hover { background: var(--surface-2); }
+details[open] > summary { border-bottom: 1px solid var(--border); background: var(--surface-2); }
+details > :not(summary) { margin: .8rem .95rem; }
+details > pre.json, details > table { margin: 0; border-radius: 0; max-width: 100%; }
+.stack > details + details { margin-top: -.4rem; }
+.actions { padding-top: .9rem; border-top: 1px solid var(--border); margin-top: .4rem; }
+.actions .btn { padding: .5rem .95rem; font-size: .92rem; }
+.card .stack > .btn { align-self: flex-start; }
