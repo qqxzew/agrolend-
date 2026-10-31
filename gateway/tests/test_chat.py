@@ -39,7 +39,7 @@ def tool_results(body):
 
 
 def test_chat_off_without_model(make_client, monkeypatch):
-    for k in ("AGROLAND_LLM_API_KEY", "ZAI_API_KEY"):
+    for k in ("AGROLAND_LLM_API_KEY", "ZAI_API_KEY", "OPENAI_API_KEY"):
         monkeypatch.delenv(k, raising=False)
     c, _ = make_client()
     assert c.get("/api/config").json()["chat"] is False

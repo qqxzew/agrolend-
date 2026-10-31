@@ -103,9 +103,9 @@ def get_settings() -> Settings:
         rate_sessions_per_hour=int(e("AGROLAND_RATE_SESSIONS_PER_HOUR", "30")),
         rate_orders_per_hour=int(e("AGROLAND_RATE_ORDERS_PER_HOUR", "120")),
         cropwatch=crop,
-        # the Sokosumi Coworker's ZAI_* variables are the fallback, so one provider setting serves both
-        llm_base_url=e("AGROLAND_LLM_BASE_URL", e("ZAI_BASE_URL", "")).rstrip("/"),
-        llm_api_key=e("AGROLAND_LLM_API_KEY", e("ZAI_API_KEY", "")),
-        llm_model=e("AGROLAND_LLM_MODEL", e("ZAI_MODEL", "")),
+        # fallbacks: the Sokosumi Coworker's ZAI_* variables, then the machine's OPENAI_API_KEY with the Coworker's model, so one key serves both
+        llm_base_url=e("AGROLAND_LLM_BASE_URL", e("ZAI_BASE_URL", "https://api.openai.com/v1" if e("OPENAI_API_KEY") else "")).rstrip("/"),
+        llm_api_key=e("AGROLAND_LLM_API_KEY", e("ZAI_API_KEY", e("OPENAI_API_KEY", ""))),
+        llm_model=e("AGROLAND_LLM_MODEL", e("ZAI_MODEL", "gpt-4.1-mini" if e("OPENAI_API_KEY") else "")),
         rate_chat_per_hour=int(e("AGROLAND_RATE_CHAT_PER_HOUR", "120")),
     )
