@@ -119,6 +119,11 @@ services:
       - BLOCKFROST_API_KEY_PREPROD=${BLOCKFROST_API_KEY_PREPROD:-}
       - BUYER_MPS_URL=${BUYER_MPS_URL:-}
       - BUYER_MPS_TOKEN=${BUYER_MPS_TOKEN:-}
+      # home-page assistant (chat.py); without OPENAI_API_KEY the page falls back to keyword routing
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-}
+      - AGROLAND_RATE_CHAT_PER_HOUR=${AGROLAND_RATE_CHAT_PER_HOUR:-}
       - GEO_DE_AUDIT_URL=http://de-audit:8000
       - GEO_DE_MATCHER_URL=http://de-matcher:8001
       - GEO_DE_ESCROW_URL=http://de-escrow:8002
