@@ -219,14 +219,19 @@ export async function farm() {
   const prior = (await latestOrders('lease_check'))[0]; if (prior) show(prior);
   let autorun = false; try { autorun = sessionStorage.getItem('agl.farm.autorun') === '1'; sessionStorage.removeItem('agl.farm.autorun'); } catch {}
   const st = demo.settings;
-  root.append(h('div', { class: 'cols farm-cols' },
-    h('div', { class: 'card stack side-card' }, h('h3', null, '1 · Your data'), field('Use', srcSel), info,
-      h('details', { open: true }, h('summary', null, 'Upload my own files'), h('div', { class: 'stack', style: 'margin-top:.6rem' }, h('div', { class: 'callout' }, h('b', null, 'Test data: '), 'use the files of the farm selected above. ', h('div', { class: 'row', style: 'margin-top:.5rem' }, h('button', { class: 'btn sm', onclick: downloadTestFiles }, 'Download test files'), h('button', { class: 'btn sm', onclick: loadTestFiles }, 'Load test files into the fields below'))), h('p', { class: 'small muted' }, 'Same columns as the demonstration files: ', sample('contracts_csv'), ', ', sample('cadastre_csv'), ', ', sample('fields_csv'), `. Area is in ${st.area_unit}, rent in ${st.currency} per ${st.area_unit} per year. The official record (${st.record_name}) is the cadastre file.`),
-        fileIn('contracts_csv', 'Contracts'), fileIn('cadastre_csv', 'Official parcel record'), fileIn('fields_csv', 'Fields you farm'),
-        fileIn('boundaries_geojson', 'Field outlines (optional)', h('span', null, 'GeoJSON polygons with a parcel_id each, like ', sample('boundaries'), '. Adds the satellite crop and biomass section; an outline may name its 5am.earth registration (registry.tx_hash).'), '.geojson,.json,application/geo+json,application/json'),
-        h('button', { class: 'btn', onclick: e => guard(async () => { await api('/farm/dataset', { method: 'PUT', body: files }); toast('Saved. Running the Lease Check on your uploaded data…'); try { sessionStorage.setItem('agl.farm.autorun', '1'); } catch {} location.reload(); }, e.target) }, 'Validate and save'))),
-      h('div', { class: 'row between' }, h('div', null, 'Lease Check · ', h('b', null, priceOf('lease_check'))), run),
-      h('div', { class: 'callout' }, 'Your farm data is private to your workspace and is never published. A finding is a statement about your own documents, not about the validity of a lease.')),
+  root.append(h('div', { class: 'farm-cols' },
+    h('div', { class: 'card stack side-card' }, h('h3', null, '1 · Your data'),
+      h('div', { class: 'data-top' },
+        h('div', { class: 'stack tight' }, field('Use', srcSel), info),
+        h('div', { class: 'stack tight data-run' }, h('div', { class: 'row between' }, h('div', null, 'Lease Check · ', h('b', null, priceOf('lease_check'))), run),
+          h('div', { class: 'small muted' }, 'Your farm data is private to your workspace and is never published. A finding is a statement about your own documents, not about the validity of a lease.'))),
+      h('details', { open: true }, h('summary', null, 'Upload my own files'), h('div', { class: 'stack', style: 'margin-top:.7rem' },
+        h('p', { class: 'small muted', style: 'margin:0' }, 'Same columns as the demonstration files: ', sample('contracts_csv'), ', ', sample('cadastre_csv'), ', ', sample('fields_csv'), `. Area is in ${st.area_unit}, rent in ${st.currency} per ${st.area_unit} per year. The official record (${st.record_name}) is the cadastre file. `,
+          h('span', { class: 'testdata' }, 'Need sample files? ', h('a', { href: '#', onclick: e => { e.preventDefault(); downloadTestFiles(); } }, 'download the test set'), ' or ', h('a', { href: '#', onclick: e => { e.preventDefault(); loadTestFiles(); } }, 'fill the fields below'), '.')),
+        h('div', { class: 'file-grid' }, fileIn('contracts_csv', 'Contracts'), fileIn('cadastre_csv', 'Official parcel record'), fileIn('fields_csv', 'Fields you farm'),
+          fileIn('boundaries_geojson', 'Field outlines (optional)', null, '.geojson,.json,application/geo+json,application/json')),
+        h('p', { class: 'small muted', style: 'margin:0' }, 'Outlines: GeoJSON polygons with a parcel_id each, like ', sample('boundaries'), '. They add the satellite crop status and biomass section (and, in India, a 5am.earth registration via registry.tx_hash).'),
+        h('div', null, h('button', { class: 'btn', onclick: e => guard(async () => { await api('/farm/dataset', { method: 'PUT', body: files }); toast('Saved. Running the Lease Check on your uploaded data…'); try { sessionStorage.setItem('agl.farm.autorun', '1'); } catch {} location.reload(); }, e.target) }, 'Validate and save'))))),
     h('div', { class: 'card stack' }, h('h3', null, '2 · Report and reminders'), orderBox)),
   fieldsCard);
   // Once an order exists the data card folds into a slim summary bar (and back with "Change data"), so the report gets the full width.

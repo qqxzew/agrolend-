@@ -130,8 +130,6 @@ table.t tr.click { cursor: pointer; } table.t tr.click:hover, table.t tr.sel { b
 .card.inset { box-shadow: none; background: var(--bg); }
 
 /* tidy farm page: compact data card (sticky) + wide report */
-.farm-cols { grid-template-columns: minmax(280px, .62fr) minmax(0, 1.7fr); }
-.side-card { position: sticky; top: 1rem; }
 .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; }
 .stats .tile { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--border); padding: .8rem .9rem; }
 .stats .tile.good { border-left-color: var(--good); } .stats .tile.warn { border-left-color: var(--warn); } .stats .tile.info { border-left-color: var(--info); }
@@ -142,7 +140,7 @@ table.findings th:nth-child(1), table.findings td:nth-child(1) { width: 108px; }
 table.findings th:nth-child(4), table.findings td:nth-child(4) { width: 96px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; } table.findings th:nth-child(5), table.findings td:nth-child(5) { width: 128px; } table.findings td:nth-child(5) .btn { white-space: nowrap; }
 table.findings td { overflow-wrap: anywhere; line-height: 1.4; }
 .actions { gap: .4rem; } .actions .btn { padding: .4rem .75rem; font-size: .88rem; }
-@media (max-width: 1100px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .farm-cols { grid-template-columns: 1fr; } .side-card { position: static; } }
+@media (max-width: 1100px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 [hidden] { display: none !important; }
 .farm-cols.collapsed { grid-template-columns: 1fr; } .farm-cols.collapsed .side-card { display: none; }
@@ -150,3 +148,13 @@ table.findings td { overflow-wrap: anywhere; line-height: 1.4; }
 .data-summary .ok { color: var(--good); font-weight: 800; }
 .side-card .fold { position: absolute; top: 1rem; right: 1rem; }
 @keyframes fold-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* farm: data card is wide (form laid out across), the report sits below it at full width */
+.farm-cols { display: flex; flex-direction: column; gap: 1rem; }
+.side-card { position: relative; }
+.data-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.data-run { border-left: 1px solid var(--border); padding-left: 1.5rem; }
+.file-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; } .file-grid label.f { margin: 0; }
+.file-grid input[type=file] { font-size: .8rem; padding: .4rem; }
+.testdata { white-space: nowrap; } .testdata a { color: var(--muted); text-decoration: underline dotted; }
+@media (max-width: 1100px) { .data-top { grid-template-columns: 1fr; } .data-run { border-left: 0; padding-left: 0; } .file-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
