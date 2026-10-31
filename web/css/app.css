@@ -223,4 +223,4 @@ details.quiet { margin-top: .5rem; } details.quiet > summary { color: var(--mute
 
 .msg-text { white-space: pre-wrap; }
 .sugg { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .15rem; } .sugg .chip-btn { font-size: .82rem; padding: .3rem .65rem; text-align: left; }
-.msg { animation: fold-in .25s ease-out; }
+.chatlog .msg:last-child { animation: fold-in .25s ease-out; }
