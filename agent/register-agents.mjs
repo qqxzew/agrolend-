@@ -5,7 +5,7 @@
 //   node register-agents.mjs register   needs AUTHORIZATION from the team: spends test ADA, writes a public registry entry
 //   node register-agents.mjs status     reads the registry, saves agent identifiers to docs/registration-state.json
 import fs from 'node:fs';
-import { requireAgentAuthor } from './registration-config.mjs';
+import { requireAgentAuthor, v2FixedPricing } from './registration-config.mjs';
 
 const mode = process.argv[2] || 'plan';
 const catalog = JSON.parse(fs.readFileSync(new URL('../config/services.json', import.meta.url), 'utf8'));
@@ -28,8 +28,7 @@ function body(service, sellingWalletVkey, address) {
   return {
     network: catalog.payment.network, type: 'Standard', sellingWalletVkey,
     supportedPaymentSources: [{ chain: 'Cardano', network: catalog.payment.network, paymentSourceType: catalog.payment.paymentSourceType, address,
-      // UNVERIFIED against a live payment service: confirm the Fixed-pricing field names in the service's OpenAPI before the first register.
-      pricing: { pricingType: 'Fixed', Pricing: [{ unit: catalog.payment.token.unit, amount: s.price.amount }] } }],
+      pricing: v2FixedPricing(catalog.payment.token, s.price.amount) }],
     ExampleOutputs: [], Tags: tags[service], name: `AgroLand ${s.title}`, description: s.summary,
     Capability: { name: `agroland-${service}`, version: '1' }, Author: { name: requireAgentAuthor(process.env.AGENT_AUTHOR) },
     apiBaseUrl: `${publicBase}/masumi/${service}`,

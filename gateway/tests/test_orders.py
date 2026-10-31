@@ -106,7 +106,7 @@ class FakeMps:
             return httpx.Response(200, json={"data": {"blockchainIdentifier": "bc-1", "agentIdentifier": body["agentIdentifier"], "payByTime": str(now + 900_000),
                                                       "submitResultTime": str(now + 1_800_000), "unlockTime": str(now + 3_600_000), "externalDisputeUnlockTime": str(now + 5_400_000),
                                                       "sellerReturnAddress": None, "PaymentSource": {"smartContractAddress": "addr_test1sc", "policyId": "pol"},
-                                                      "RequestedFunds": body["RequestedFunds"], "SmartContractWallet": {"walletVkey": "vk"}}})
+                                                      "RequestedFunds": [{"unit": "tusdm", "amount": "2000000"}], "SmartContractWallet": {"walletVkey": "vk"}}})
         if path.endswith("resolve-blockchain-identifier"):
             data = {"onChainState": self.state, "resultHash": self.hash, "CurrentTransaction": None, "TransactionHistory": []}
             if self.state:
@@ -137,7 +137,7 @@ def test_masumi_path_with_fake_payment_service(make_client, monkeypatch):
     p = c.post(f"/api/orders/{o['id']}/pay", headers=h).json()
     assert p["state"] == "awaiting_payment" and p["payment"]["blockchain_identifier"] == "bc-1"
     created = [b for path, b in fake.calls if path.endswith("/payment")]
-    assert len(created) == 1 and created[0]["RequestedFunds"][0]["amount"] == "2000000" and created[0]["inputHash"] == o["input_hash"]
+    assert len(created) == 1 and "RequestedFunds" not in created[0] and created[0]["inputHash"] == o["input_hash"]
     c.post(f"/api/orders/{o['id']}/pay", headers=h)  # refresh / double click
     assert len([1 for path, _ in fake.calls if path.endswith("/payment")]) == 1, "no duplicate payment request"
     eng.tick(); time.sleep(0.2)
@@ -198,3 +198,21 @@ def test_internal_routes_need_key_and_sokosumi_channel_uses_markdown_hash(make_c
     assert d["state"] == "delivered" and "# Lease Check" in d["markdown"] and d["hashed_text_is_markdown"] is True
     from agroland.hashing import result_hash_raw
     assert d["result_hash"] == result_hash_raw(d["markdown"], d["nonce"])
+
+
+def test_internal_validate_accepts_long_coordinate_names(make_client):
+    c, _ = make_client()
+    k = {"X-Internal-Key": "internal-test-key"}
+    short = c.post("/internal/validate", headers=k, json={"service": "land_audit", "country": "DE", "input": {"project_type": "solar", "lat": 52.0746, "lon": 12.7329}}).json()
+    long = c.post("/internal/validate", headers=k, json={"service": "land_audit", "country": "DE", "input": {"project_type": "solar", "latitude": 52.0746, "longitude": 12.7329}}).json()
+    assert short["ok"] and long["ok"] and short["subject"] == long["subject"]
+    outside = c.post("/internal/validate", headers=k, json={"service": "land_audit", "country": "IN", "input": {"latitude": 52.0746, "longitude": 12.7329}}).json()
+    assert not outside["ok"] and "outside India" in outside["error"]
+    assert not c.post("/internal/validate", headers=k, json={"service": "land_audit", "country": "DE", "input": {"project_type": "solar"}}).json()["ok"]
+
+
+def test_internal_get_unknown_order_is_404_not_500(make_client):
+    c, _ = make_client()
+    k = {"X-Internal-Key": "internal-test-key"}
+    r = c.get("/internal/orders/" + "0" * 32, headers=k)
+    assert r.status_code == 404

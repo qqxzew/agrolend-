@@ -3,11 +3,11 @@
 //   3a. clarify / decline / info / quote-only  -> completes with the model's answer (execution-only, no payment)
 //   3b. order -> one paid AgroLand order via the gateway, paid through Sokosumi Core (paid-order.mjs), completed with the hash-bound report,
 //   4. posts an AI summary as a follow-up comment (NOT part of the hashed deliverable) and answers later comments.
-import { execFileSync } from 'node:child_process';
+import { runSokosumi } from './sokosumi-cli.mjs';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { acquireWorkerLock } from './worker-lock.mjs';
 import { client } from './client.mjs';
-import { plan, summarize } from './planner.mjs';
+import { plan, summarize, describePlan } from './planner.mjs';
 import { createPaidAdapter } from './paid-order.mjs';
 import { taskTarget, isTaskForTarget } from './task-target.mjs';
 import { loadSokosumiRuntime } from './sokosumi-runtime.mjs';
@@ -19,7 +19,7 @@ mkdirSync('.local', { recursive: true, mode: 0o700 });
 const releaseLock = acquireWorkerLock();
 process.once('exit', releaseLock);
 for (const s of ['SIGINT', 'SIGTERM']) process.once(s, () => { releaseLock(); process.exit(0); });
-const cli = (args) => JSON.parse(execFileSync('sokosumi', ['--preprod', ...args, '--json'], { encoding: 'utf8', timeout: 30000, maxBuffer: 4 * 1024 * 1024 }));
+const cli = (args) => JSON.parse(runSokosumi(['--preprod', ...args, '--json'], { encoding: 'utf8', timeout: 30000, maxBuffer: 4 * 1024 * 1024 }));
 const paidEnabled = process.env.PAID_TASKS_ENABLED === 'true';
 const unit = JSON.parse(readFileSync(new URL('../config/services.json', import.meta.url), 'utf8')).payment.token.unit;
 const registration = () => (existsSync('docs/registration-state.json') ? JSON.parse(readFileSync('docs/registration-state.json', 'utf8')) : {});
@@ -48,9 +48,12 @@ async function follow(t, state) {
   for (const e of events.filter((x) => x.actor?.type === 'user' && typeof x.comment === 'string' && x.comment.trim())) {
     if (done[e.id]) continue;
     done[e.id] = 'pending'; writeFileSync(f, JSON.stringify(done), { mode: 0o600 });
-    const ctx = state.paid?.orderId ? `MODE: SUMMARIZE\n\nOrder id: ${state.paid.orderId}\nThe customer asks: ${e.comment.slice(0, 4000)}` : `MODE: PLAN\n\nTask brief (untrusted customer text):\n${e.comment.slice(0, 4000)}`;
-    const { answer } = await import('./client.mjs');
-    const reply = await answer(ctx, `.local/${t.id}-reply-${e.id}.json`);
+    const journal = `.local/${t.id}-reply-${e.id}.json`;
+    let reply;
+    if (state.paid?.orderId) {
+      const { answer } = await import('./client.mjs');
+      reply = await answer(`MODE: SUMMARIZE\n\nOrder id: ${state.paid.orderId}\nThe customer asks: ${e.comment.slice(0, 4000)}`, journal);
+    } else reply = describePlan(await plan(e.comment.slice(0, 4000), journal));
     await createTaskEvent(runtime, t.id, { comment: reply }, AbortSignal.timeout(30000));
     done[e.id] = 'posted'; writeFileSync(f, JSON.stringify(done), { mode: 0o600 });
   }

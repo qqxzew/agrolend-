@@ -23,6 +23,10 @@ def geo_processes(state: Path, k: dict, de_ports=(8000, 8001, 8002, 8003), in_po
     py = sys.executable
     procs = []
     base = {"PYTHONDONTWRITEBYTECODE": "1", "PATH": os.environ.get("PATH", "")}
+    # Windows needs these for sockets, temp files and the C runtime; a PATH-only environment fails with WinError 10106.
+    for name in ("SYSTEMROOT", "SYSTEMDRIVE", "WINDIR", "TEMP", "TMP", "COMSPEC", "PATHEXT"):
+        if name in os.environ:
+            base[name] = os.environ[name]
     if "DE" in countries:
         a, m, e, r = de_ports
         di, de_, dr = k["GEO_DE_INTERNAL_KEY"], k["GEO_DE_ESCROW_KEY"], k["GEO_DE_ARCHITECT_KEY"]

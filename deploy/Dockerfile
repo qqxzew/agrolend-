@@ -9,7 +9,7 @@ COPY services/geo ./services/geo
 COPY config ./config
 COPY data ./data
 COPY web ./web
-RUN useradd -r -u 10001 app && mkdir -p /data && chown app /data
+RUN useradd -r -u 10001 app && mkdir -p /data/gateway && chown -R app /data
 USER app
 ENV PYTHONPATH=/srv/gateway AGROLAND_STATE_DIR=/data/gateway
 EXPOSE 8080

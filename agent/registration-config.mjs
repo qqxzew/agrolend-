@@ -14,3 +14,9 @@ export function requireSavedRuntimeToken(path) {
  if (!token || token.startsWith('*****')) throw Error('Runtime key recovery required: private token is missing or masked');
  return token;
 }
+// Payment-service 0.29 (Web3CardanoV2): pricing lives inside supportedPaymentSources[], with `fixed: [{asset, amount}]` (the API rejects `decimals` for Cardano).
+// Verified against the service's own OpenAPI (GET /api-docs); the legacy top-level `AgentPricing`/`Pricing` shape is forbidden for V2.
+export function v2FixedPricing(token, amount) {
+ if (!token?.unit || !/^[0-9]+$/u.test(String(amount)) || BigInt(amount) <= 0n) throw Error('A positive integer base-unit amount and a token unit are required');
+ return { pricingType: 'Fixed', fixed: [{ asset: token.unit, amount: String(amount) }] };
+}

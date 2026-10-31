@@ -34,6 +34,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--unpaid", action="store_true", help="DEV ONLY: AGROLAND_PAYMENT_MODE=dev-unpaid")
     ap.add_argument("--port", type=int, default=8080)
+    ap.add_argument("--de-base", type=int, default=8000, help="first of 4 consecutive ports for the German geo services (audit, matcher, escrow, architect)")
+    ap.add_argument("--in-base", type=int, default=9000, help="first of 4 consecutive ports for the Indian geo services")
     ap.add_argument("--state", default=str(ROOT / "state"))
     a = ap.parse_args()
     env = {**os.environ, **load_dotenv(ROOT / ".env")}
@@ -43,13 +45,15 @@ def main():
     k = stack.keys({**env, **load_dotenv(keyfile)})
     keyfile.write_text("".join(f"{x}={y}\n" for x, y in k.items()))
     os.chmod(keyfile, 0o600)
+    de_ports = tuple(range(a.de_base, a.de_base + 4))
+    in_ports = tuple(range(a.in_base, a.in_base + 4))
     procs = []
     try:
-        for p in stack.geo_processes(state, k):
+        for p in stack.geo_processes(state, k, de_ports=de_ports, in_ports=in_ports):
             log = open(state / "logs" / f"{p['name']}.log", "ab")
             procs.append(subprocess.Popen(p["args"], cwd=p["cwd"], env=p["env"], stdout=log, stderr=log))
             print(f"started {p['name']} on :{p['port']}")
-        genv = {**env, **stack.gateway_env(k, state, a.port)}
+        genv = {**env, **stack.gateway_env(k, state, a.port, de_ports=de_ports, in_ports=in_ports)}
         if a.unpaid:
             genv["AGROLAND_PAYMENT_MODE"] = "dev-unpaid"
             print("!! DEV-UNPAID MODE: orders are not paid, no Cardano transaction exists. Never use for the public demo.")

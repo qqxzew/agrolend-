@@ -18,3 +18,8 @@ __pycache__/
 *.tar.gz
 _src_agro/
 _src_case/
+
+# Eve runtime artefacts (traces, workflow data, dev snapshots)
+agent/.eve/
+agent/docs/payment-state.json
+agent/docs/registration-state.json

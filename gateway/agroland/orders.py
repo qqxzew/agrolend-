@@ -192,6 +192,9 @@ class Engine:
 
     # ------------------------------------------------------------------ progress (called by the poller and on reads)
     def advance(self, oid: str) -> None:
+        with self.db.tx() as c:
+            if not c.execute("SELECT 1 FROM orders WHERE id=?", (oid,)).fetchone():
+                return  # unknown id: nothing to advance (journal rows need an existing order)
         with self._lock:
             if oid in self._busy:
                 return

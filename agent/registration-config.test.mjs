@@ -29,3 +29,8 @@ test('saved key requires its private unmasked token', () => {
  assert.equal(requireSavedRuntimeToken(file), 'test-token');
  } finally { fs.rmSync(dir, { recursive: true }); }
 });
+test('V2 fixed pricing uses the payment service field names and rejects bad amounts', () => {
+ const token = { unit: 'abcd', decimals: 6 };
+ assert.deepEqual(registrationConfig.v2FixedPricing(token, '1000000'), { pricingType: 'Fixed', fixed: [{ asset: 'abcd', amount: '1000000' }] });
+ for (const bad of ['0', '-1', '1.5', '', 'x']) assert.throws(() => registrationConfig.v2FixedPricing(token, bad));
+});

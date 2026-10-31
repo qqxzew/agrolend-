@@ -32,6 +32,15 @@ class LandAuditRunner:
     def validate(self, user, country, data):
         if user["country"] != country:
             raise _exc(f"Your workspace is set to {user['country']}; create a workspace for {country} to audit there")
+        data = dict(data)
+        for alias, name in (("latitude", "lat"), ("longitude", "lon"), ("polygon_geojson", "polygon")):  # the MIP-003 schema and language models use the long names
+            if data.get(name) is None and data.get(alias) is not None:
+                data[name] = data[alias]
+        if isinstance(data.get("polygon"), str):
+            try:
+                data["polygon"] = json.loads(data["polygon"])
+            except ValueError:
+                raise _exc("Polygon must be a GeoJSON Polygon")
         ptype = data.get("project_type", "hybrid")
         if ptype not in ("wind", "solar", "hybrid"):
             raise _exc("project_type must be wind, solar or hybrid")

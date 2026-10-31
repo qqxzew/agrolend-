@@ -66,7 +66,7 @@ class Mps:
         return self._post("/payment", {
             "network": self.network, "agentIdentifier": agent_identifier, "paymentSourceType": source_type,
             "supportedPaymentSourceIndex": source_index, "inputHash": input_hash, "identifierFromPurchaser": nonce,
-            "RequestedFunds": [{"unit": unit, "amount": amount}],
+            # Fixed pricing (V2 registry): the amount comes from the registry entry; RequestedFunds must be omitted (array and null are both rejected).
             "payByTime": iso(m("pay_by")), "submitResultTime": iso(m("submit_result")), "unlockTime": iso(m("unlock")),
             "externalDisputeUnlockTime": iso(m("external_dispute")), "metadata": metadata,
         })

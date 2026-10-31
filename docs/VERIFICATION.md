@@ -42,3 +42,12 @@ x402 paid-request path; CIP-30 browser-wallet payment; qualified e-signature; ow
 * A single Overpass outage makes a live audit slow (up to ~70 s of retries, by design) or flag a source unavailable; a failed audit execution retries 3 times then ends **undelivered** (no hash submitted).
 * The geo services' dependency pins are minimums (`>=`) in their own requirements; this repo pins the tested set in the root `requirements.txt`.
 * Workspaces are bearer tokens in browser storage; clearing site data loses access.
+
+## Session 2 (Windows, 2026-10-30/31): real model + real Sokosumi Tasks, still no payments
+| Check | Result |
+|---|---|
+| Offline suites on Windows (Node 24.22.2, Python 3.14.2) | gateway **31 passed**, Node **27 passed** (after fixing 5 Windows/consistency bugs, see HANDOFF.md section 11) |
+| Real model reply (gpt-4.1-mini via OpenAI-compatible API, Eve + tools + live local gateway) | Info, order-plan (DE solar, IN wind) and lease-check (IN) briefs gave correct validated plans; an off-topic brief was declined |
+| Sokosumi preprod Task `01a18f28-c334-7267-9d80-77be89c8a2f1` (Personal Workspace, Coworker AgroLand Concierge) | COMPLETED with the model answer; prices match the catalog |
+| Sokosumi preprod Task `01a18f29-340b-7458-8279-b5bc967425cb` | COMPLETED with a quote (1.00 tUSDM), nothing run or charged, 0 gateway orders; follow-up comments answered |
+These are execution-only checks. **No payment, registration or transaction exists yet.**

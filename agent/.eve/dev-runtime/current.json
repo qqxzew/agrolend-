@@ -1,7 +1,0 @@
-{
-  "appRoot": "/home/yehor/Desktop/Agro-land/agent",
-  "kind": "eve-dev-runtime-artifacts-pointer",
-  "runtimeAppRoot": "/home/yehor/Desktop/Agro-land/agent/.eve/dev-runtime/snapshots/mvvk9yru-e0b70f5f-9690-4c6c-96af-81d2a3743061/source/agent",
-  "snapshotRoot": "/home/yehor/Desktop/Agro-land/agent/.eve/dev-runtime/snapshots/mvvk9yru-e0b70f5f-9690-4c6c-96af-81d2a3743061",
-  "version": 2
-}

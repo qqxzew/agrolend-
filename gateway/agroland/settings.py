@@ -61,7 +61,7 @@ class Settings:
 
 
 def get_settings() -> Settings:
-    e = os.environ.get
+    e = lambda name, default=None: os.environ.get(name) or default  # an empty value (compose passes unset names as "") means "not set"
     geo = {
         "DE": GeoStack(e("GEO_DE_AUDIT_URL", "http://127.0.0.1:8000"), e("GEO_DE_INTERNAL_KEY", ""),
                        e("GEO_DE_MATCHER_URL", "http://127.0.0.1:8001"), e("GEO_DE_INTERNAL_KEY", ""),

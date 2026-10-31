@@ -25,4 +25,10 @@ export async function plan(input, journal, { ask = answer, check = (b) => gatewa
   return p;
 }
 
+// Customer-facing text for a plan. A comment never creates an order: one Task covers one order.
+export function describePlan(p) {
+  if (p.action === 'order') return `Here is what I would order: ${p.summary} Price: ${p.price}. Nothing was run or charged by this reply. To order it, create a new Task with this request (one Task covers one order).`;
+  return p.question || p.reason || p.answer || 'I could not work out what you need; please describe the site or the farm you want checked.';
+}
+
 export const summarize = (orderId, journal, { ask = answer } = {}) => ask(`MODE: SUMMARIZE\n\nOrder id: ${orderId}`, journal);
