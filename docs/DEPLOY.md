@@ -27,7 +27,7 @@ Nothing here has been executed against your server, your accounts or the chain. 
 ### B1. Configure and start the base stack
 ```bash
 git clone <repo> /opt/agroland && cd /opt/agroland
-cp .env.example .env && chmod 600 .env
+cp .env.example .env && chmod 600 .env   # add OPENAI_API_KEY=… so the home-page assistant answers (optional; never commit .env)
 # fill: AGROLAND_PUBLIC_URL, AGROLAND_DOMAIN, POSTGRES_PASSWORD, ENCRYPTION_KEY, ADMIN_KEY, BLOCKFROST_API_KEY_PREPROD,
 #       SELLING_WALLET_PREPROD_MNEMONIC (dedicated test wallet), and random keys:  for k in AGROLAND_INTERNAL_KEY GEO_DE_INTERNAL_KEY GEO_DE_ESCROW_KEY GEO_DE_ARCHITECT_KEY GEO_IN_INTERNAL_KEY GEO_IN_ESCROW_KEY GEO_IN_ARCHITECT_KEY; do echo "$k=$(openssl rand -hex 24)"; done
 docker compose -f deploy/docker-compose.yml --env-file .env config   # first time: validate
