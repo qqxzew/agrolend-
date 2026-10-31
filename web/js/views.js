@@ -23,6 +23,7 @@ export function start(q) {
 
 // Cartoon avatars of the three agents (inline SVG, no external files).
 const AVATAR = {
+  guide: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#e3efe0"/><path d="M32 9v7" stroke="#1f4d2e" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="8" r="4" fill="#e0a43a"/><rect x="13" y="16" width="38" height="31" rx="12" fill="#1f4d2e"/><rect x="18" y="22" width="28" height="19" rx="8" fill="#f4f7f0"/><circle cx="26" cy="31" r="3.2" fill="#1f4d2e"/><circle cx="38" cy="31" r="3.2" fill="#1f4d2e"/><circle cx="27" cy="30" r="1" fill="#fff"/><circle cx="39" cy="30" r="1" fill="#fff"/><path d="M27 36q5 4 10 0" fill="none" stroke="#1f4d2e" stroke-width="2.2" stroke-linecap="round"/><rect x="8" y="27" width="5" height="11" rx="2.5" fill="#8dc86a"/><rect x="51" y="27" width="5" height="11" rx="2.5" fill="#8dc86a"/><path d="M20 55q12-9 24 0" fill="#8dc86a"/></svg>',
   owner: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#dcefd6"/><circle cx="32" cy="36" r="17" fill="#f6d7b0"/><path d="M14 31a18 18 0 0 1 36 0z" fill="#e0a43a"/><rect x="11" y="30" width="42" height="5" rx="2.5" fill="#c98a1f"/><circle cx="26" cy="39" r="2" fill="#2b2b2b"/><circle cx="38" cy="39" r="2" fill="#2b2b2b"/><path d="M27 45q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><circle cx="46" cy="47" r="7" fill="#fff" fill-opacity=".6" stroke="#1f4d2e" stroke-width="3"/><path d="M51 52l7 7" stroke="#1f4d2e" stroke-width="4" stroke-linecap="round"/></svg>',
   farm: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#fff0cc"/><path d="M17 33a15 15 0 0 1 30 0z" fill="#8a5a2b"/><circle cx="32" cy="37" r="16" fill="#f6d7b0"/><path d="M15 29q17-12 34 0l-3 6H18z" fill="#8a5a2b"/><circle cx="26" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><circle cx="38" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><path d="M31 38h2" stroke="#2b2b2b" stroke-width="2"/><circle cx="26" cy="38" r="1.6" fill="#2b2b2b"/><circle cx="38" cy="38" r="1.6" fill="#2b2b2b"/><path d="M28 46q4 3 8 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><rect x="38" y="44" width="17" height="18" rx="2" fill="#fff" stroke="#1f4d2e" stroke-width="2.5"/><path d="M42 50h9M42 54h9M42 58h5" stroke="#1f4d2e" stroke-width="2" stroke-linecap="round"/></svg>',
   developer: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#d9eef8"/><circle cx="32" cy="36" r="16" fill="#f6d7b0"/><path d="M16 33c0-14 32-14 32 0-6-6-26-6-32 0z" fill="#3b2a1a"/><circle cx="26" cy="38" r="2" fill="#2b2b2b"/><circle cx="38" cy="38" r="2" fill="#2b2b2b"/><path d="M27 44q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><path d="M13 36a19 19 0 0 1 38 0" fill="none" stroke="#1f6b8f" stroke-width="3.5" stroke-linecap="round"/><rect x="9" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><rect x="49" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><circle cx="26" cy="56" r="6" fill="none" stroke="#1f4d2e" stroke-width="3"/><circle cx="38" cy="56" r="6" fill="none" stroke="#e0a43a" stroke-width="3"/></svg>',
@@ -53,8 +54,9 @@ export function home() {
   function paint(pending) {
     page.classList.toggle('chatting', msgs.length > 0 || !!pending);
     const last = msgs.length - 1;
-    log.replaceChildren(...msgs.map((m, i) => h('div', { class: 'msg ' + m.role }, h('div', { class: 'msg-text' }, m.content), m.open && ACTION[m.open] && h('button', { class: 'btn sm primary', onclick: () => open(m.open) }, ACTION[m.open] + ' →'),
-      i === last && !pending && m.suggestions?.length ? h('div', { class: 'sugg' }, m.suggestions.map(q => h('button', { class: 'chip-btn', onclick: () => go(q) }, q))) : null)), ...(pending ? [h('div', { class: 'msg assistant' }, spinner('Thinking…'))] : []));
+    const av = () => h('span', { class: 'msg-av', html: AVATAR[sel.value] || AVATAR.guide });
+    log.replaceChildren(...msgs.map((m, i) => h('div', { class: 'msg ' + m.role }, m.role === 'assistant' && av(), h('div', { class: 'msg-body' }, h('div', { class: 'msg-text' }, m.content), m.open && ACTION[m.open] && h('button', { class: 'btn sm primary', onclick: () => open(m.open) }, ACTION[m.open] + ' →'),
+      i === last && !pending && m.suggestions?.length ? h('div', { class: 'sugg' }, m.suggestions.map(q => h('button', { class: 'chip-btn', onclick: () => go(q) }, q))) : null))), ...(pending ? [h('div', { class: 'msg assistant' }, av(), h('div', { class: 'msg-body' }, spinner('Thinking…')))] : []));
     log.scrollTop = log.scrollHeight;
   }
   async function go(preset) {
@@ -73,13 +75,15 @@ export function home() {
     busy = false; send.disabled = false; chatWrite(msgs); paint(); text.focus();
   }
   text.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  const clear = h('button', { class: 'pick-map', onclick: () => { msgs = []; chatWrite(msgs); paint(); text.focus(); } }, 'New chat');
-  page.append(
+  const back = h('button', { class: 'chat-back', 'aria-label': 'Leave the chat', title: 'Back to the start', onclick: () => { msgs = []; chatWrite(msgs); paint(); text.focus(); } }, h('span', { 'aria-hidden': 'true' }, '←'), ' Back');
+  const dot = h('span', { class: 'agent-dot', html: AVATAR.guide });
+  sel.addEventListener('change', () => { dot.innerHTML = AVATAR[sel.value] || AVATAR.guide; paint(); });
+  page.append(back,
     h('div', { class: 'hero' },
       h('div', { class: 'brand-name' }, h('b', null, 'Agro'), 'Land'),
       h('h2', null, 'What would you like to check?')),
     log,
-    h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, h('span', { class: 'agent-dot' }, 'A'), sel), clear, h('span', { class: 'grow' }), send)),
+    h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, dot, sel), h('span', { class: 'grow' }), send)),
     h('div', { class: 'agent-row' }, agents.map(([r, name, line, svc]) => h('button', { class: 'agent-card', onclick: () => open(r) },
       h('span', { class: 'agent-av', html: AVATAR[r] }), h('span', { class: 'agent-txt' }, h('b', null, name), h('span', null, line), h('small', null, priceOf(svc)))))));
   paint();

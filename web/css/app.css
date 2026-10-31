@@ -87,7 +87,7 @@ body { overflow-x: hidden; }
 .composer > input { border: none; outline: none; padding: .7rem .2rem; }
 .composer-row { display: flex; align-items: center; gap: .6rem; padding-bottom: .2rem; } .composer-row .grow { flex: 1; }
 .agent-pick { display: inline-flex; align-items: center; gap: .4rem; } .agent-pick select { border: none; padding: .2rem; width: auto; color: var(--muted); font-size: .88rem; background: none; }
-.agent-dot { width: 20px; height: 20px; border-radius: 2px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: .7rem; font-weight: 700; }
+.agent-dot { width: 28px; height: 28px; display: block; flex: none; } .agent-dot svg, .msg-av svg { width: 100%; height: 100%; display: block; }
 .pick-map { color: var(--muted); text-decoration: none; font-size: .88rem; }
 .send { width: 38px; height: 38px; border-radius: 3px; border: none; background: var(--ink); color: #fff; font-size: 1.1rem; cursor: pointer; }
 .chips { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; }
@@ -210,7 +210,8 @@ details.quiet { margin-top: .5rem; } details.quiet > summary { color: var(--mute
 .home.chatting { justify-content: flex-start; gap: .7rem; }
 .home.chatting .hero { display: none; }
 .chatlog { flex: 1; min-height: 0; overflow-y: auto; width: min(680px, 100%); margin-inline: auto; display: flex; flex-direction: column; gap: .6rem; padding: .2rem; }
-.msg { max-width: 85%; padding: .55rem .8rem; border-radius: 4px; line-height: 1.4; display: flex; flex-direction: column; gap: .45rem; align-items: flex-start; overflow-wrap: anywhere; }
+.msg { max-width: 85%; padding: .55rem .8rem; border-radius: 4px; line-height: 1.4; display: flex; gap: .6rem; align-items: flex-start; overflow-wrap: anywhere; }
+.msg-body { display: flex; flex-direction: column; gap: .45rem; align-items: flex-start; min-width: 0; } .msg-av { width: 30px; height: 30px; flex: none; }
 .msg.user { align-self: flex-end; background: var(--accent-soft); } .msg.assistant { align-self: flex-start; background: var(--surface-2); }
 .home.chatting .agent-card { flex-direction: row; text-align: left; padding: .4rem .6rem; gap: .5rem; } .home.chatting .agent-av { width: 36px; height: 36px; flex: none; } .home.chatting .agent-txt span, .home.chatting .agent-txt small { display: none; }
 .ws-item { display: flex; align-items: center; gap: .4rem; padding: .45rem .6rem; border-radius: 3px; color: var(--text); text-decoration: none; } .ws-item .lbl { flex: 1; } .ws-item .lbl b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -224,3 +225,6 @@ details.quiet { margin-top: .5rem; } details.quiet > summary { color: var(--mute
 .msg-text { white-space: pre-wrap; }
 .sugg { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .15rem; } .sugg .chip-btn { font-size: .82rem; padding: .3rem .65rem; text-align: left; }
 .chatlog .msg:last-child { animation: fold-in .25s ease-out; }
+
+.chat-back { display: none; width: min(680px, 100%); margin: 0 auto; padding: .1rem 0; border: none; background: none; font: inherit; font-size: .92rem; color: var(--muted); text-align: left; cursor: pointer; }
+.chat-back:hover { color: var(--text); } .home.chatting .chat-back { display: block; }
