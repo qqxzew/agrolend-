@@ -47,6 +47,7 @@ export const chip = (text, kind = '') => h('span', { class: 'chip ' + kind }, te
 export const fmtTime = iso => iso ? new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '';
 export const fmtMs = ms => ms ? new Date(Number(ms)).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '';
 export const num = (n, d = 2) => n == null ? '-' : Number(n).toLocaleString(undefined, { maximumFractionDigits: d });
+export const parcelLabel = label => String(label || '').replace(/\s*\(demo\)/gi, '').replace(/\s*\(illustrative\)/gi, '').trim();
 export const money = (n, cur) => cur === 'INR' ? '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 }) : cur === 'EUR' ? '€' + Number(n).toLocaleString('en-GB', { maximumFractionDigits: 2 }) : num(n);
 
 export function toast(msg, err = false) {

@@ -1,7 +1,10 @@
-import { api, ws, h, chip, fmtTime, num, money, toast, guard, download, copy, hash, kv, field, empty, spinner, ApiError } from './core.js';
+import { api, ws, h, chip, fmtTime, num, money, toast, guard, download, copy, hash, kv, field, empty, spinner, ApiError, parcelLabel } from './core.js';
 import { parcelMap } from './map.js';
 import { orderPanel, stateChip } from './order.js';
 import { fieldMap, fieldDetail, legend } from './crop.js';
+import { AVATAR } from './avatars.js';
+import { conversation, sendQuestion, clearConversation, openAssistantPage } from './assistant.js';
+import { landSearch, enrollSite, registeredSites, clusterBoard } from './energy.js';
 
 export const ctx = { config: null, rerender: () => {} };
 const country = () => ws.current?.country;
@@ -21,61 +24,42 @@ export function start(q) {
     h('button', { class: 'btn primary', onclick: e => guard(async () => { const res = await api('/session', { method: 'POST', body: { name: name.value, role: r.value, country: c.value } }); ws.add(res.user, res.token); location.hash = '#/' + (res.user.role === 'owner' ? 'owner' : res.user.role === 'farm' ? 'farm' : 'developer'); ctx.rerender(); }, e.target) }, 'Create workspace'));
 }
 
-// Cartoon avatars of the three agents (inline SVG, no external files).
-const AVATAR = {
-  guide: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#e3efe0"/><path d="M32 9v7" stroke="#1f4d2e" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="8" r="4" fill="#e0a43a"/><rect x="13" y="16" width="38" height="31" rx="12" fill="#1f4d2e"/><rect x="18" y="22" width="28" height="19" rx="8" fill="#f4f7f0"/><circle cx="26" cy="31" r="3.2" fill="#1f4d2e"/><circle cx="38" cy="31" r="3.2" fill="#1f4d2e"/><circle cx="27" cy="30" r="1" fill="#fff"/><circle cx="39" cy="30" r="1" fill="#fff"/><path d="M27 36q5 4 10 0" fill="none" stroke="#1f4d2e" stroke-width="2.2" stroke-linecap="round"/><rect x="8" y="27" width="5" height="11" rx="2.5" fill="#8dc86a"/><rect x="51" y="27" width="5" height="11" rx="2.5" fill="#8dc86a"/><path d="M20 55q12-9 24 0" fill="#8dc86a"/></svg>',
-  owner: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#dcefd6"/><circle cx="32" cy="36" r="17" fill="#f6d7b0"/><path d="M14 31a18 18 0 0 1 36 0z" fill="#e0a43a"/><rect x="11" y="30" width="42" height="5" rx="2.5" fill="#c98a1f"/><circle cx="26" cy="39" r="2" fill="#2b2b2b"/><circle cx="38" cy="39" r="2" fill="#2b2b2b"/><path d="M27 45q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><circle cx="46" cy="47" r="7" fill="#fff" fill-opacity=".6" stroke="#1f4d2e" stroke-width="3"/><path d="M51 52l7 7" stroke="#1f4d2e" stroke-width="4" stroke-linecap="round"/></svg>',
-  farm: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#fff0cc"/><path d="M17 33a15 15 0 0 1 30 0z" fill="#8a5a2b"/><circle cx="32" cy="37" r="16" fill="#f6d7b0"/><path d="M15 29q17-12 34 0l-3 6H18z" fill="#8a5a2b"/><circle cx="26" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><circle cx="38" cy="38" r="5" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><path d="M31 38h2" stroke="#2b2b2b" stroke-width="2"/><circle cx="26" cy="38" r="1.6" fill="#2b2b2b"/><circle cx="38" cy="38" r="1.6" fill="#2b2b2b"/><path d="M28 46q4 3 8 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><rect x="38" y="44" width="17" height="18" rx="2" fill="#fff" stroke="#1f4d2e" stroke-width="2.5"/><path d="M42 50h9M42 54h9M42 58h5" stroke="#1f4d2e" stroke-width="2" stroke-linecap="round"/></svg>',
-  developer: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#d9eef8"/><circle cx="32" cy="36" r="16" fill="#f6d7b0"/><path d="M16 33c0-14 32-14 32 0-6-6-26-6-32 0z" fill="#3b2a1a"/><circle cx="26" cy="38" r="2" fill="#2b2b2b"/><circle cx="38" cy="38" r="2" fill="#2b2b2b"/><path d="M27 44q5 4 10 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/><path d="M13 36a19 19 0 0 1 38 0" fill="none" stroke="#1f6b8f" stroke-width="3.5" stroke-linecap="round"/><rect x="9" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><rect x="49" y="34" width="6" height="10" rx="3" fill="#1f6b8f"/><circle cx="26" cy="56" r="6" fill="none" stroke="#1f4d2e" stroke-width="3"/><circle cx="38" cy="56" r="6" fill="none" stroke="#e0a43a" stroke-width="3"/></svg>',
-};
-
 // ---------------------------------------------------------------- home
 const ACTION = { owner: 'Open Land Audit', farm: 'Open Lease Check', developer: 'Open Pool Access', orders: 'Open my orders', data: 'Open data and sources' };
-// each workspace keeps its own conversation, like separate chats
-const chatKey = () => 'agl.chat.' + (ws.current?.id || 'none');
-const chatRead = () => { try { return JSON.parse(sessionStorage.getItem(chatKey())) || []; } catch { return []; } };
-const chatWrite = v => { try { sessionStorage.setItem(chatKey(), JSON.stringify(v)); } catch {} };
-
 export function home() {
   const w = ws.current;
-  const route = txt => { const s = txt.toLowerCase();
-    if (/lease|rent|farm|contract|pacht/.test(s)) return 'farm';
-    if (/neighbo|nda|pool|developer|wind|solar|site|audit/.test(s)) return 'developer';
-    return 'owner'; };
   const agents = [['owner', 'Land Audit', 'Is this site good for wind or solar?', 'land_audit'], ['farm', 'Lease Check', 'Finds overpaid rent and unfarmed land.', 'lease_check'], ['developer', 'Pool Access', 'Meets neighbouring developers under NDA.', 'pool_access']];
   // a workflow belongs to one workspace role, so another role goes through workspace creation
-  const open = r => { location.hash = !['owner', 'farm', 'developer'].includes(r) || w?.role === r ? '#/' + r : '#/start?role=' + r; };
-  let msgs = chatRead(), busy = false;
+  const open = openAssistantPage, chat = conversation(w);
+  const fallback = () => sel.value || (/lease|rent|farm|contract|pacht/i.test(chat.retry) ? 'farm' : /neighbo|nda|pool|developer|wind|solar|site|audit/i.test(chat.retry) ? 'developer' : 'owner');
   const log = h('div', { class: 'chatlog', 'aria-live': 'polite' });
   const text = h('input', { placeholder: 'Ask anything, e.g. "check my leases" or "is my site good for solar?"', 'aria-label': 'What would you like to check?', maxlength: 1000 });
   const sel = h('select', { 'aria-label': 'Agent' }, h('option', { value: '' }, 'Pick for me'), agents.map(([r, n]) => h('option', { value: r }, n)));
   const send = h('button', { class: 'send', 'aria-label': 'Send', onclick: () => go() }, '↑');
   const page = h('div', { class: 'home' });
-  function paint(pending) {
+  function paint() {
+    const msgs = chat.messages, pending = chat.busy;
+    send.disabled = pending; sel.disabled = pending; back.disabled = pending;
     page.classList.toggle('chatting', msgs.length > 0 || !!pending);
     const last = msgs.length - 1;
-    const av = () => h('span', { class: 'msg-av', html: AVATAR[sel.value] || AVATAR.guide });
-    log.replaceChildren(...msgs.map((m, i) => h('div', { class: 'msg ' + m.role }, m.role === 'assistant' && av(), h('div', { class: 'msg-body' }, h('div', { class: 'msg-text' }, m.content), m.open && ACTION[m.open] && h('button', { class: 'btn sm primary', onclick: () => open(m.open) }, ACTION[m.open] + ' →'),
-      i === last && !pending && m.suggestions?.length ? h('div', { class: 'sugg' }, m.suggestions.map(q => h('button', { class: 'chip-btn', onclick: () => go(q) }, q))) : null))), ...(pending ? [h('div', { class: 'msg assistant' }, av(), h('div', { class: 'msg-body' }, spinner('Thinking…')))] : []));
+    const av = agent => h('span', { class: 'msg-av', html: AVATAR[agent] || AVATAR[sel.value] || AVATAR.guide });
+    log.replaceChildren(...msgs.map((m, i) => h('div', { class: 'msg ' + m.role }, m.role === 'assistant' && av(m.agent), h('div', { class: 'msg-body' }, h('div', { class: 'msg-text' }, m.content), m.open && ACTION[m.open] && h('button', { class: 'btn sm primary', onclick: () => open(m.open) }, ACTION[m.open] + ' →'),
+      i === last && !pending && m.suggestions?.length ? h('div', { class: 'sugg' }, m.suggestions.map(q => h('button', { class: 'chip-btn', onclick: () => go(q) }, q))) : null))), ...(pending ? [h('div', { class: 'msg assistant' }, av(chat.pendingAgent), h('div', { class: 'msg-body' }, spinner('Thinking…')))] : []));
     log.scrollTop = log.scrollHeight;
+    error.hidden = !chat.error;
+    error.replaceChildren(chat.error || '', chat.error && h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => sendQuestion(chat, chat.retry, { agent: sel.value || undefined }, true) }, 'Try again'), h('button', { class: 'btn sm', onclick: () => open(fallback()) }, ACTION[fallback()] + ' →')));
   }
+  const error = h('div', { class: 'chat-error', role: 'status', hidden: true });
   async function go(preset) {
     const q = (typeof preset === 'string' ? preset : text.value).trim();
     if (!q) { if (sel.value) open(sel.value); return; }
-    if (busy) return;
-    busy = true; send.disabled = true; text.value = '';
-    msgs.push({ role: 'user', content: q }); chatWrite(msgs); paint(true);
-    try {
-      const r = await api('/chat', { method: 'POST', body: { messages: msgs.map(({ role, content }) => ({ role, content })), role: w?.role, country: w?.country, agent: sel.value || undefined } });
-      msgs.push({ role: 'assistant', content: r.reply, open: r.open, suggestions: r.suggestions || [] });
-    } catch (e) {
-      // without the assistant the page still gets the visitor to the right workflow
-      msgs.push({ role: 'assistant', content: e.status === 429 ? e.message : 'The assistant is not available right now, but this workflow looks like the right one.', open: sel.value || route(q) });
-    }
-    busy = false; send.disabled = false; chatWrite(msgs); paint(); text.focus();
+    if (chat.busy) return;
+    text.value = '';
+    await sendQuestion(chat, q, { agent: sel.value || undefined });
+    if (text.isConnected && !text.value) text.focus();
   }
-  text.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  const back = h('button', { class: 'chat-back', 'aria-label': 'Leave the chat', title: 'Back to the start', onclick: () => { msgs = []; chatWrite(msgs); paint(); text.focus(); } }, h('span', { 'aria-hidden': 'true' }, '←'), ' Back');
+  text.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); });
+  const back = h('button', { class: 'chat-back', 'aria-label': 'Leave the chat', title: 'Back to the start', onclick: () => { clearConversation(chat); text.focus(); } }, h('span', { 'aria-hidden': 'true' }, '←'), ' Back');
   const dot = h('span', { class: 'agent-dot', html: AVATAR.guide });
   sel.addEventListener('change', () => { dot.innerHTML = AVATAR[sel.value] || AVATAR.guide; paint(); });
   page.append(back,
@@ -84,8 +68,12 @@ export function home() {
       h('h2', null, 'What would you like to check?')),
     log,
     h('div', { class: 'composer' }, text, h('div', { class: 'composer-row' }, h('span', { class: 'agent-pick' }, dot, sel), h('span', { class: 'grow' }), send)),
+    error,
     h('div', { class: 'agent-row' }, agents.map(([r, name, line, svc]) => h('button', { class: 'agent-card', onclick: () => open(r) },
       h('span', { class: 'agent-av', html: AVATAR[r] }), h('span', { class: 'agent-txt' }, h('b', null, name), h('span', null, line), h('small', null, priceOf(svc)))))));
+  const update = () => paint();
+  addEventListener('agl:chat', update);
+  page.dispose = () => removeEventListener('agl:chat', update);
   paint();
   return page;
 }
@@ -96,30 +84,31 @@ export function data() {
     h('div', { class: 'card' }, h('h3', null, 'Agents in AgroLand'), h('table', { class: 't' }, h('thead', null, h('tr', null, ['#', 'Agent', 'What you get', 'Price', 'Countries'].map(x => h('th', null, x)))),
       h('tbody', null, Object.entries(ctx.config.services).map(([k, s]) => h('tr', null, h('td', null, 'Agent ' + s.agent), h('td', null, h('b', null, s.title)), h('td', null, s.summary), h('td', null, s.price.display), h('td', null, s.countries.join(' · ')))))),
       h('p', { class: 'small muted' }, 'The same agents answer here and inside Sokosumi. Prices are identical in both places.')),
-    h('div', { class: 'card', id: 'coverage' }, h('h3', null, 'Data and sources'), h('div', { class: 'cols' }, Object.entries(ctx.config.coverage).map(([k, c]) => h('div', null, h('b', null, c.name), h('ul', { class: 'small muted' }, c.notes.map(n => h('li', null, n))))))));
+    h('div', { class: 'card', id: 'coverage' }, h('h3', null, 'Data and sources'), h('div', { class: 'cols' }, Object.entries(ctx.config.coverage).map(([k, c]) => h('div', null, h('b', null, c.name), h('ul', { class: 'small muted' }, c.notes.map(n => h('li', null, n))))))),
+    h('div', { class: 'card stack' }, h('h3', null, 'Map boundary sources'), h('p', { class: 'small muted' }, 'Germany: 191 agricultural parcels from the open ALKIS fragment around Magdeburg. India: illustrative fields in Kutch and Anantapur, with invented survey references, plus six real field outlines registered at 5am.earth in Beed, Maharashtra. Illustrative fields are not cadastral survey boundaries. Saving, registering or grouping a site does not verify ownership, availability, planning permission or a grid connection.')));
 }
 
 // ---------------------------------------------------------------- shared: parcel picker
 async function parcelPicker({ onSaved, allowDraw = true, saved, leased = [] }) {
-  const w = ws.current, root = h('div', { class: 'stack' });
+  const w = ws.current, root = h('div', { class: 'stack parcel-picker' });
   const mapEl = h('div', { class: 'map' }); let picked = null;
   const pickedBox = h('div', { class: 'small muted' }, 'Click a parcel on the map' + (allowDraw ? ', or draw your own outline.' : '.'));
   const saveBtn = h('button', { class: 'btn primary', disabled: true, onclick: e => guard(async () => { const p = await api('/parcels', { method: 'POST', body: picked.body }); toast('Saved to your parcels'); onSaved(p); }, e.target) }, 'Use this parcel');
-  const m = await parcelMap(mapEl, { country: w.country, saved, leased, onSelect: p => { picked = { body: { source: p.source, ref: p.ref }, label: p.label }; pickedBox.replaceChildren(h('b', null, p.label), ` · ${num(p.area_ha)} ha`, p.signal ? h('span', null, ' · signal ', h('span', { class: 'sig ' + p.signal }), p.signal) : '', p.demo ? chip(' demo', 'info') : ''); saveBtn.disabled = false; } });
+  const m = await parcelMap(mapEl, { country: w.country, saved, leased, onSelect: p => { picked = { body: { source: p.source, ref: p.ref }, label: p.label }; pickedBox.replaceChildren(h('b', null, parcelLabel(p.label)), ` · ${num(p.area_ha)} ha`, p.signal ? h('span', null, ' · corridor ', h('span', { class: 'sig ' + p.signal }), p.signal) : ''); pickedBox.classList.add('parcel-picked'); saveBtn.disabled = false; } });
   let drawCtl = null; const drawBtn = h('button', { class: 'btn', onclick: () => {
     if (drawCtl) { drawCtl.finish(); return; }
     drawBtn.textContent = 'Finish outline'; drawCtl = m.draw(async geom => { drawBtn.textContent = 'Draw my own outline'; drawCtl = null;
       const label = prompt('Name this site', 'My site'); if (label == null) return;
       await guard(async () => { const p = await api('/parcels', { method: 'POST', body: { source: 'drawn', geometry: geom, label } }); toast('Outline saved'); onSaved(p); }); });
   } }, 'Draw my own outline');
-  root.append(mapEl, m.info, pickedBox, h('div', { class: 'row' }, saveBtn, allowDraw && drawBtn));
+  root.append(m.browser, mapEl, m.info, h('div', { class: 'picker-actions' }, pickedBox, h('div', { class: 'row' }, saveBtn, allowDraw && drawBtn)));
   return root;
 }
 
 function parcelList(parcels, selId, onPick, onDelete) {
   if (!parcels.length) return empty('No parcels yet. Pick one on the map.');
   return h('div', { class: 'list' }, parcels.map(p => h('div', { class: 'item' + (p.id === selId ? ' sel' : '') },
-    h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, `${num(p.area_ha)} ha · ${p.source}${p.demo ? ' · demo' : ''} · ownership not verified`)),
+    h('div', { class: 't' }, h('b', null, parcelLabel(p.label)), h('span', { class: 'small muted' }, `${num(p.area_ha)} ha · saved parcel`)),
     h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => onPick(p) }, p.id === selId ? 'Selected' : 'Select'), onDelete && h('button', { class: 'btn sm danger icon', title: 'Remove this parcel', 'aria-label': 'Remove this parcel', onclick: () => onDelete(p) }, '×')))));
 }
 
@@ -127,9 +116,9 @@ async function latestOrders(service) { return (await api('/orders')).filter(o =>
 
 function auditComposer(parcel, { onOrder, typeChoices = ['solar', 'wind', 'hybrid'] }) {
   const t = h('select', null, typeChoices.map(x => h('option', { value: x }, x[0].toUpperCase() + x.slice(1))));
-  const survey = country() === 'IN' ? h('input', { placeholder: 'Survey number (optional, not verified)' }) : null;
-  return h('div', { class: 'stack' }, field('Project type', t), survey && field('Land-record reference', survey, 'Format check only. No state registry offers a public lookup, so it is never verified.'),
-    h('div', { class: 'row between' }, h('div', null, 'Land Audit · ', h('b', null, priceOf('land_audit')), h('div', { class: 'small muted' }, 'Price is fixed before you pay.')),
+  const survey = country() === 'IN' ? h('input', { placeholder: 'e.g. 118/1' }) : null;
+  return h('div', { class: 'audit-form' }, h('div', { class: 'audit-fields' }, field('Project type', t), survey && field('Land-record reference', survey, 'Optional reference. Registry verification is not included.')),
+    h('div', { class: 'audit-order-footer' }, h('div', null, h('span', { class: 'small muted' }, 'Land Audit'), h('b', { class: 'order-price' }, priceOf('land_audit')), h('div', { class: 'small muted' }, 'Review the price before starting.')),
       h('button', { class: 'btn primary', onclick: e => guard(async () => { const o = await api('/orders', { method: 'POST', body: { service: 'land_audit', input: { parcel_id: parcel.id, project_type: t.value, ...(survey?.value ? { survey_number: survey.value } : {}) }, idempotency_key: crypto.randomUUID() } }); onOrder(o, t.value); }, e.target) }, 'Review order')));
 }
 
@@ -142,6 +131,8 @@ export async function owner(q = new URLSearchParams()) {
   async function draw() {
     [parcels, listings] = await Promise.all([api('/parcels'), api('/listings')]);
     try { sessionStorage.setItem('agl.owner.sel', sel?.id || ''); } catch {}
+    root.dataset.assistantTab = tab;
+    root.dataset.assistantStage = tab === 'listings' ? 'listings' : !sel || changing ? 'choose_parcel' : 'review_audit';
     const tabs = h('div', { class: 'tabs' }, [['audit', 'Audit a parcel'], ['listings', `My listings (${listings.length})`]].map(([k, l]) => h('button', { class: tab === k ? 'on' : '', onclick: () => { tab = k; draw(); } }, l)));
     const body = h('div');
     if (tab === 'audit') {
@@ -151,9 +142,9 @@ export async function owner(q = new URLSearchParams()) {
       if (!sel || changing) {
         const mapCol = await parcelPicker({ saved: parcels, onSaved: choose });
         body.append(h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, '1 · Choose the parcel'), sel && h('button', { class: 'btn sm ghost', onclick: () => { changing = false; draw(); } }, 'Collapse ↑')),
-          h('div', { class: 'pick-grid' }, mapCol, h('div', { class: 'stack tight' }, h('h4', { class: 'sec' }, 'Your parcels'), parcelList(parcels, sel?.id, choose, delParcel)))));
+          h('div', { class: parcels.length ? 'pick-grid' : '' }, mapCol, parcels.length && h('div', { class: 'stack tight' }, h('h4', { class: 'sec' }, 'Your parcels'), parcelList(parcels, sel?.id, choose, delParcel)))));
       } else {
-        body.append(h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '1 · Parcel'), h('span', { class: 'muted' }, `${sel.label} · ${num(sel.area_ha)} ha`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { changing = true; draw(); } }, 'Change parcel')));
+        body.append(h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '1 · Parcel'), h('span', { class: 'muted summary-label' }, `${parcelLabel(sel.label)} · ${num(sel.area_ha)} ha`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { changing = true; draw(); } }, 'Change parcel')));
       }
       if (!sel) body.append(h('p', { class: 'small muted' }, 'Next: audit the parcel, then publish it when you decide.'));
       else {
@@ -161,20 +152,22 @@ export async function owner(q = new URLSearchParams()) {
         const prior = (await latestOrders('land_audit')).find(o => o.subject === sel.label);
         if (prior && orderBox.querySelector('.empty')) orderBox.replaceChildren(orderPanel(prior));
         const audited = !!prior || auditStarted;
+        root.dataset.assistantStage = audited && !auditOpen ? 'audit_ordered' : 'review_audit';
         const composer = h('div', { class: 'audit-wide' }, auditComposer(sel, { onOrder: (o, type) => { auditStarted = true; auditType = type; auditOpen = false; orderBox.replaceChildren(orderPanel(o, { onChange: () => {} })); draw(); } }));
         const step2 = audited && !auditOpen
           ? h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '2 · Audit'), h('span', { class: 'muted' }, `Land Audit${auditType ? ' · ' + auditType : ''} · ${priceOf('land_audit')} · ordered`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { auditOpen = true; draw(); } }, 'Change audit'))
           : h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, '2 · Audit'), audited && h('button', { class: 'btn sm ghost', onclick: () => { auditOpen = false; draw(); } }, 'Collapse ↑')), composer);
-        body.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, step2, h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), listingForm(sel, draw)));
+        body.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, step2, audited && h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), listingForm(sel, draw)));
       }
     } else {
       body.append(listings.length ? h('div', { class: 'stack' }, listings.map(listingCard)) : empty('No listings yet. Audit a parcel and publish it when you are ready.'));
     }
-    root.replaceChildren(h('div', { class: 'callout' }, 'Publishing does not transfer rights to your land. Ownership is never verified by AgroLand; your document stays private to you.'), tabs, body);
+    root.replaceChildren(h('div', { class: 'workspace-heading' }, h('span', { class: 'eyebrow' }, 'LANDOWNER WORKSPACE'), h('h2', null, 'Put your land to work'), h('p', null, 'Choose a parcel, check its potential and connect with energy developers.')),
+      tabs, h('div', { class: 'privacy-note' }, h('span', { 'aria-hidden': 'true' }, '◇'), 'Your documents stay private. You decide who can see your boundary.'), body);
   }
   function listingCard(l) {
     const statusKind = { published: 'good', needs_audit: 'warn', private: '' }[l.status];
-    return h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('b', null, l.parcel.label), chip(l.status.replace('_', ' '), statusKind)),
+    return h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('b', null, parcelLabel(l.parcel.label)), chip(l.status.replace('_', ' '), statusKind)),
       h('div', { class: 'small muted' }, `${l.deal_type} · ${l.price} · ${num(l.parcel.area_ha)} ha · consent ${l.consent ? 'on' : 'off'}`),
       l.audit ? h('div', null, `Attached audit: ${l.audit.verdict} ${l.audit.score}/100`, l.audit.data_complete ? '' : ' (data incomplete)') : h('div', { class: 'callout warn' }, 'Not visible to developers yet: attach a delivered audit (run one in the Audit tab, then attach it here).'),
       h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: e => guard(async () => { await api('/listings/' + l.id, { method: 'PATCH', body: { consent: !l.consent } }); toast(l.consent ? 'Withdrawn from developers' : 'Published'); draw(); }, e.target) }, l.consent ? 'Withdraw consent' : 'Publish'),
@@ -188,18 +181,25 @@ export async function owner(q = new URLSearchParams()) {
 }
 
 function listingForm(parcel, redraw) {
-  const doc = { id: null }, docInfo = h('div', { class: 'small muted' }, 'No document attached.');
-  const file = h('input', { type: 'file', accept: 'application/pdf', onchange: e => guard(async () => { const f = e.target.files[0]; if (!f) return; const fd = new FormData(); fd.append('file', f); const d = await api('/documents', { method: 'POST', form: fd }); doc.id = d.id; docInfo.textContent = `Attached ${d.filename} (private; owner-declared, not verified)`; }) });
-  const sample = h('button', { class: 'btn sm', onclick: e => guard(async () => { const d = await api('/documents/sample', { method: 'POST', body: { label: parcel.label } }); doc.id = d.id; docInfo.textContent = 'Attached a clearly marked SAMPLE document.'; }, e.target) }, 'Use a marked sample');
-  const type = h('select', null, h('option', { value: 'lease' }, 'Lease'), h('option', { value: 'sale' }, 'Sale'));
-  const price = h('input', { type: 'number', min: 1, step: 'any', placeholder: country() === 'DE' ? 'EUR per ha per year (lease) or total (sale)' : 'INR per acre per year (lease) or total (sale)' });
+  const doc = { id: null }, docInfo = h('span', { class: 'small muted' }, 'No document attached');
+  const file = h('input', { type: 'file', accept: 'application/pdf', 'aria-label': 'Land document PDF', onchange: e => guard(async () => { const f = e.target.files[0]; if (!f) return; const fd = new FormData(); fd.append('file', f); const d = await api('/documents', { method: 'POST', form: fd }); doc.id = d.id; docInfo.textContent = d.filename + ' · private attachment'; }) });
+  const sample = h('button', { class: 'btn sm', onclick: e => guard(async () => { const d = await api('/documents/sample', { method: 'POST', body: { label: parcel.label } }); doc.id = d.id; docInfo.textContent = 'SAMPLE document attached'; }, e.target) }, 'Use a marked sample');
+  const hint = h('small', { class: 'muted' });
+  const type = h('select', { onchange: () => describePrice() }, h('option', { value: 'lease' }, 'Lease'), h('option', { value: 'sale' }, 'Sale'));
+  const price = h('input', { type: 'number', min: 1, step: 'any', placeholder: 'Enter amount' });
+  function describePrice() { hint.textContent = type.value === 'sale' ? (country() === 'DE' ? 'EUR · total asking price' : 'INR · total asking price') : (country() === 'DE' ? 'EUR per hectare per year' : 'INR per acre per year'); }
+  describePrice();
   const consent = h('input', { type: 'checkbox' });
-  return h('div', { class: 'card stack' }, h('h3', null, '4 · List this parcel'), h('div', { class: 'stack' }, h('div', { class: 'form-grid' }, h('div', { class: 'stack tight' }, field('Document (PDF, private)', file), h('div', { class: 'row' }, sample, docInfo)), field('Offer', type), field('Price', price)),
-    h('label', { class: 'check' }, consent, h('span', null, 'I agree that developers may see the allow-listed summary (area, region, price, audit result). My name, document and exact boundary stay hidden until I accept a specific developer.')),
-    h('button', { class: 'btn primary', onclick: e => guard(async () => {
-      const audit = (await latestOrders('land_audit')).find(o => o.state === 'delivered' && o.subject === parcel.label);
-      await api('/listings', { method: 'POST', body: { parcel_id: parcel.id, deal_type: type.value, price: Number(price.value), consent: consent.checked, document_id: doc.id, audit_order_id: audit?.id } });
-      toast(audit ? 'Listing saved' : 'Listing saved - attach a delivered audit to make it visible'); redraw(); }, e.target) }, 'Save listing')));
+  return h('div', { class: 'card stack listing-form' }, h('div', { class: 'section-heading' }, h('h3', null, 'Offer this parcel to developers'), h('p', null, 'Set your terms. A delivered audit makes your listing visible.')),
+    h('div', { class: 'listing-fields' }, field('Offer type', type), field('Asking price', price, hint)),
+    h('div', { class: 'document-upload' }, h('b', null, 'Land document'), h('span', { class: 'small muted' }, 'Optional PDF · visible only to you'), file, docInfo),
+    h('details', { class: 'quiet' }, h('summary', null, 'Sample document'), sample),
+    h('label', { class: 'check consent-box' }, consent, h('span', null, 'Share the parcel summary with developers. I decide separately who can see the exact boundary.')),
+    h('div', { class: 'form-footer' }, h('p', { class: 'small muted' }, 'Publishing does not transfer land rights. Ownership is not verified.'),
+      h('button', { class: 'btn primary', onclick: e => guard(async () => {
+        const audit = (await latestOrders('land_audit')).find(o => o.state === 'delivered' && o.subject === parcel.label);
+        await api('/listings', { method: 'POST', body: { parcel_id: parcel.id, deal_type: type.value, price: Number(price.value), consent: consent.checked, document_id: doc.id, audit_order_id: audit?.id } });
+        toast(audit ? 'Listing saved' : 'Listing saved. Attach a delivered audit to make it visible.'); redraw(); }, e.target) }, 'Save listing')));
 }
 
 // ---------------------------------------------------------------- farm
@@ -302,6 +302,7 @@ export async function farm() {
   dataCard.querySelector('h3').after(fold);
   root.prepend(summary);
   setCollapsed = c => {
+    root.dataset.assistantStage = c ? 'report' : 'choose_data';
     grid.classList.toggle('collapsed', c); summary.hidden = !c; fold.hidden = !hasOrder || c;
     if (c) { const d = dataset(); summary.querySelector('.ds-text').textContent = `${d.settings.farm_name} · ${d.contracts.length} leases · ${source === 'saved' ? 'your uploaded files' : 'demo data'}`; }
   };
@@ -338,12 +339,26 @@ function actAs(label, targetId) { const b = h('button', { class: 'btn sm', oncli
 // ---------------------------------------------------------------- developer
 export async function developer(q) {
   const blocked = need('developer'); if (blocked) return blocked;
-  const root = h('div', { class: 'stack' }); let tab = q.get('tab') || 'sites', sel = null, changing = false, auditStarted = false, auditOpen = false, auditType = '', orderBox = h('div', null, empty('Order an audit to see it here.'));
-  const tabs = [['sites', 'Sites'], ['deals', 'Matches & deals'], ['market', 'Owner listings']];
+  const root = h('div', { class: 'stack energy-workspace' }); let tab = q.get('tab') || 'find', sel = null, changing = false, auditStarted = false, auditOpen = false, auditType = '', orderBox = h('div', null, empty('Order an audit to see it here.'));
+  const tabs = [['find', 'Find land'], ['sites', 'Site workspace'], ['registered', 'My sites'], ['clusters', 'Clusters'], ['deals', 'Private introductions']];
+  if (!tabs.some(([key]) => key === tab) && tab !== 'market') tab = 'find';
+  const switchTab = async next => { tab = next; history.replaceState(null, '', '#/developer?tab=' + next); await draw(); document.getElementById('view').scrollTop = 0; };
+  const chooseSite = p => { sel = p; changing = false; auditStarted = false; auditOpen = false; auditType = ''; orderBox.replaceChildren(empty('Order an audit to see it here.')); return switchTab('sites'); };
   async function draw() {
-    const nav = h('div', { class: 'tabs' }, tabs.map(([k, l]) => h('button', { class: tab === k ? 'on' : '', onclick: () => { tab = k; draw(); } }, l)));
-    const body = h('div'); root.replaceChildren(nav, body);
-    body.append(await ({ sites, deals, market }[tab])());
+    root.dataset.assistantTab = tab;
+    root.dataset.assistantStage = tab === 'deals' ? 'deals' : tab === 'clusters' ? 'clusters' : tab === 'registered' ? 'registered_sites' : tab === 'find' ? 'find_land' : tab === 'market' ? 'listings' : 'choose_parcel';
+    const nav = h('div', { class: 'tabs energy-tabs' }, tabs.map(([k, l]) => h('button', { class: tab === k ? 'on' : '', onclick: () => guard(() => switchTab(k)) }, l)));
+    const body = h('div'); root.replaceChildren(h('div', { class: 'workspace-heading' }, h('span', { class: 'eyebrow' }, 'ENERGY DEVELOPER WORKSPACE'), h('h2', null, 'Find land. Build a cluster.'), h('p', null, 'Discover solar and wind sites, register land with consent, and bring neighbouring projects together.')),
+      h('div', { class: 'workflow-strip' }, ['Find a site', 'Register with consent', 'Review a cluster', 'Everyone agrees'].map((label, i) => h('span', null, h('b', null, i + 1), label))), nav, body);
+    const renderers = { find: findLand, sites, deals, market, registered: () => registeredSites({ onFind: () => switchTab('find'), onClusters: () => switchTab('clusters') }),
+      clusters: () => clusterBoard({ onFind: () => switchTab('find'), onSites: () => switchTab('registered') }) };
+    body.append(await renderers[tab]());
+  }
+  async function findLand() {
+    const [saved, marketItems] = await Promise.all([api('/parcels'), api('/marketplace')]);
+    const leased = marketItems.filter(m => m.my_interest.disclosed_boundary).map(m => ({ geometry: m.my_interest.disclosed_boundary, label: 'Boundary shared by an owner' }));
+    return h('div', { class: 'stack' }, h('div', { class: 'card stack' }, h('div', { class: 'section-heading' }, h('h3', null, 'Explore land on the map'), h('p', null, 'Browse boundaries by area or parcel number. Published offers and consented sites are listed below. Map parcels alone do not establish availability.')),
+      await parcelPicker({ saved, leased, onSaved: chooseSite })), await landSearch({ onSelect: chooseSite }));
   }
   // Same flow as the landowner page: step 1 folds into a summary bar once a site is chosen, step 2 folds after the audit is ordered, results get the full width.
   async function sites() {
@@ -352,32 +367,38 @@ export async function developer(q) {
     sel = sel && parcels.find(x => x.id === sel.id) || null;
     try { sessionStorage.setItem('agl.dev.sel', sel ? JSON.stringify({ id: sel.id }) : ''); } catch {}
     const leased = market0.filter(m => m.my_interest.disclosed_boundary).map(m => ({ geometry: m.my_interest.disclosed_boundary, label: m.agent_demo ? 'Leased from the Landowner agent (demo)' : 'Leased parcel' }));
-    const choose = p => { sel = p; changing = false; auditStarted = false; auditOpen = false; auditType = ''; orderBox.replaceChildren(empty('Order an audit to see it here.')); draw(); };
+    const choose = chooseSite;
     const delParcel = async p => { await guard(() => api('/parcels/' + p.id, { method: 'DELETE' })); if (sel?.id === p.id) sel = null; draw(); };
     const out = h('div', { class: 'stack' });
     if (!sel || changing) {
       const mapCol = await parcelPicker({ saved: parcels, leased, onSaved: choose });
       out.append(h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, '1 · Choose the site'), sel && h('button', { class: 'btn sm ghost', onclick: () => { changing = false; draw(); } }, 'Collapse ↑')),
-        h('div', { class: 'pick-grid' }, mapCol, h('div', { class: 'stack tight' }, h('h4', { class: 'sec' }, 'Your sites'), parcelList(parcels, sel?.id, choose, delParcel)))));
+        h('div', { class: parcels.length ? 'pick-grid' : '' }, mapCol, parcels.length && h('div', { class: 'stack tight' }, h('h4', { class: 'sec' }, 'Your sites'), parcelList(parcels, sel?.id, choose, delParcel)))));
     } else {
-      out.append(h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '1 · Site'), h('span', { class: 'muted' }, `${sel.label} · ${num(sel.area_ha)} ha`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { changing = true; draw(); } }, 'Change site')));
+      out.append(h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, 'Selected site'), h('span', { class: 'muted summary-label' }, `${parcelLabel(sel.label)} · ${num(sel.area_ha)} ha`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { changing = true; draw(); } }, 'Change site')));
     }
-    if (!sel) out.append(h('p', { class: 'small muted' }, 'Next: audit the site, then add it to the pool if you want to meet neighbouring developers.'));
+    if (!sel) out.append(h('p', { class: 'small muted' }, 'Choose a site to register it in the land database. You can run a Land Audit separately.'));
     else {
       const done = prior.find(o => o.subject === sel.label);
       if (done && orderBox.querySelector('.empty')) orderBox.replaceChildren(orderPanel(done));
       const audited = !!done || auditStarted;
+      root.dataset.assistantStage = audited ? 'audit_ordered' : 'register_site';
       const composer = h('div', { class: 'audit-wide' }, auditComposer(sel, { onOrder: (o, t) => { auditStarted = true; auditType = t; auditOpen = false; orderBox.replaceChildren(orderPanel(o)); draw(); } }));
       const step2 = audited && !auditOpen
         ? h('div', { class: 'data-summary' }, h('span', { class: 'ok' }, '✓'), h('b', null, '2 · Audit'), h('span', { class: 'muted' }, `Land Audit${auditType ? ' · ' + auditType : ''} · ${priceOf('land_audit')} · ordered`), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { auditOpen = true; draw(); } }, 'Change audit'))
         : h('div', { class: 'card stack' }, h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, '2 · Audit'), audited && h('button', { class: 'btn sm ghost', onclick: () => { auditOpen = false; draw(); } }, 'Collapse ↑')), composer);
       const type = h('select', { 'aria-label': 'Project type' }, ['wind', 'solar', 'hybrid'].map(x => h('option', { value: x }, x[0].toUpperCase() + x.slice(1))));
-      const pool = h('div', { class: 'card stack' }, h('h3', { style: 'margin:0' }, '4 · Add to the pool (optional)'),
-        h('p', { class: 'small muted', style: 'margin:0' }, 'The matcher audits the site internally, then looks for other developers\' sites within 1.5 km and sends both sides an anonymous teaser (technology, area band, verdict band, distance band). Names, coordinates and parcel ids are never in a teaser.'),
+      const privateConsent = h('input', { type: 'checkbox' });
+      const pool = h('div', { class: 'stack' }, h('h3', { style: 'margin:0' }, 'Private matching and introductions'),
+        h('p', { class: 'small muted', style: 'margin:0' }, 'For a separate private introduction, the existing Pool Access service screens this site and matches it with a neighbour. Each party decides, pays and signs its own NDA before details are shared.'),
+        h('label', { class: 'check' }, privateConsent, 'I agree to include this site in private matching.'),
         h('div', { class: 'row' }, type, h('button', { class: 'btn primary', onclick: e => guard(async () => { const r = await api('/pool/portfolio', { method: 'POST', body: { parcel_id: sel.id, project_type: type.value } }); toast(r.status === 'registered' ? `Registered. New matches: ${r.new_matches}` : 'Not added: ' + (r.reasons || []).join('; ')); draw(); }, e.target) }, 'Add to pool'), h('span', { class: 'small muted' }, 'Screening takes up to two minutes.')));
-      out.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, step2, h('div', { class: 'card stack' }, h('h3', null, '3 · Result'), orderBox), pool));
+      const privateStart = pool.querySelector('button'); privateStart.disabled = true; privateConsent.addEventListener('change', () => { privateStart.disabled = !privateConsent.checked; });
+      out.append(h('div', { class: 'stack', style: 'margin-top:1rem' }, await enrollSite(sel, { onSaved: () => switchTab('clusters'), onClusters: () => switchTab('clusters') }),
+        h('details', { open: audited, ontoggle: e => { root.dataset.assistantStage = e.target.open ? audited ? 'audit_ordered' : 'review_audit' : 'register_site'; } }, h('summary', null, 'Land Audit · optional due diligence'), h('div', { class: 'stack' }, step2, audited && h('div', { class: 'card stack' }, h('h3', null, 'Audit result'), orderBox))),
+        h('details', null, h('summary', null, 'Private introductions · optional'), pool)));
     }
-    out.append(h('div', { class: 'card stack' }, h('h3', null, 'Your pool portfolio'), pf.length ? h('div', { class: 'list' }, pf.map(p => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, [p.project_type, p.audit?.verdict && `${p.audit.verdict} ${p.audit.score}`, p.reason].filter(Boolean).join(' · '))),
+    out.append(h('details', { class: 'quiet' }, h('summary', null, 'Private matching portfolio · ' + pf.length), pf.length ? h('div', { class: 'list' }, pf.map(p => h('div', { class: 'item' }, h('div', { class: 't' }, h('b', null, parcelLabel(p.label)), h('span', { class: 'small muted' }, [p.project_type, p.audit?.verdict && `${p.audit.verdict} ${p.audit.score}`, p.reason].filter(Boolean).join(' · '))),
       h('div', { class: 'row' }, chip(p.status, p.status === 'registered' ? 'good' : p.status === 'rejected' ? 'bad' : ''),
         p.status === 'registered' && h('button', { class: 'btn sm', title: 'Creates a second, labelled demo workspace with a site next to this one', onclick: e => guard(async () => { const r = await api('/demo/counterpart', { method: 'POST', body: { pool_parcel_id: p.id } }); ws.addQuiet(r.user, r.token); if (r.registration.status === 'registered') toast(`Demo counterpart created. New matches: ${r.registration.new_matches}. Open "Matches & deals" to act as it.`); else toast('The counterpart site did not pass the audit: ' + (r.registration.reasons || []).join('; '), true); draw(); }, e.target) }, '+ demo counterpart'),
         h('button', { class: 'btn sm danger', onclick: e => guard(async () => { await api('/pool/portfolio/' + p.id, { method: 'DELETE' }); draw(); }, e.target) }, p.status === 'registered' ? 'Withdraw' : 'Remove'))))) : empty('Nothing in the pool yet.')));

@@ -26,6 +26,7 @@ from . import mip003
 from .masumi import verify_tx_on_blockfrost
 from .orders import Engine
 from .pool import PoolAccessRunner, PoolService
+from .clusters import LandNetwork
 from .services import LandAuditRunner, LeaseCheckRunner
 from .settings import ROOT, Settings, get_settings
 
@@ -76,6 +77,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     holder: dict = {}
     limiter = Limiter()
     pool = PoolService(db, geo, lambda: holder["engine"])
+    land = LandNetwork(db)
     crop = cropwatch.Fetcher(cache_dir=s.state_dir / "cropwatch") if s.cropwatch == "live" else None
     runners = {"land_audit": LandAuditRunner(db, geo), "lease_check": LeaseCheckRunner(db, crop, geo["IN"].registry_verify),
                "pool_access": PoolAccessRunner(pool, s.state_dir)}
@@ -152,7 +154,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                                                                                                          "Protected-area and habitation screens are OpenStreetMap-based and not measured for completeness",
                                                                                                          "Title is never verified; revenue records are not conclusive proof of title"]}}}
 
-    # ---------------------------------------------------------------- home-page assistant
+    # ---------------------------------------------------------------- home and workspace assistant
     @app.post("/api/chat")
     def assistant(body: dict, request: Request):
         msgs = chat.clean_messages(body.get("messages"))
@@ -162,7 +164,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(429, "Too many questions in the last hour. Try again later.")
         role, country, agent = body.get("role"), body.get("country"), body.get("agent")
         try:
-            return chat.reply(s, msgs, role if role in chat.ROLES else None, country if country in ("DE", "IN") else None, agent if agent in chat.AGENTS else None)
+            return chat.reply(s, msgs, role if isinstance(role, str) and role in chat.ROLES else None,
+                              country if country in ("DE", "IN") else None, agent if isinstance(agent, str) and agent in chat.AGENTS else None,
+                              context=body.get("context"))
         except chat.ChatUnavailable:
             raise HTTPException(503, "The assistant is not available right now.")
 
@@ -417,6 +421,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if u["role"] != "developer":
             raise HTTPException(403, "Developer workspaces only")
         return u
+
+    @app.get("/api/land/sites")
+    def land_sites(project_type: Literal["solar", "wind", "hybrid"] | None = None, region: str = Query(default="", max_length=100),
+                   min_area_ha: float = Query(default=0, ge=0, le=1_000_000), mine: bool = False, u=Depends(dev)):
+        return land.directory(u, project_type, region, min_area_ha, mine=mine, include_withdrawn=mine)
+
+    @app.post("/api/land/sites", status_code=201)
+    def register_land(body: dict, u=Depends(dev)):
+        return land.register(u, body)
+
+    @app.delete("/api/land/sites/{sid}", status_code=204)
+    def withdraw_land(sid: str, u=Depends(dev)):
+        land.withdraw(u, sid)
+
+    @app.get("/api/land/clusters")
+    def energy_clusters(u=Depends(dev)):
+        return land.clusters(u)
+
+    @app.post("/api/land/clusters/{cid}/decision")
+    def cluster_decision(cid: str, body: dict, u=Depends(dev)):
+        return land.decide(u, cid, body.get("decision"))
 
     @app.get("/api/pool/portfolio")
     def portfolio(u=Depends(dev)):

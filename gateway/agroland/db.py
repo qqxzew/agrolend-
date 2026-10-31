@@ -50,6 +50,20 @@ CREATE TABLE IF NOT EXISTS pool_parcels(
 CREATE TABLE IF NOT EXISTS pool_deals(
   match_id TEXT NOT NULL, user_id TEXT NOT NULL REFERENCES users(id), country TEXT NOT NULL, order_id TEXT REFERENCES orders(id),
   created_at TEXT NOT NULL, PRIMARY KEY(match_id, user_id));
+CREATE TABLE IF NOT EXISTS land_sites(
+  id TEXT PRIMARY KEY, parcel_id TEXT UNIQUE NOT NULL REFERENCES parcels(id), user_id TEXT NOT NULL REFERENCES users(id),
+  country TEXT NOT NULL, project_type TEXT NOT NULL, region TEXT NOT NULL, status TEXT NOT NULL,
+  consent_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1);
+CREATE INDEX IF NOT EXISTS land_sites_country ON land_sites(country,status);
+CREATE TABLE IF NOT EXISTS energy_clusters(
+  id TEXT PRIMARY KEY, country TEXT NOT NULL, project_type TEXT NOT NULL, fingerprint TEXT UNIQUE NOT NULL,
+  status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS energy_cluster_members(
+  cluster_id TEXT NOT NULL REFERENCES energy_clusters(id), site_id TEXT NOT NULL REFERENCES land_sites(id),
+  decision TEXT NOT NULL DEFAULT 'pending', decided_at TEXT, PRIMARY KEY(cluster_id,site_id));
+CREATE TABLE IF NOT EXISTS energy_cluster_events(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, cluster_id TEXT NOT NULL REFERENCES energy_clusters(id),
+  user_id TEXT REFERENCES users(id), event TEXT NOT NULL, at TEXT NOT NULL);
 """
 
 
