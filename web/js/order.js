@@ -77,7 +77,7 @@ export function orderPanel(initial, { onChange } = {}) {
 
 function resultActions(o, r) {
   const out = h('div', { class: 'stack' });
-  out.append(h('div', { class: 'row' },
+  out.append(h('div', { class: 'row actions' },
     h('button', { class: 'btn', onclick: async e => guard(async () => {
       const v = await api(`/orders/${o.id}/verify`);
       box.replaceChildren(h('div', { class: v.report_hash_matches && (!v.recomputation || v.recomputation.status === 'pass') ? 'callout good' : 'callout bad' },
@@ -117,13 +117,14 @@ function leaseResult(o, rep) {
   const s = rep.summary, m = rep.meta, cur = m.currency;
   const fm = n => money(n, cur);
   return h('div', { class: 'stack' },
-    h('div', { class: 'tiles' },
+    h('div', { class: 'tiles stats' },
       h('div', { class: 'tile warn' }, h('div', { class: 'n' }, fm(s.identified_per_year)), h('div', { class: 'l' }, 'Identified from your documents / year')),
       h('div', { class: 'tile info' }, h('div', { class: 'n' }, fm(s.negotiable_per_year)), h('div', { class: 'l' }, 'Negotiation opportunity / year (not a loss)')),
       h('div', { class: 'tile good', id: 'achieved' }, h('div', { class: 'n' }, fm(s.achieved_per_year)), h('div', { class: 'l' }, 'Savings achieved (you record these)')),
       h('div', { class: 'tile' }, h('div', { class: 'n' }, s.expiring_contracts.length), h('div', { class: 'l' }, 'Leases expiring soon'))),
     h('p', { class: 'small muted' }, `${m.farm_name} · ${s.contracts_count} leases · ${num(s.total_area_contract)} ${m.area_unit} · rent ${fm(s.total_rent_per_year)}/year · verification: `, chip(rep.verification.status, rep.verification.status === 'pass' ? 'good' : 'bad')),
-    h('table', { class: 't' }, h('thead', null, h('tr', null, ['Type', 'Lease', 'Finding', `${cur}/year`, ''].map(x => h('th', null, x)))),
+    h('h4', { class: 'sec' }, 'Findings'),
+    h('table', { class: 't findings' }, h('thead', null, h('tr', null, ['Type', 'Lease', 'Finding', `${cur}/year`, ''].map(x => h('th', null, x)))),
       h('tbody', null, rep.findings.map(f => h('tr', null,
         h('td', null, chip(f.category, f.category === 'identified' ? 'warn' : f.category === 'negotiable' ? 'info' : '')), h('td', null, f.contract_id), h('td', null, f.explanation), h('td', null, f.amount_per_year ? fm(f.amount_per_year) : '-'),
         h('td', null, f.category !== 'expiring' && h('button', { class: 'btn sm', onclick: e => recordOutcome(o, f, e.target) }, 'Record saving')))))),

@@ -218,8 +218,8 @@ export async function farm() {
   const prior = (await latestOrders('lease_check'))[0]; if (prior) show(prior);
   let autorun = false; try { autorun = sessionStorage.getItem('agl.farm.autorun') === '1'; sessionStorage.removeItem('agl.farm.autorun'); } catch {}
   const st = demo.settings;
-  root.append(h('div', { class: 'cols wide-r' },
-    h('div', { class: 'card stack' }, h('h3', null, '1 · Your data'), field('Use', srcSel), info,
+  root.append(h('div', { class: 'cols farm-cols' },
+    h('div', { class: 'card stack side-card' }, h('h3', null, '1 · Your data'), field('Use', srcSel), info,
       h('details', { open: true }, h('summary', null, 'Upload my own files'), h('div', { class: 'stack', style: 'margin-top:.6rem' }, h('div', { class: 'callout' }, h('b', null, 'Test data: '), 'use the files of the farm selected above. ', h('div', { class: 'row', style: 'margin-top:.5rem' }, h('button', { class: 'btn sm', onclick: downloadTestFiles }, 'Download test files'), h('button', { class: 'btn sm', onclick: loadTestFiles }, 'Load test files into the fields below'))), h('p', { class: 'small muted' }, 'Same columns as the demonstration files: ', sample('contracts_csv'), ', ', sample('cadastre_csv'), ', ', sample('fields_csv'), `. Area is in ${st.area_unit}, rent in ${st.currency} per ${st.area_unit} per year. The official record (${st.record_name}) is the cadastre file.`),
         fileIn('contracts_csv', 'Contracts'), fileIn('cadastre_csv', 'Official parcel record'), fileIn('fields_csv', 'Fields you farm'),
         fileIn('boundaries_geojson', 'Field outlines (optional)', h('span', null, 'GeoJSON polygons with a parcel_id each, like ', sample('boundaries'), '. Adds the satellite crop and biomass section; an outline may name its 5am.earth registration (registry.tx_hash).'), '.geojson,.json,application/geo+json,application/json'),

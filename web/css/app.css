@@ -128,3 +128,18 @@ svg.ndvi .pt { fill: var(--accent); stroke: var(--surface); stroke-width: 1; } s
 table.t tr.click { cursor: pointer; } table.t tr.click:hover, table.t tr.sel { background: var(--accent-soft); }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: .45rem; vertical-align: 0; }
 .card.inset { box-shadow: none; background: var(--bg); }
+
+/* tidy farm page: compact data card (sticky) + wide report */
+.farm-cols { grid-template-columns: minmax(280px, .62fr) minmax(0, 1.7fr); }
+.side-card { position: sticky; top: 1rem; }
+.stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; }
+.stats .tile { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--border); padding: .8rem .9rem; }
+.stats .tile.good { border-left-color: var(--good); } .stats .tile.warn { border-left-color: var(--warn); } .stats .tile.info { border-left-color: var(--info); }
+.stats .tile .n { font-size: 1.45rem; font-variant-numeric: tabular-nums; } .stats .tile .l { margin-top: .15rem; line-height: 1.25; }
+h4.sec { margin: .4rem 0 0; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+table.findings { display: table; table-layout: fixed; width: 100%; }
+table.findings th:nth-child(1), table.findings td:nth-child(1) { width: 108px; } table.findings .chip { white-space: nowrap; } table.findings th:nth-child(2), table.findings td:nth-child(2) { width: 64px; }
+table.findings th:nth-child(4), table.findings td:nth-child(4) { width: 96px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; } table.findings th:nth-child(5), table.findings td:nth-child(5) { width: 128px; } table.findings td:nth-child(5) .btn { white-space: nowrap; }
+table.findings td { overflow-wrap: anywhere; line-height: 1.4; }
+.actions { gap: .4rem; } .actions .btn { padding: .4rem .75rem; font-size: .88rem; }
+@media (max-width: 1100px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .farm-cols { grid-template-columns: 1fr; } .side-card { position: static; } }
