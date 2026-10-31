@@ -7,5 +7,6 @@ COPY agent/package.json agent/package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY config/ /app/config/
 COPY agent/ ./
-RUN chmod +x server-run.sh && mkdir -p .local docs && chmod 700 .local
+# A Windows checkout may turn the script's line endings into CRLF, which bash cannot run.
+RUN sed -i 's/\r$//' server-run.sh && chmod +x server-run.sh && mkdir -p .local docs && chmod 700 .local
 CMD ["./server-run.sh"]
