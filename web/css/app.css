@@ -167,3 +167,10 @@ table.findings td { overflow-wrap: anywhere; line-height: 1.4; }
 .form-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; } .form-grid label.f { margin: 0; }
 @media (max-width: 1000px) { .form-grid { grid-template-columns: 1fr; } }
 details > .stack > .btn { align-self: flex-start; }
+
+/* parcel list rows: text left, [Select][×] always on one line, equal sizes */
+.item .t { flex: 1; min-width: 0; }
+.item > .row { flex-wrap: nowrap; flex: none; gap: .4rem; }
+.item > .row .btn.sm { min-width: 88px; justify-content: center; }
+.item > .row .btn.icon { min-width: 0; width: 34px; padding-left: 0; padding-right: 0; }
+.item.sel .btn { background: var(--surface); }

@@ -78,7 +78,7 @@ function parcelList(parcels, selId, onPick, onDelete) {
   if (!parcels.length) return empty('No parcels yet. Pick one on the map.');
   return h('div', { class: 'list' }, parcels.map(p => h('div', { class: 'item' + (p.id === selId ? ' sel' : '') },
     h('div', { class: 't' }, h('b', null, p.label), h('span', { class: 'small muted' }, `${num(p.area_ha)} ha · ${p.source}${p.demo ? ' · demo' : ''} · ownership not verified`)),
-    h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => onPick(p) }, p.id === selId ? 'Selected' : 'Select'), onDelete && h('button', { class: 'btn sm danger', onclick: () => onDelete(p) }, '×')))));
+    h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => onPick(p) }, p.id === selId ? 'Selected' : 'Select'), onDelete && h('button', { class: 'btn sm danger icon', title: 'Remove this parcel', 'aria-label': 'Remove this parcel', onclick: () => onDelete(p) }, '×')))));
 }
 
 async function latestOrders(service) { return (await api('/orders')).filter(o => o.service === service); }
