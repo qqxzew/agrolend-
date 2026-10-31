@@ -1,0 +1,25 @@
+{
+  "country": "IN",
+  "farm_name": "Nandur Kisan Farm (demo)",
+  "region": "Maharashtra (Beed district, Ashti taluka)",
+  "currency": "INR",
+  "currency_symbol": "₹",
+  "area_unit": "acre",
+  "area_unit_long": "acre",
+  "benchmark_rent_per_unit": 15000,
+  "benchmark_note": "Demo value: fictional local benchmark for rain-fed land in INR per acre per year, not an official statistic. Replace with a local quote before relying on it.",
+  "overpriced_threshold_pct": 15,
+  "area_tolerance": 0.1,
+  "expiry_window_days": 180,
+  "payment_alarm_days_before": 7,
+  "expiry_reminder_days_before_end": 90,
+  "record_name": "Record of Rights (7/12 extract)",
+  "parcel_id_format": "Village-Survey number",
+  "crop_season_start": "06-01",
+  "legal_notes": [
+    "Demonstration dataset: farm, owners, contracts, survey numbers and amounts are fictional.",
+    "Field boundaries are real 5am.earth (Project Swaminathan) registrations on Cardano mainnet; which farmer registered them is not shown and is not part of this demo.",
+    "Revenue records (7/12, Adangal, ROR) are not conclusive proof of title; this check compares your documents with each other only.",
+    "Agricultural tenancy, registration and stamp-duty rules differ by state; this check does not assess whether a lease is valid or properly registered."
+  ]
+}

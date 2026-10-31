@@ -1,6 +1,7 @@
 // The order panel: price before payment, the four separate payment facts, the timeline, and the result renderers.
 // The same panel serves all three services; it reloads from the server by order id, so a refresh never loses state.
 import { api, h, chip, fmtTime, fmtMs, num, money, toast, guard, download, copy, hash, kv, spinner, empty } from './core.js';
+import { cropSection } from './crop.js';
 
 const ACTIVE = ['quoted', 'awaiting_payment', 'paid', 'waiting', 'running', 'delivered'];
 const STATE_TEXT = { quoted: 'Ready to pay', awaiting_payment: 'Waiting for funds to be locked', paid: 'Paid - starting', waiting: 'Paid - waiting for the other side', running: 'Working', delivered: 'Report ready', failed: 'Not delivered', expired: 'Payment window expired' };
@@ -80,6 +81,7 @@ function resultActions(o, r) {
       const v = await api(`/orders/${o.id}/verify`);
       box.replaceChildren(h('div', { class: v.report_hash_matches && (!v.recomputation || v.recomputation.status === 'pass') ? 'callout good' : 'callout bad' },
         h('b', null, v.report_hash_matches ? '✓ Stored report matches its hash' : '✗ Hash mismatch'), v.recomputation && h('div', null, `Recomputation of ${v.recomputation.checked_findings} findings: `, h('b', null, v.recomputation.status)),
+        v.crop_recomputation && h('div', null, `Recomputation of the crop section (${v.crop_recomputation.checked_parcels} fields, from the stored satellite observations): `, h('b', null, v.crop_recomputation.status)),
         h('p', { class: 'small' }, v.what_a_hash_proves), h('pre', { class: 'json' }, JSON.stringify(v.chain, null, 1))));
     }, e.target) }, 'Verify result'),
     h('button', { class: 'btn', onclick: () => download(new Blob([JSON.stringify(r.report, null, 2)], { type: 'application/json' }), `agroland-${o.service}-${o.id.slice(0, 8)}.json`) }, 'Download JSON'),
@@ -126,7 +128,7 @@ function leaseResult(o, rep) {
         h('td', null, f.category !== 'expiring' && h('button', { class: 'btn sm', onclick: e => recordOutcome(o, f, e.target) }, 'Record saving')))))),
     s.expiring_contracts.length ? h('div', { class: 'callout warn' }, h('b', null, 'Deadlines'), h('ul', null, s.expiring_contracts.map(e => h('li', null, `${e.contract_id} (${e.owner}) ends ${e.end_date} - ${e.days_left} days`)))) : null,
     rep.warnings.length ? h('div', { class: 'callout warn' }, rep.warnings.map(w => h('div', null, w))) : null,
-    h('p', { class: 'small muted' }, m.benchmark_note), limits(rep.limitations));
+    h('p', { class: 'small muted' }, m.benchmark_note), cropSection(rep), limits(rep.limitations));
 }
 
 async function recordOutcome(o, f, btn) {

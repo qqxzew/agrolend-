@@ -51,3 +51,15 @@ x402 paid-request path; CIP-30 browser-wallet payment; qualified e-signature; ow
 | Sokosumi preprod Task `01a18f28-c334-7267-9d80-77be89c8a2f1` (Personal Workspace, Coworker AgroLand Concierge) | COMPLETED with the model answer; prices match the catalog |
 | Sokosumi preprod Task `01a18f29-340b-7458-8279-b5bc967425cb` | COMPLETED with a quote (1.00 tUSDM), nothing run or charged, 0 gateway orders; follow-up comments answered |
 These are execution-only checks. **No payment, registration or transaction exists yet.**
+
+## Session 3 (Windows, 2026-10-31): crop and biomass section + 5am.earth registry on Cardano mainnet
+| Check | Result |
+|---|---|
+| 5am.earth registry read on Cardano **mainnet** (Koios, no key) | Registry wallet `addr1q85m2c3n…n9aj4t`, ~1000 registrations in the 12 h before 03:37; each moves the `global-farm` token (policy `c4f37d2b…50ef`) to script `addr1w8z0xlft…yemglm` with an inline 7-field datum; no metadata. 400 recent datums decoded, 399 IPFS documents fetched (NMKR gateway): `farm_id` matches in 399/399, `value_1` / geodesic polygon area = 1.003–1.006 |
+| Is `value_2` a vegetation value? | No evidence: on 149 registered fields around Nandur (Beed) its correlation with Sentinel-2 season peak / mean / latest NDVI and NDVI at registration is between −0.21 and −0.08. Shown raw, labelled "meaning not documented" |
+| Biomass on-chain? | None found in the datum or the IPFS documents. Biomass is therefore computed (Sentinel-2 + Open-Meteo, light-use efficiency) and labelled as an estimate |
+| Live crop section for demo farm `in-mh` (6 registered fields) | 46 + 24 Sentinel-2 scenes found, 40 windows read in 8.7 s (2.5 s cached); 6/6 registrations verified, IPFS content hash = CID 6/6, outline identical to the registered one 6/6; `cropwatch.verify` **pass**. Recorded as `gateway/tests/data/crop_section_in-mh_2026-10-31.json` |
+| Offline suites | gateway **48 passed** (16 new in `test_cropwatch.py`), `services/geo/tests/test_india_registry.py` OK |
+| Browser (local stack, dev-unpaid, isolated state dir) | Farm → demo "Nandur Kisan Farm" → Lease Check delivered; crop table, field map coloured by status, field panel with NDVI chart and on-chain card; "Verify result": hash ✓, 4 findings pass, crop section (6 fields) pass; no console errors |
+
+Biomass values are screening estimates (generic light-use efficiency without water stress); no field data were available to calibrate them. **Still no payment or registration of our own on Cardano.**

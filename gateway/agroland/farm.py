@@ -23,6 +23,8 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parents[2] / "data" / "farm"
+# Demonstration farms per country; the first one is the default. "in-mh" has real 5am.earth field boundaries (boundaries.geojson).
+DEMOS = {"DE": ["de"], "IN": ["in", "in-mh"]}
 RULES = ["paid_not_farmed", "area_mismatch", "above_market_rent", "expiring_soon"]
 COLS = {
     "contracts": ["contract_id", "owner", "parcel_id", "area_contract", "rent_per_unit", "start_date", "end_date", "payment_due"],
@@ -107,10 +109,27 @@ def build_dataset(contracts_csv: str, cadastre_csv: str, fields_csv: str, settin
     return {"contracts": contracts, "cadastre": cadastre, "fields": fields, "settings": settings}
 
 
-def load_demo(country: str) -> dict:
-    d = DATA / country.lower()
-    return build_dataset((d / "contracts.csv").read_text("utf-8"), (d / "cadastre.csv").read_text("utf-8"),
-                         (d / "fields.csv").read_text("utf-8"), json.loads((d / "settings.json").read_text("utf-8")))
+def load_demo(country: str, demo: str | None = None) -> dict:
+    ids = DEMOS.get(country.upper(), [country.lower()])
+    if demo not in (None, "", *ids):
+        raise DataError(f"unknown demonstration farm {demo!r} for {country}")
+    d = DATA / (demo or ids[0])
+    ds = build_dataset((d / "contracts.csv").read_text("utf-8"), (d / "cadastre.csv").read_text("utf-8"),
+                       (d / "fields.csv").read_text("utf-8"), json.loads((d / "settings.json").read_text("utf-8")))
+    if (d / "boundaries.geojson").exists():  # field outlines (demo files are trusted; uploads go through cropwatch.validate_boundaries)
+        fc = json.loads((d / "boundaries.geojson").read_text("utf-8"))
+        ds["boundaries"] = {"type": "FeatureCollection", "features": fc["features"]}
+    return ds
+
+
+def demo_list(country: str) -> list[dict]:
+    out = []
+    for i in DEMOS.get(country.upper(), []):
+        ds = load_demo(country, i)
+        feats = (ds.get("boundaries") or {}).get("features", [])
+        out.append({"id": i, "farm_name": ds["settings"]["farm_name"], "region": ds["settings"]["region"], "leases": len(ds["contracts"]),
+                    "boundaries": len(feats), "registry_linked": sum(1 for f in feats if f["properties"].get("registry"))})
+    return out
 
 
 def rent_of(c, s):

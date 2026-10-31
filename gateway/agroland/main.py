@@ -17,9 +17,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from shapely.affinity import translate
 from shapely.geometry import mapping, shape, box
 
-from . import alkis, auth, farm, parcels as parcels_mod
+from . import alkis, auth, cropwatch, farm, parcels as parcels_mod
 from .db import Database, jdump, new_id, now
-from .geoclient import Geo
+from .geoclient import Geo, GeoUnavailable, in_country
 from .hashing import report_sha256
 from .listings import Listings, sample_pdf
 from . import mip003
@@ -76,7 +76,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     holder: dict = {}
     limiter = Limiter()
     pool = PoolService(db, geo, lambda: holder["engine"])
-    runners = {"land_audit": LandAuditRunner(db, geo), "lease_check": LeaseCheckRunner(db), "pool_access": PoolAccessRunner(pool, s.state_dir)}
+    crop = cropwatch.Fetcher(cache_dir=s.state_dir / "cropwatch") if s.cropwatch == "live" else None
+    runners = {"land_audit": LandAuditRunner(db, geo), "lease_check": LeaseCheckRunner(db, crop, geo["IN"].registry_verify),
+               "pool_access": PoolAccessRunner(pool, s.state_dir)}
     engine = Engine(db, s, runners)
     holder["engine"] = engine
     listings = Listings(db, engine)
@@ -234,6 +236,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if o["service"] == "lease_check":
             ds = o["input"]["dataset"]
             out["recomputation"] = farm.verify_report(d["report"], ds, o["input"]["today"])
+            if d["report"].get("crop_monitoring") is not None:
+                out["crop_recomputation"] = cropwatch.verify(d["report"]["crop_monitoring"], ds, o["input"]["today"])
         p = o["payment"]
         if p.get("mode") == "masumi":
             chain = {}
@@ -257,24 +261,38 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # ---------------------------------------------------------------- farm
     @app.get("/api/farm/demo")
-    def farm_demo(u=Depends(me)):
-        d = farm.load_demo(u["country"])
+    def farm_demo(demo: str | None = None, u=Depends(me)):
+        try:
+            d = farm.load_demo(u["country"], demo)
+        except farm.DataError as exc:
+            raise HTTPException(404, str(exc))
         st = d["settings"]
-        return {"settings": st, "contracts": d["contracts"], "cadastre": d["cadastre"], "fields": d["fields"], "demo": True}
+        return {"settings": st, "contracts": d["contracts"], "cadastre": d["cadastre"], "fields": d["fields"], "boundaries": d.get("boundaries"), "demo": True,
+                "demo_id": demo or farm.DEMOS[u["country"]][0]}
+
+    @app.get("/api/farm/demos")
+    def farm_demos(u=Depends(me)):
+        return farm.demo_list(u["country"])
 
     @app.put("/api/farm/dataset")
     def save_farm(body: dict, u=Depends(me)):
         if u["role"] != "farm":
             raise HTTPException(403, "Farm workspaces only")
-        if any(len(body.get(k, "")) > 1_000_000 for k in ("contracts_csv", "cadastre_csv", "fields_csv")):
-            raise HTTPException(413, "Each CSV file may be at most 1 MB")
+        if any(len(body.get(k, "")) > 1_000_000 for k in ("contracts_csv", "cadastre_csv", "fields_csv", "boundaries_geojson") if isinstance(body.get(k, ""), str)):
+            raise HTTPException(413, "Each file may be at most 1 MB")
         try:
             base = farm.load_demo(u["country"])["settings"]
             st = {**base, **{k: v for k, v in (body.get("settings") or {}).items() if k in base and k not in ("country", "currency", "currency_symbol", "area_unit")}}
             st["farm_name"] = str(st["farm_name"])[:80]
             ds = farm.build_dataset(body.get("contracts_csv", ""), body.get("cadastre_csv", ""), body.get("fields_csv", ""), st)
+            raw = body.get("boundaries_geojson")
+            if raw:  # optional field outlines: unlock the crop-and-biomass section of the Lease Check
+                fc = json.loads(raw) if isinstance(raw, str) else raw
+                ds["boundaries"] = cropwatch.validate_boundaries(fc, ds, lambda la, lo: in_country(u["country"], la, lo))
         except (farm.DataError, KeyError, TypeError) as exc:
             raise HTTPException(422, str(exc))
+        except ValueError as exc:  # JSON syntax or boundary validation
+            raise HTTPException(422, f"boundaries: {exc}" if not str(exc).startswith("boundaries") else str(exc))
         payload = jdump(ds)
         with db.tx() as c:
             c.execute("INSERT OR REPLACE INTO farm_datasets VALUES(?,?,?,?,?,?,?)", (u["id"], u["country"], st["farm_name"], 0, payload, report_sha256(ds), now()))
@@ -313,6 +331,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         with db.tx() as c:
             rows = [dict(r) for r in c.execute("SELECT finding_key,amount_per_year,note,created_at FROM farm_outcomes WHERE user_id=? AND order_id=?", (u["id"], oid))]
         return {"outcomes": rows, "achieved_per_year": round(sum(r["amount_per_year"] for r in rows), 2)}
+
+    @app.get("/api/registry/verify")
+    def registry_verify(tx_hash: str = Query(..., min_length=64, max_length=64), u=Depends(me)):
+        """Read-only lookup of a 5am.earth (Project Swaminathan) registration on Cardano mainnet and its IPFS boundary. A lookup, not a paid analysis."""
+        if not limiter.allow("registry:" + u["id"], 60):
+            raise HTTPException(429, "Too many registry lookups in the last hour")
+        try:
+            return geo["IN"].registry_verify(tx_hash.lower())
+        except GeoUnavailable as exc:
+            raise HTTPException(503, f"Registry lookup unavailable: {exc}")
 
     # ---------------------------------------------------------------- owner
     @app.post("/api/documents", status_code=201)

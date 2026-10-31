@@ -36,7 +36,7 @@
     "lease_check": {
       "agent": 2,
       "title": "Lease Check",
-      "summary": "Compares lease contracts, official parcel records and farmed fields; finds paid-but-unfarmed land, area mismatches, above-benchmark rents and expiring leases; produces a report and calendar reminders.",
+      "summary": "Compares lease contracts, official parcel records and farmed fields; finds paid-but-unfarmed land, area mismatches, above-benchmark rents and expiring leases; produces a report and calendar reminders. With field outlines: Sentinel-2 crop status, a season biomass estimate and a check of 5am.earth field registrations on Cardano.",
       "roles": [
         "farm"
       ],

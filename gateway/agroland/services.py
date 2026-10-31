@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import json
 from datetime import date
+from typing import Callable, Optional
 
 from fastapi import HTTPException
 
-from . import alkis, farm
+from . import alkis, cropwatch, farm
 from .db import Database
 from .geoclient import Geo, in_country
 from .parcels import get as get_parcel, largest_polygon
@@ -119,8 +120,9 @@ class LandAuditRunner:
 class LeaseCheckRunner:
     service = "lease_check"
 
-    def __init__(self, db: Database):
-        self.db = db
+    def __init__(self, db: Database, crop: Optional[cropwatch.Fetcher] = None, registry: Optional[Callable[[str], dict]] = None):
+        # crop: satellite source for the crop-and-biomass section (None = switched off); registry: 5am.earth lookup by transaction hash
+        self.db, self.crop, self.registry = db, crop, registry
 
     def validate(self, user, country, data):
         if user["country"] != country:
@@ -135,7 +137,7 @@ class LeaseCheckRunner:
                     raise _exc("No farm data saved yet")
                 dataset = json.loads(r["payload"])
             else:
-                dataset = farm.load_demo(country)
+                dataset = farm.load_demo(country, data.get("demo") or None)
         except farm.DataError as exc:
             raise _exc(str(exc))
         if dataset["settings"].get("country") != country:
@@ -155,6 +157,17 @@ class LeaseCheckRunner:
         rep["limitations"] = LIMITS_COMMON[:1] + inp["dataset"]["settings"].get("legal_notes", []) + [
             "'Identified' items follow from your own documents. 'Negotiable' items are opportunities against a benchmark, not losses. "
             "Savings 'achieved' are only what you record after acting."]
+        crop = cropwatch.analyze(inp["dataset"], inp["today"], self.crop, self.registry)
+        if crop is not None:
+            check = cropwatch.verify(json.loads(json.dumps(crop)), inp["dataset"], inp["today"])
+            if check["status"] != "pass":
+                raise RuntimeError("Crop section failed its own recomputation; not delivered: " + "; ".join(check["reasons"][:3]))
+            rep["crop_monitoring"] = crop
+            rep["verification"]["crop_monitoring"] = check
+            rep["limitations"] += ["Crop and biomass: a satellite sees green canopy, not crops, contracts or yields. Biomass is a model estimate with a wide range; "
+                                   "the observations behind it are in the report and can be re-read from the named Sentinel-2 scenes.",
+                                   "5am.earth registrations are third-party records. A verified on-chain anchor proves who published the record and when, "
+                                   "not that the boundary is correct or who owns the land."]
         return rep
 
     def markdown(self, order, r):
@@ -171,5 +184,6 @@ class LeaseCheckRunner:
             lines += ["", "## Deadlines"] + [f"- {e['contract_id']} ends {e['end_date']} ({e['days_left']} days)" for e in s["expiring_contracts"]]
         if r["warnings"]:
             lines += ["", "## Warnings"] + [f"- {w}" for w in r["warnings"]]
+        lines += cropwatch.markdown(r.get("crop_monitoring"), m["area_unit"])
         lines += ["", "## Limits"] + [f"- {x}" for x in r["limitations"]]
         return "\n".join(lines)

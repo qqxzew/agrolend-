@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
+from ..registry.swaminathan import report_context
 from .gis_engine import ESZ_BUFFER_M, GisResult, Site
 from .models import (
     SUPPORTED_STATES,
@@ -323,4 +324,5 @@ def build_report(inp: LandCheckInput, site: Site, gis: GisResult) -> AuditReport
         overall_verdict=verdict, score=max(0, min(100, int(score))), project_type=inp.project_type,
         assessed_technology=best_name, location_info=location, grid_access=grid, regulatory_checks=reg,
         environmental_veto=ev, resource_potential=res, technology_assessment=tech, warnings=warnings, data_quality=dq,
+        onchain_registry=report_context(site.lat, site.lon, state_code),
     )

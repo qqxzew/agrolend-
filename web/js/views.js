@@ -1,6 +1,7 @@
 import { api, ws, h, chip, fmtTime, num, money, toast, guard, download, copy, hash, kv, field, empty, spinner, ApiError } from './core.js';
 import { parcelMap } from './map.js';
 import { orderPanel, stateChip } from './order.js';
+import { fieldMap, fieldDetail, legend } from './crop.js';
 
 export const ctx = { config: null, rerender: () => {} };
 const country = () => ws.current?.country;
@@ -128,25 +129,84 @@ function listingForm(parcel, redraw) {
 // ---------------------------------------------------------------- farm
 export async function farm() {
   const blocked = need('farm'); if (blocked) return blocked;
-  const w = ws.current, root = h('div', { class: 'stack' }), orderBox = h('div', null, empty('Review the order to start. Results stay here after a refresh.'));
-  const [ds, demo] = await Promise.all([api('/farm/dataset'), api('/farm/demo')]);
+  const root = h('div', { class: 'stack' }), orderBox = h('div', null, empty('Review the order to start. Results stay here after a refresh.'));
+  const [ds, demos] = await Promise.all([api('/farm/dataset'), api('/farm/demos')]);
+  const showcase = demos.find(d => d.registry_linked) || demos[0];
+  let source = ds.saved ? 'saved' : 'demo:' + showcase.id;
+  let demo = await api('/farm/demo?demo=' + encodeURIComponent(source.startsWith('demo:') ? source.slice(5) : showcase.id));
+  const dataset = () => source === 'saved' ? ds.dataset : demo;
+  const files = { contracts_csv: '', cadastre_csv: '', fields_csv: '', boundaries_geojson: '' };
+  const fileIn = (key, label, hint, accept = '.csv,text/csv') => field(label, h('input', { type: 'file', accept, onchange: async e => { files[key] = await e.target.files[0]?.text() || ''; } }), hint);
+  const info = h('div', { class: 'small muted' });
+  function describe() {
+    const d = dataset(), s = d.settings, b = d.boundaries?.features || [];
+    info.replaceChildren(source === 'saved' ? `Saved data: ${ds.label} (${d.contracts.length} leases), updated ${fmtTime(ds.updated_at)}.` : `Labelled demonstration farm: ${s.farm_name}, ${s.region}. ${d.contracts.length} leases, ${s.currency} and ${s.area_unit}.`,
+      b.length ? h('div', { class: 'row', style: 'margin-top:.35rem' }, chip(`${b.length} field outlines`, 'info'), b.some(f => f.properties.registry) ? chip('outlines registered on Cardano (5am.earth)', 'good') : null) : null);
+  }
+  const srcSel = h('select', { onchange: e => guard(async () => { source = e.target.value; if (source.startsWith('demo:')) demo = await api('/farm/demo?demo=' + encodeURIComponent(source.slice(5))); describe(); await drawFields(); }) },
+    demos.map(d => h('option', { value: 'demo:' + d.id, selected: source === 'demo:' + d.id }, `Demo: ${d.farm_name.replace(' (demo)', '')}, ${d.region}${d.registry_linked ? ' · 5am.earth fields' : ''}`)),
+    ds.saved && h('option', { value: 'saved', selected: source === 'saved' }, 'My uploaded data'));
+  const COLS = { contracts_csv: ['contract_id', 'owner', 'parcel_id', 'area_contract', 'rent_per_unit', 'start_date', 'end_date', 'payment_due'], cadastre_csv: ['parcel_id', 'area_cadastre', 'land_use'], fields_csv: ['field_id', 'parcel_id', 'crop'] };
+  const sample = fname => h('a', { href: '#', onclick: e => { e.preventDefault();
+    if (fname === 'boundaries') return download(new Blob([JSON.stringify(demo.boundaries || { type: 'FeatureCollection', features: [] }, null, 1)], { type: 'application/geo+json' }), 'boundaries.geojson');
+    const rows = { contracts_csv: demo.contracts, cadastre_csv: demo.cadastre, fields_csv: demo.fields }[fname], cols = COLS[fname];
+    download(new Blob([[cols.join(','), ...rows.map(r => cols.map(c => r[c] ?? '').join(','))].join('\n')], { type: 'text/csv' }), fname.replace('_csv', '') + '.csv'); } }, fname === 'boundaries' ? 'boundaries.geojson' : fname.replace('_csv', '.csv'));
+  const inputOf = () => source === 'saved' ? { source: 'saved' } : { source: 'demo', demo: source.slice(5) };
+  const run = h('button', { class: 'btn primary', onclick: e => guard(async () => { const o = await api('/orders', { method: 'POST', body: { service: 'lease_check', input: inputOf(), idempotency_key: crypto.randomUUID() } }); show(o); }, e.target) }, 'Review order');
+
+  // ---- 3 · fields: map + panel, coloured by the latest delivered Lease Check of the dataset on screen
+  const fieldsCard = h('div', { class: 'card stack' }), panelBox = h('div', { class: 'fieldpanel' });
+  let fmap = null, section = null, applied = null, sel = null;
+  function panel(pid) {
+    sel = pid;
+    const d = dataset();
+    if (!pid) return panelBox.replaceChildren(empty('Click a field on the map.'));
+    const p = section?.parcels.find(x => x.parcel_id === pid);
+    if (p) return panelBox.replaceChildren(fieldDetail(p, section, d.settings));
+    const c = d.contracts.find(x => x.parcel_id === pid), f = d.fields.find(x => x.parcel_id === pid), reg = d.boundaries.features.find(x => x.properties.parcel_id === pid)?.properties.registry;
+    panelBox.replaceChildren(h('div', { class: 'stack' }, h('h3', null, pid),
+      kv([['Lease', c ? `${c.contract_id} · ${c.owner}` : 'none'], ['Area under lease', c ? `${num(c.area_contract)} ${d.settings.area_unit}` : '-'], ['Farmed', f ? `${f.field_id}: ${f.crop || 'crop not stated'}` : 'not on your list']]),
+      h('div', { class: 'callout' }, 'Run the Lease Check to add the satellite crop status, the season biomass estimate', reg ? ' and the check of this field\'s 5am.earth registration on Cardano.' : '.'),
+      reg && h('div', { class: 'small muted' }, 'Linked registration: ', hash(reg.tx_hash))));
+  }
+  async function applyOrder(o) {
+    if (o.state !== 'delivered' || applied === o.id) return;
+    applied = o.id;
+    const r = await api(`/orders/${o.id}/result`).catch(() => null);
+    const sec = r?.report?.crop_monitoring;
+    if (sec && r.report.meta.farm_name === dataset().settings.farm_name) { section = sec; fmap?.setSection(sec); panel(sel || sec.parcels.find(p => p.flags.length)?.parcel_id || null); if (sel) fmap?.select(sel); }
+  }
+  async function drawFields() {
+    fmap?.destroy(); fmap = null; section = null; applied = null; sel = null;
+    const d = dataset();
+    if (!d.boundaries?.features?.length) {
+      fieldsCard.replaceChildren(h('h3', null, '3 · Your fields'), h('div', { class: 'callout' }, 'This dataset has no field outlines. Upload a GeoJSON file with a parcel_id on each outline to add satellite crop status, a biomass estimate and, in India, the 5am.earth on-chain check to the Lease Check.'));
+      return;
+    }
+    const mapEl = h('div', { class: 'map' });
+    fieldsCard.replaceChildren(h('div', { class: 'row between' }, h('h3', null, '3 · Your fields: crop, biomass, on-chain record'), legend()),
+      h('div', { class: 'cols' }, h('div', { class: 'stack tight' }, mapEl, h('div', { class: 'small muted' }, 'Colours come from the latest delivered Lease Check of this farm. Basemap: Esri World Imagery, often older than the Sentinel-2 views in the report.')), panelBox));
+    fmap = fieldMap(mapEl, { boundaries: d.boundaries, section: null, onSelect: panel });
+    panel(null);
+    const prior = (await latestOrders('lease_check')).find(o => o.state === 'delivered' && o.subject.startsWith(d.settings.farm_name));
+    if (prior) await applyOrder(prior);
+  }
+  function show(o) { orderBox.replaceChildren(orderPanel(o, { onChange: ord => applyOrder(ord) })); }
+
+  describe();
+  const prior = (await latestOrders('lease_check'))[0]; if (prior) show(prior);
   const st = demo.settings;
-  let source = ds.saved ? 'saved' : 'demo';
-  const files = { contracts_csv: '', cadastre_csv: '', fields_csv: '' };
-  const fileIn = (key, label, hint) => field(label, h('input', { type: 'file', accept: '.csv,text/csv', onchange: async e => { files[key] = await e.target.files[0]?.text() || ''; } }), hint);
-  const info = h('div', { class: 'small muted' }, ds.saved ? `Saved data: ${ds.label} (${ds.dataset.contracts.length} leases), updated ${fmtTime(ds.updated_at)}` : `Using the labelled ${w.country} demonstration farm: ${st.farm_name}, ${demo.contracts.length} leases, ${st.currency} and ${st.area_unit}.`);
-  const srcSel = h('select', { onchange: e => { source = e.target.value; } }, h('option', { value: 'demo', selected: source === 'demo' }, 'Demonstration farm'), ds.saved && h('option', { value: 'saved', selected: source === 'saved' }, 'My uploaded data'));
-  const sample = fname => h('a', { href: `#`, onclick: e => { e.preventDefault(); const rows = { contracts_csv: demo.contracts, cadastre_csv: demo.cadastre, fields_csv: demo.fields }[fname]; const cols = { contracts_csv: ['contract_id', 'owner', 'parcel_id', 'area_contract', 'rent_per_unit', 'start_date', 'end_date', 'payment_due'], cadastre_csv: ['parcel_id', 'area_cadastre', 'land_use'], fields_csv: ['field_id', 'parcel_id', 'crop'] }[fname]; download(new Blob([[cols.join(','), ...rows.map(r => cols.map(c => r[c] ?? '').join(','))].join('\n')], { type: 'text/csv' }), fname.replace('_csv', '') + '.csv'); } }, fname.replace('_csv', '.csv'));
-  const run = h('button', { class: 'btn primary', onclick: e => guard(async () => { const o = await api('/orders', { method: 'POST', body: { service: 'lease_check', input: { source }, idempotency_key: crypto.randomUUID() } }); orderBox.replaceChildren(orderPanel(o)); }, e.target) }, 'Review order');
-  const prior = (await latestOrders('lease_check'))[0]; if (prior) orderBox.replaceChildren(orderPanel(prior));
   root.append(h('div', { class: 'cols wide-r' },
-    h('div', { class: 'card stack' }, h('h3', null, '1 · Your data'), info, field('Use', srcSel),
-      h('details', null, h('summary', null, 'Upload my own CSV files'), h('div', { class: 'stack', style: 'margin-top:.6rem' }, h('p', { class: 'small muted' }, 'Same columns as the demonstration files: ', sample('contracts_csv'), ', ', sample('cadastre_csv'), ', ', sample('fields_csv'), `. Area is in ${st.area_unit}, rent in ${st.currency} per ${st.area_unit} per year. The official record (${st.record_name}) is the cadastre file.`),
+    h('div', { class: 'card stack' }, h('h3', null, '1 · Your data'), field('Use', srcSel), info,
+      h('details', null, h('summary', null, 'Upload my own files'), h('div', { class: 'stack', style: 'margin-top:.6rem' }, h('p', { class: 'small muted' }, 'Same columns as the demonstration files: ', sample('contracts_csv'), ', ', sample('cadastre_csv'), ', ', sample('fields_csv'), `. Area is in ${st.area_unit}, rent in ${st.currency} per ${st.area_unit} per year. The official record (${st.record_name}) is the cadastre file.`),
         fileIn('contracts_csv', 'Contracts'), fileIn('cadastre_csv', 'Official parcel record'), fileIn('fields_csv', 'Fields you farm'),
+        fileIn('boundaries_geojson', 'Field outlines (optional)', h('span', null, 'GeoJSON polygons with a parcel_id each, like ', sample('boundaries'), '. Adds the satellite crop and biomass section; an outline may name its 5am.earth registration (registry.tx_hash).'), '.geojson,.json,application/geo+json,application/json'),
         h('button', { class: 'btn', onclick: e => guard(async () => { await api('/farm/dataset', { method: 'PUT', body: files }); toast('Saved'); location.reload(); }, e.target) }, 'Validate and save'))),
       h('div', { class: 'row between' }, h('div', null, 'Lease Check · ', h('b', null, priceOf('lease_check'))), run),
       h('div', { class: 'callout' }, 'Your farm data is private to your workspace and is never published. A finding is a statement about your own documents, not about the validity of a lease.')),
-    h('div', { class: 'card stack' }, h('h3', null, '2 · Report and reminders'), orderBox)));
+    h('div', { class: 'card stack' }, h('h3', null, '2 · Report and reminders'), orderBox)),
+  fieldsCard);
+  await drawFields();
   return root;
 }
 

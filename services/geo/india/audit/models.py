@@ -149,4 +149,6 @@ class AuditReport(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     # per check: "ok" | "ok (fallback: ...)" | "unavailable: <reason>"
     data_quality: dict[str, str] = Field(default_factory=dict)
+    # Only set inside the 5am.earth registry's working area (Maharashtra); null elsewhere.
+    onchain_registry: Optional[dict[str, Any]] = None
     methodology: str = "india-land-audit-worker/1 (see india/README.md: scoring)"

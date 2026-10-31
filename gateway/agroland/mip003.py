@@ -30,6 +30,7 @@ SCHEMAS = {
     "lease_check": {"input_data": [
         {"id": "country", "type": "option", "name": "Country", "data": {"description": "Data, units and currency follow the country", "values": ["DE", "IN"]}},
         {"id": "source", "type": "option", "name": "Data source", "data": {"description": "'demo' uses the labelled demonstration farm; 'csv' uses the three CSV texts below", "values": ["demo", "csv"]}},
+        {"id": "demo_farm", "type": "option", "name": "Demonstration farm (India)", "data": {"description": "'in' Gujarat (leases only); 'in-mh' Maharashtra: real 5am.earth field outlines on Cardano, adds satellite crop status and biomass", "values": ["in", "in-mh"]}, "validations": [{"validation": "optional", "value": "true"}]},
         {"id": "contracts_csv", "type": "string", "name": "contracts.csv", "data": {"description": "contract_id,owner,parcel_id,area_contract,rent_per_unit,start_date,end_date,payment_due"}, "validations": [{"validation": "optional", "value": "true"}]},
         {"id": "cadastre_csv", "type": "string", "name": "cadastre.csv (official record)", "data": {"description": "parcel_id,area_cadastre,land_use"}, "validations": [{"validation": "optional", "value": "true"}]},
         {"id": "fields_csv", "type": "string", "name": "fields.csv (what you farm)", "data": {"description": "field_id,parcel_id,crop"}, "validations": [{"validation": "optional", "value": "true"}]},
@@ -101,6 +102,11 @@ def build(engine: Engine, db) -> APIRouter:
         else:
             role = "farm"
             inp = {"source": "demo"}
+            if data.get("demo_farm"):
+                from . import farm
+                if data["demo_farm"] not in farm.DEMOS.get(country, []):
+                    raise HTTPException(400, f"demo_farm must be one of {farm.DEMOS.get(country, [])} for {country}")
+                inp["demo"] = data["demo_farm"]
             if data.get("source") == "csv":
                 from . import farm
                 try:

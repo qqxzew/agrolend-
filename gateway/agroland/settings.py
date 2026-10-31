@@ -54,6 +54,7 @@ class Settings:
     rate_orders_per_hour: int = 120       # order creations per workspace
     max_body_bytes: int = 12 * 1024 * 1024
     max_parcels_per_user: int = 200
+    cropwatch: str = "live"               # "live": Lease Check reads Sentinel-2 / Open-Meteo for parcels with boundaries; "off": section marked unavailable
 
     @property
     def paid(self) -> bool:
@@ -75,6 +76,9 @@ def get_settings() -> Settings:
     mode = e("AGROLAND_PAYMENT_MODE", "masumi").strip().lower()
     if mode not in {"masumi", "dev-unpaid"}:
         raise RuntimeError("AGROLAND_PAYMENT_MODE must be 'masumi' or 'dev-unpaid'")
+    crop = e("AGROLAND_CROPWATCH", "live").strip().lower()
+    if crop not in {"live", "off"}:
+        raise RuntimeError("AGROLAND_CROPWATCH must be 'live' or 'off'")
     return Settings(
         state_dir=Path(e("AGROLAND_STATE_DIR", str(ROOT / "state"))),
         payment_mode=mode,
@@ -94,4 +98,5 @@ def get_settings() -> Settings:
         trust_proxy=_flag("AGROLAND_TRUST_PROXY"),
         rate_sessions_per_hour=int(e("AGROLAND_RATE_SESSIONS_PER_HOUR", "30")),
         rate_orders_per_hour=int(e("AGROLAND_RATE_ORDERS_PER_HOUR", "120")),
+        cropwatch=crop,
     )
