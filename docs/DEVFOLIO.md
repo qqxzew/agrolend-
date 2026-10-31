@@ -21,10 +21,10 @@ Masumi payment service (Web3CardanoV2 contracts), Masumi registry (agent NFTs), 
 ## How it works in reality
 * Real calculations and services: live BKG/OSM/BfN/PVGIS/Open-Meteo audits, ALKIS geometry, deterministic lease rules, a real matcher/escrow/NDA/architect pipeline run by two test identities. Demonstration parcels, owners and contracts are labelled fictional/illustrative.
 * Honest limits: no ownership or planning-permission or grid-availability verification; OSM-based screens in India are of unmeasured completeness; contracts and NDAs are drafts for lawyer review.
-* **Evidence:** completed paid job — PENDING (Task id / job id, result, payment tx hash: see docs/EVIDENCE.md).
+* **Evidence:** completed paid job — Sokosumi Task `01a19166-d167-745b-beaa-b58383cedb5d`, order `4f650b39…`, locked `6087b1ff78b9fda9b8bab5da84fde83d5194acf96a1ff6f2de9548865c0aa10d`, result hash `60ce47ffaa92116a1d45cc6d5ec0109c659cc045cde28aa1971d90851920988c`, settlement `607ee2d0f82628ad2162b1b514ab0fb47ceef4eb300905e257b7cb0ce394acc4` (details: docs/EVIDENCE.md).
 
 ## Customer and payment model
 Customers: a tenant farm paying 2.00 tUSDM to check 22 leases; a developer paying 3.00 tUSDM to open a neighbour introduction; an owner paying 1.00 tUSDM for a parcel audit. Payment is tied to a specific delivered result.
 
 ## Links
-Repository: PENDING (public URL) · Demo video (≤ 2.5 min): PENDING · Live demo: PENDING
+Repository: https://github.com/qqxzew/agrolend- · Live demo: https://audit.mrrobot.hackclub.app · Demo video (≤ 2.5 min): PENDING
