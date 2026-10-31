@@ -185,7 +185,6 @@ details > summary:hover { background: var(--surface-2); }
 details[open] > summary { border-bottom: 1px solid var(--border); background: var(--surface-2); }
 details > :not(summary) { margin: .8rem .95rem; }
 details > pre.json, details > table { margin: 0; border-radius: 0; max-width: 100%; }
-.stack > details + details { margin-top: -.4rem; }
 .actions { padding-top: .9rem; border-top: 1px solid var(--border); margin-top: .4rem; }
 .actions .btn { padding: .5rem .95rem; font-size: .92rem; }
 .card .stack > .btn { align-self: flex-start; }

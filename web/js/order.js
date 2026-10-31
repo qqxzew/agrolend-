@@ -58,7 +58,7 @@ export function orderPanel(initial, { onChange } = {}) {
     const o = order;
     const children = [h('div', { class: 'row between' }, h('div', null, h('b', null, o.title), ' ', h('span', { class: 'muted' }, '· ' + o.subject), h('div', { class: 'small muted' }, `${o.country} · ${fmtTime(o.created_at)} · order ${o.id.slice(0, 8)}`)), stateChip(o)),
       facts(o), payBlock(o, load)];
-    if (o.state === 'delivered') children.push(h('div', { id: 'result-slot' }, spinner('Loading result…')));
+    if (o.state === 'delivered') children.push(h('div', { id: 'result-slot', class: 'stack' }, spinner('Loading result…')));
     const tech = () => h('details', null, h('summary', null, 'Technical details and timeline'), kv([['Order id', hash(o.id)], ['Input hash', hash(o.input_hash)], ['Result hash', o.result_hash ? hash(o.result_hash) : '-'], ['Channel', o.channel], ['Price (base units)', o.price.amount + ' ' + o.price.symbol + ' units'],
       ['Payment state', o.payment.on_chain_state || o.payment.stage || '-']]),
       h('div', { class: 'stack', style: 'margin-top:.6rem' }, (o.events || []).map(e => h('div', { class: 'bubble' }, h('time', null, fmtTime(e.at)), e.event.replace(/_/g, ' '), e.data && Object.keys(e.data).length ? ' - ' + Object.entries(e.data).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(', ') : ''))));
