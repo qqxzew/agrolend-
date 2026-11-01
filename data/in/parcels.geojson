@@ -205,6 +205,3183 @@
     "demo": true,
     "note": "Illustrative rectangle at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
    }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.545253,
+       23.336053
+      ],
+      [
+       70.54919,
+       23.336805
+      ],
+      [
+       70.548744,
+       23.339279
+      ],
+      [
+       70.544609,
+       23.338343
+      ],
+      [
+       70.545253,
+       23.336053
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-6",
+    "label": "Kutch field 1",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 201",
+    "area_ha": 11.42,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.54459,
+       23.342105
+      ],
+      [
+       70.547393,
+       23.342564
+      ],
+      [
+       70.546663,
+       23.345124
+      ],
+      [
+       70.543889,
+       23.344592
+      ],
+      [
+       70.54459,
+       23.342105
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-7",
+    "label": "Kutch field 2",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 202",
+    "area_ha": 8.38,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.54348,
+       23.344893
+      ],
+      [
+       70.546822,
+       23.345645
+      ],
+      [
+       70.546224,
+       23.348334
+      ],
+      [
+       70.542964,
+       23.347701
+      ],
+      [
+       70.54348,
+       23.344893
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-8",
+    "label": "Kutch field 3",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 203",
+    "area_ha": 10.72,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.542785,
+       23.348213
+      ],
+      [
+       70.546396,
+       23.348846
+      ],
+      [
+       70.545734,
+       23.351082
+      ],
+      [
+       70.542099,
+       23.350328
+      ],
+      [
+       70.542785,
+       23.348213
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-9",
+    "label": "Kutch field 4",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 204",
+    "area_ha": 9.46,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.541856,
+       23.351192
+      ],
+      [
+       70.545879,
+       23.352099
+      ],
+      [
+       70.545191,
+       23.35392
+      ],
+      [
+       70.5414,
+       23.353245
+      ],
+      [
+       70.541856,
+       23.351192
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-10",
+    "label": "Kutch field 5",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 205",
+    "area_ha": 9.09,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.549345,
+       23.336866
+      ],
+      [
+       70.553574,
+       23.337601
+      ],
+      [
+       70.552836,
+       23.339962
+      ],
+      [
+       70.549027,
+       23.339326
+      ],
+      [
+       70.549345,
+       23.336866
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-11",
+    "label": "Kutch field 6",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 206",
+    "area_ha": 11.39,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.548482,
+       23.343193
+      ],
+      [
+       70.551398,
+       23.343703
+      ],
+      [
+       70.551023,
+       23.345655
+      ],
+      [
+       70.548232,
+       23.345092
+      ],
+      [
+       70.548482,
+       23.343193
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-12",
+    "label": "Kutch field 7",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 207",
+    "area_ha": 6.42,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.547961,
+       23.34589
+      ],
+      [
+       70.550748,
+       23.346632
+      ],
+      [
+       70.55038,
+       23.348877
+      ],
+      [
+       70.547536,
+       23.348295
+      ],
+      [
+       70.547961,
+       23.34589
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-13",
+    "label": "Kutch field 8",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 208",
+    "area_ha": 7.72,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.546385,
+       23.352075
+      ],
+      [
+       70.549566,
+       23.35285
+      ],
+      [
+       70.549128,
+       23.354785
+      ],
+      [
+       70.545999,
+       23.354071
+      ],
+      [
+       70.546385,
+       23.352075
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-14",
+    "label": "Kutch field 9",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 209",
+    "area_ha": 7.38,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.554051,
+       23.33749
+      ],
+      [
+       70.557394,
+       23.338339
+      ],
+      [
+       70.556617,
+       23.341047
+      ],
+      [
+       70.553567,
+       23.34036
+      ],
+      [
+       70.554051,
+       23.33749
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-15",
+    "label": "Kutch field 10",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 210",
+    "area_ha": 10.65,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.552752,
+       23.343968
+      ],
+      [
+       70.555787,
+       23.344577
+      ],
+      [
+       70.555148,
+       23.34665
+      ],
+      [
+       70.552308,
+       23.345861
+      ],
+      [
+       70.552752,
+       23.343968
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-16",
+    "label": "Kutch field 11",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 211",
+    "area_ha": 7.03,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.551462,
+       23.346751
+      ],
+      [
+       70.555542,
+       23.347652
+      ],
+      [
+       70.555023,
+       23.349617
+      ],
+      [
+       70.551171,
+       23.349022
+      ],
+      [
+       70.551462,
+       23.346751
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-17",
+    "label": "Kutch field 12",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 212",
+    "area_ha": 9.86,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.550528,
+       23.352811
+      ],
+      [
+       70.554006,
+       23.353663
+      ],
+      [
+       70.553633,
+       23.35571
+      ],
+      [
+       70.54994,
+       23.355001
+      ],
+      [
+       70.550528,
+       23.352811
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-18",
+    "label": "Kutch field 13",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 213",
+    "area_ha": 9.03,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.558066,
+       23.338829
+      ],
+      [
+       70.56178,
+       23.339431
+      ],
+      [
+       70.561265,
+       23.341566
+      ],
+      [
+       70.557584,
+       23.340783
+      ],
+      [
+       70.558066,
+       23.338829
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-19",
+    "label": "Kutch field 14",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 214",
+    "area_ha": 8.96,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.55772,
+       23.341317
+      ],
+      [
+       70.560594,
+       23.341923
+      ],
+      [
+       70.560039,
+       23.344691
+      ],
+      [
+       70.557286,
+       23.344246
+      ],
+      [
+       70.55772,
+       23.341317
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-20",
+    "label": "Kutch field 15",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 215",
+    "area_ha": 9.38,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.55642,
+       23.344367
+      ],
+      [
+       70.560434,
+       23.345115
+      ],
+      [
+       70.559945,
+       23.347781
+      ],
+      [
+       70.555969,
+       23.347071
+      ],
+      [
+       70.55642,
+       23.344367
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-21",
+    "label": "Kutch field 16",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 216",
+    "area_ha": 12.55,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.555927,
+       23.347491
+      ],
+      [
+       70.559731,
+       23.348299
+      ],
+      [
+       70.559274,
+       23.350735
+      ],
+      [
+       70.555198,
+       23.349982
+      ],
+      [
+       70.555927,
+       23.347491
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-22",
+    "label": "Kutch field 17",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 217",
+    "area_ha": 11.53,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.555493,
+       23.35051
+      ],
+      [
+       70.558777,
+       23.351296
+      ],
+      [
+       70.558295,
+       23.353535
+      ],
+      [
+       70.554895,
+       23.352874
+      ],
+      [
+       70.555493,
+       23.35051
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-23",
+    "label": "Kutch field 18",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 218",
+    "area_ha": 9.16,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.554683,
+       23.353696
+      ],
+      [
+       70.558158,
+       23.354296
+      ],
+      [
+       70.557414,
+       23.356513
+      ],
+      [
+       70.554413,
+       23.355702
+      ],
+      [
+       70.554683,
+       23.353696
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-24",
+    "label": "Kutch field 19",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 219",
+    "area_ha": 8.15,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.56245,
+       23.339405
+      ],
+      [
+       70.56577,
+       23.340106
+      ],
+      [
+       70.565272,
+       23.342474
+      ],
+      [
+       70.561866,
+       23.341859
+      ],
+      [
+       70.56245,
+       23.339405
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-25",
+    "label": "Kutch field 20",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 220",
+    "area_ha": 9.59,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.562075,
+       23.342294
+      ],
+      [
+       70.564826,
+       23.34289
+      ],
+      [
+       70.564155,
+       23.345447
+      ],
+      [
+       70.561407,
+       23.34488
+      ],
+      [
+       70.562075,
+       23.342294
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-26",
+    "label": "Kutch field 21",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 221",
+    "area_ha": 8.46,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.56111,
+       23.345715
+      ],
+      [
+       70.564231,
+       23.346101
+      ],
+      [
+       70.563846,
+       23.348282
+      ],
+      [
+       70.560579,
+       23.347498
+      ],
+      [
+       70.56111,
+       23.345715
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-27",
+    "label": "Kutch field 22",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 222",
+    "area_ha": 7.48,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.559251,
+       23.354325
+      ],
+      [
+       70.561997,
+       23.355054
+      ],
+      [
+       70.561523,
+       23.357494
+      ],
+      [
+       70.558638,
+       23.356942
+      ],
+      [
+       70.559251,
+       23.354325
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-28",
+    "label": "Kutch field 23",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 223",
+    "area_ha": 8.46,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.566606,
+       23.3405
+      ],
+      [
+       70.569879,
+       23.341027
+      ],
+      [
+       70.569335,
+       23.343153
+      ],
+      [
+       70.56605,
+       23.342422
+      ],
+      [
+       70.566606,
+       23.3405
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-29",
+    "label": "Kutch field 24",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 224",
+    "area_ha": 7.91,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.565736,
+       23.343302
+      ],
+      [
+       70.569319,
+       23.343974
+      ],
+      [
+       70.568954,
+       23.346406
+      ],
+      [
+       70.565175,
+       23.34549
+      ],
+      [
+       70.565736,
+       23.343302
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-30",
+    "label": "Kutch field 25",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 225",
+    "area_ha": 10.05,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.565495,
+       23.34634
+      ],
+      [
+       70.568301,
+       23.34692
+      ],
+      [
+       70.567927,
+       23.349191
+      ],
+      [
+       70.564844,
+       23.348611
+      ],
+      [
+       70.565495,
+       23.34634
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-31",
+    "label": "Kutch field 26",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 226",
+    "area_ha": 7.92,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.562863,
+       23.355201
+      ],
+      [
+       70.566944,
+       23.355936
+      ],
+      [
+       70.566319,
+       23.358404
+      ],
+      [
+       70.562339,
+       23.357452
+      ],
+      [
+       70.562863,
+       23.355201
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-32",
+    "label": "Kutch field 27",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 227",
+    "area_ha": 11.33,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.570733,
+       23.34114
+      ],
+      [
+       70.574443,
+       23.341777
+      ],
+      [
+       70.573768,
+       23.344013
+      ],
+      [
+       70.570189,
+       23.343346
+      ],
+      [
+       70.570733,
+       23.34114
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-33",
+    "label": "Kutch field 28",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 228",
+    "area_ha": 9.63,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.569795,
+       23.343661
+      ],
+      [
+       70.573855,
+       23.344594
+      ],
+      [
+       70.573114,
+       23.347404
+      ],
+      [
+       70.569224,
+       23.346661
+      ],
+      [
+       70.569795,
+       23.343661
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-34",
+    "label": "Kutch field 29",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 229",
+    "area_ha": 13.71,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.567851,
+       23.353072
+      ],
+      [
+       70.571763,
+       23.353696
+      ],
+      [
+       70.571233,
+       23.356105
+      ],
+      [
+       70.567288,
+       23.355486
+      ],
+      [
+       70.567851,
+       23.353072
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-35",
+    "label": "Kutch field 30",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 230",
+    "area_ha": 11.12,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.567125,
+       23.356202
+      ],
+      [
+       70.570986,
+       23.356832
+      ],
+      [
+       70.570485,
+       23.358827
+      ],
+      [
+       70.56668,
+       23.358134
+      ],
+      [
+       70.567125,
+       23.356202
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-36",
+    "label": "Kutch field 31",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 231",
+    "area_ha": 8.89,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.574919,
+       23.341689
+      ],
+      [
+       70.578482,
+       23.342415
+      ],
+      [
+       70.577869,
+       23.345096
+      ],
+      [
+       70.574284,
+       23.344313
+      ],
+      [
+       70.574919,
+       23.341689
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-37",
+    "label": "Kutch field 32",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 232",
+    "area_ha": 11.28,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.573972,
+       23.344953
+      ],
+      [
+       70.578047,
+       23.345686
+      ],
+      [
+       70.577465,
+       23.347814
+      ],
+      [
+       70.573568,
+       23.347024
+      ],
+      [
+       70.573972,
+       23.344953
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-38",
+    "label": "Kutch field 33",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 233",
+    "area_ha": 9.91,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.573795,
+       23.348108
+      ],
+      [
+       70.576923,
+       23.348605
+      ],
+      [
+       70.576483,
+       23.350823
+      ],
+      [
+       70.573126,
+       23.350136
+      ],
+      [
+       70.573795,
+       23.348108
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-39",
+    "label": "Kutch field 34",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 234",
+    "area_ha": 8.17,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.573316,
+       23.351021
+      ],
+      [
+       70.575958,
+       23.351604
+      ],
+      [
+       70.575552,
+       23.353788
+      ],
+      [
+       70.572723,
+       23.353173
+      ],
+      [
+       70.573316,
+       23.351021
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-40",
+    "label": "Kutch field 35",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 235",
+    "area_ha": 7.06,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.572409,
+       23.354119
+      ],
+      [
+       70.575454,
+       23.35479
+      ],
+      [
+       70.574799,
+       23.356662
+      ],
+      [
+       70.572101,
+       23.356133
+      ],
+      [
+       70.572409,
+       23.354119
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-41",
+    "label": "Kutch field 36",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 236",
+    "area_ha": 6.65,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.571639,
+       23.356933
+      ],
+      [
+       70.574934,
+       23.35773
+      ],
+      [
+       70.574512,
+       23.359734
+      ],
+      [
+       70.571087,
+       23.358968
+      ],
+      [
+       70.571639,
+       23.356933
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-42",
+    "label": "Kutch field 37",
+    "state": "Gujarat",
+    "district": "Kutch",
+    "village": "Samakhiali (demo)",
+    "survey_number": "Survey 237",
+    "area_ha": 8.12,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.808792,
+       14.967536
+      ],
+      [
+       77.812247,
+       14.966461
+      ],
+      [
+       77.812986,
+       14.968385
+      ],
+      [
+       77.809478,
+       14.969584
+      ],
+      [
+       77.808792,
+       14.967536
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-43",
+    "label": "Anantapur field 1",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 301",
+    "area_ha": 9.21,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.810377,
+       14.970311
+      ],
+      [
+       77.812803,
+       14.969581
+      ],
+      [
+       77.813577,
+       14.971556
+      ],
+      [
+       77.810809,
+       14.972233
+      ],
+      [
+       77.810377,
+       14.970311
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-44",
+    "label": "Anantapur field 2",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 302",
+    "area_ha": 6.54,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.810892,
+       14.973056
+      ],
+      [
+       77.813996,
+       14.972112
+      ],
+      [
+       77.81494,
+       14.9746
+      ],
+      [
+       77.811958,
+       14.975617
+      ],
+      [
+       77.810892,
+       14.973056
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-45",
+    "label": "Anantapur field 3",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 303",
+    "area_ha": 10.34,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.81194,
+       14.975965
+      ],
+      [
+       77.814944,
+       14.974852
+      ],
+      [
+       77.815895,
+       14.977589
+      ],
+      [
+       77.812856,
+       14.978543
+      ],
+      [
+       77.81194,
+       14.975965
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-46",
+    "label": "Anantapur field 4",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 304",
+    "area_ha": 10.73,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.813176,
+       14.979119
+      ],
+      [
+       77.815934,
+       14.978174
+      ],
+      [
+       77.816494,
+       14.980132
+      ],
+      [
+       77.813953,
+       14.981048
+      ],
+      [
+       77.813176,
+       14.979119
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-47",
+    "label": "Anantapur field 5",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 305",
+    "area_ha": 6.88,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.813423,
+       14.981774
+      ],
+      [
+       77.817234,
+       14.980565
+      ],
+      [
+       77.818198,
+       14.9833
+      ],
+      [
+       77.81434,
+       14.984423
+      ],
+      [
+       77.813423,
+       14.981774
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-48",
+    "label": "Anantapur field 6",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 306",
+    "area_ha": 13.62,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.813071,
+       14.966176
+      ],
+      [
+       77.815651,
+       14.965214
+      ],
+      [
+       77.816451,
+       14.967627
+      ],
+      [
+       77.813975,
+       14.968451
+      ],
+      [
+       77.813071,
+       14.966176
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-49",
+    "label": "Anantapur field 7",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 307",
+    "area_ha": 7.97,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.81414,
+       14.968732
+      ],
+      [
+       77.816548,
+       14.96786
+      ],
+      [
+       77.817649,
+       14.970578
+      ],
+      [
+       77.814792,
+       14.971418
+      ],
+      [
+       77.81414,
+       14.968732
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-50",
+    "label": "Anantapur field 8",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 308",
+    "area_ha": 9.38,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.814436,
+       14.971962
+      ],
+      [
+       77.818233,
+       14.970783
+      ],
+      [
+       77.819065,
+       14.973252
+      ],
+      [
+       77.815247,
+       14.974351
+      ],
+      [
+       77.814436,
+       14.971962
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-51",
+    "label": "Anantapur field 9",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 309",
+    "area_ha": 12.15,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.815547,
+       14.974918
+      ],
+      [
+       77.819156,
+       14.973834
+      ],
+      [
+       77.820048,
+       14.975968
+      ],
+      [
+       77.816437,
+       14.977325
+      ],
+      [
+       77.815547,
+       14.974918
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-52",
+    "label": "Anantapur field 10",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 310",
+    "area_ha": 11.07,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.816669,
+       14.977883
+      ],
+      [
+       77.820048,
+       14.976759
+      ],
+      [
+       77.820855,
+       14.978948
+      ],
+      [
+       77.817464,
+       14.980075
+      ],
+      [
+       77.816669,
+       14.977883
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-53",
+    "label": "Anantapur field 11",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 311",
+    "area_ha": 9.92,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.817457,
+       14.981018
+      ],
+      [
+       77.821216,
+       14.979841
+      ],
+      [
+       77.821838,
+       14.981879
+      ],
+      [
+       77.818325,
+       14.982962
+      ],
+      [
+       77.817457,
+       14.981018
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-54",
+    "label": "Anantapur field 12",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 312",
+    "area_ha": 9.64,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.816632,
+       14.964991
+      ],
+      [
+       77.820204,
+       14.964058
+      ],
+      [
+       77.820731,
+       14.966085
+      ],
+      [
+       77.817267,
+       14.967139
+      ],
+      [
+       77.816632,
+       14.964991
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-55",
+    "label": "Anantapur field 13",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 313",
+    "area_ha": 9.45,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.818031,
+       14.967705
+      ],
+      [
+       77.820686,
+       14.966884
+      ],
+      [
+       77.821428,
+       14.969207
+      ],
+      [
+       77.818741,
+       14.970153
+      ],
+      [
+       77.818031,
+       14.967705
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-56",
+    "label": "Anantapur field 14",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 314",
+    "area_ha": 8.36,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.820447,
+       14.976894
+      ],
+      [
+       77.824154,
+       14.975656
+      ],
+      [
+       77.824738,
+       14.97758
+      ],
+      [
+       77.820977,
+       14.978748
+      ],
+      [
+       77.820447,
+       14.976894
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-57",
+    "label": "Anantapur field 15",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 315",
+    "area_ha": 9.21,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.821635,
+       14.979312
+      ],
+      [
+       77.824767,
+       14.978234
+      ],
+      [
+       77.825582,
+       14.980845
+      ],
+      [
+       77.822456,
+       14.982035
+      ],
+      [
+       77.821635,
+       14.979312
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-58",
+    "label": "Anantapur field 16",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 316",
+    "area_ha": 11.06,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.821344,
+       14.966745
+      ],
+      [
+       77.825047,
+       14.965707
+      ],
+      [
+       77.825829,
+       14.967698
+      ],
+      [
+       77.821984,
+       14.968838
+      ],
+      [
+       77.821344,
+       14.966745
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-59",
+    "label": "Anantapur field 17",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 317",
+    "area_ha": 10.11,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.824533,
+       14.975278
+      ],
+      [
+       77.827849,
+       14.974168
+      ],
+      [
+       77.828496,
+       14.976713
+      ],
+      [
+       77.825091,
+       14.977592
+      ],
+      [
+       77.824533,
+       14.975278
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-60",
+    "label": "Anantapur field 18",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 318",
+    "area_ha": 10.45,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.825584,
+       14.978395
+      ],
+      [
+       77.828634,
+       14.977486
+      ],
+      [
+       77.829368,
+       14.979499
+      ],
+      [
+       77.826297,
+       14.980334
+      ],
+      [
+       77.825584,
+       14.978395
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-61",
+    "label": "Anantapur field 19",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 319",
+    "area_ha": 7.96,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.824569,
+       14.962555
+      ],
+      [
+       77.827885,
+       14.961284
+      ],
+      [
+       77.828564,
+       14.963801
+      ],
+      [
+       77.825256,
+       14.964648
+      ],
+      [
+       77.824569,
+       14.962555
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-62",
+    "label": "Anantapur field 20",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 320",
+    "area_ha": 9.97,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.825517,
+       14.965086
+      ],
+      [
+       77.82848,
+       14.964112
+      ],
+      [
+       77.829377,
+       14.966866
+      ],
+      [
+       77.826509,
+       14.967813
+      ],
+      [
+       77.825517,
+       14.965086
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-63",
+    "label": "Anantapur field 21",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 321",
+    "area_ha": 10.61,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.826434,
+       14.968232
+      ],
+      [
+       77.829643,
+       14.967249
+      ],
+      [
+       77.830315,
+       14.969623
+      ],
+      [
+       77.827254,
+       14.970694
+      ],
+      [
+       77.826434,
+       14.968232
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-64",
+    "label": "Anantapur field 22",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 322",
+    "area_ha": 9.95,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.829235,
+       14.977246
+      ],
+      [
+       77.832834,
+       14.976221
+      ],
+      [
+       77.833539,
+       14.978058
+      ],
+      [
+       77.829714,
+       14.97917
+      ],
+      [
+       77.829235,
+       14.977246
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-65",
+    "label": "Anantapur field 23",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 323",
+    "area_ha": 9.08,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.828195,
+       14.961122
+      ],
+      [
+       77.831528,
+       14.960068
+      ],
+      [
+       77.832527,
+       14.96268
+      ],
+      [
+       77.829031,
+       14.963656
+      ],
+      [
+       77.828195,
+       14.961122
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-66",
+    "label": "Anantapur field 24",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 324",
+    "area_ha": 11.59,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.829466,
+       14.963817
+      ],
+      [
+       77.832312,
+       14.963027
+      ],
+      [
+       77.83326,
+       14.965701
+      ],
+      [
+       77.830423,
+       14.966631
+      ],
+      [
+       77.829466,
+       14.963817
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-67",
+    "label": "Anantapur field 25",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 325",
+    "area_ha": 10.28,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.830282,
+       14.967086
+      ],
+      [
+       77.833696,
+       14.965944
+      ],
+      [
+       77.834493,
+       14.968181
+      ],
+      [
+       77.831133,
+       14.969384
+      ],
+      [
+       77.830282,
+       14.967086
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-68",
+    "label": "Anantapur field 26",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 326",
+    "area_ha": 10.31,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.832459,
+       14.959763
+      ],
+      [
+       77.835158,
+       14.958937
+      ],
+      [
+       77.835969,
+       14.961696
+      ],
+      [
+       77.833521,
+       14.962398
+      ],
+      [
+       77.832459,
+       14.959763
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-69",
+    "label": "Anantapur field 27",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 327",
+    "area_ha": 9.13,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.833511,
+       14.96302
+      ],
+      [
+       77.836526,
+       14.962178
+      ],
+      [
+       77.837071,
+       14.964195
+      ],
+      [
+       77.834105,
+       14.964986
+      ],
+      [
+       77.833511,
+       14.96302
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-70",
+    "label": "Anantapur field 28",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 328",
+    "area_ha": 7.66,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.835034,
+       14.968894
+      ],
+      [
+       77.838805,
+       14.967763
+      ],
+      [
+       77.839426,
+       14.96979
+      ],
+      [
+       77.835783,
+       14.970912
+      ],
+      [
+       77.835034,
+       14.968894
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-71",
+    "label": "Anantapur field 29",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 329",
+    "area_ha": 9.86,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.836509,
+       14.958542
+      ],
+      [
+       77.838956,
+       14.957617
+      ],
+      [
+       77.840004,
+       14.960352
+      ],
+      [
+       77.837352,
+       14.961253
+      ],
+      [
+       77.836509,
+       14.958542
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-72",
+    "label": "Anantapur field 30",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 330",
+    "area_ha": 9.31,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.837446,
+       14.961487
+      ],
+      [
+       77.840138,
+       14.960827
+      ],
+      [
+       77.840972,
+       14.963109
+      ],
+      [
+       77.838114,
+       14.963924
+      ],
+      [
+       77.837446,
+       14.961487
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-73",
+    "label": "Anantapur field 31",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 331",
+    "area_ha": 8.47,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.838897,
+       14.967477
+      ],
+      [
+       77.842504,
+       14.966412
+      ],
+      [
+       77.843445,
+       14.9687
+      ],
+      [
+       77.839558,
+       14.969948
+      ],
+      [
+       77.838897,
+       14.967477
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-74",
+    "label": "Anantapur field 32",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 332",
+    "area_ha": 11.74,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.840375,
+       14.970282
+      ],
+      [
+       77.843053,
+       14.969371
+      ],
+      [
+       77.843776,
+       14.972036
+      ],
+      [
+       77.841258,
+       14.972881
+      ],
+      [
+       77.840375,
+       14.970282
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-75",
+    "label": "Anantapur field 33",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 333",
+    "area_ha": 9.0,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.841492,
+       14.97334
+      ],
+      [
+       77.844114,
+       14.972567
+      ],
+      [
+       77.844775,
+       14.974506
+      ],
+      [
+       77.841959,
+       14.975417
+      ],
+      [
+       77.841492,
+       14.97334
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-DEMO-76",
+    "label": "Anantapur field 34",
+    "state": "Andhra Pradesh",
+    "district": "Anantapur",
+    "village": "Peddavadugur (demo)",
+    "survey_number": "Survey 334",
+    "area_ha": 7.08,
+    "demo": true,
+    "note": "Illustrative field at real coordinates. Not a survey boundary. Survey number invented. Ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.94716014,
+       18.958808372
+      ],
+      [
+       74.947176058,
+       18.959204584
+      ],
+      [
+       74.947915274,
+       18.959259883
+      ],
+      [
+       74.947969641,
+       18.958923418
+      ],
+      [
+       74.94716014,
+       18.958808372
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-5AM-Nandur-112/1",
+    "label": "Registered field Nandur-112/1",
+    "state": "Maharashtra",
+    "district": "Beed",
+    "village": "Nandur (demo farm)",
+    "survey_number": "Gat 112/1",
+    "area_ha": 0.33,
+    "demo": true,
+    "registered": true,
+    "registry_tx": "bfa85cf590fcf0523148489c50e9ba7fdc3e21ddbda0f574b517762a735d4df0",
+    "note": "Field outline registered at 5am.earth (Project Swaminathan) on Cardano mainnet. Not a survey boundary; ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.947989156,
+       18.959253747
+      ],
+      [
+       74.948773057,
+       18.959548454
+      ],
+      [
+       74.948880569,
+       18.959110557
+      ],
+      [
+       74.948097416,
+       18.958836617
+      ],
+      [
+       74.947989156,
+       18.959253747
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-5AM-Nandur-112/4",
+    "label": "Registered field Nandur-112/4",
+    "state": "Maharashtra",
+    "district": "Beed",
+    "village": "Nandur (demo farm)",
+    "survey_number": "Gat 112/4",
+    "area_ha": 0.43,
+    "demo": true,
+    "registered": true,
+    "registry_tx": "5e4f55dcf640955beadf061208f68f9bf489f4206f679d81bfbee8cd64946cd3",
+    "note": "Field outline registered at 5am.earth (Project Swaminathan) on Cardano mainnet. Not a survey boundary; ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.946913872,
+       18.959029465
+      ],
+      [
+       74.946941875,
+       18.958619983
+      ],
+      [
+       74.946556133,
+       18.958584484
+      ],
+      [
+       74.946614141,
+       18.958914939
+      ],
+      [
+       74.946913872,
+       18.959029465
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-5AM-Nandur-115/2",
+    "label": "Registered field Nandur-115/2",
+    "state": "Maharashtra",
+    "district": "Beed",
+    "village": "Nandur (demo farm)",
+    "survey_number": "Gat 115/2",
+    "area_ha": 0.15,
+    "demo": true,
+    "registered": true,
+    "registry_tx": "6f6d0763a6ac1e1893c142f1372647663f3838fe82ed87ef2f26eebfd85168ff",
+    "note": "Field outline registered at 5am.earth (Project Swaminathan) on Cardano mainnet. Not a survey boundary; ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.947597786,
+       18.958767557
+      ],
+      [
+       74.947664682,
+       18.95843118
+      ],
+      [
+       74.947146347,
+       18.958465956
+      ],
+      [
+       74.947202062,
+       18.958697175
+      ],
+      [
+       74.947597786,
+       18.958767557
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-5AM-Nandur-118",
+    "label": "Registered field Nandur-118",
+    "state": "Maharashtra",
+    "district": "Beed",
+    "village": "Nandur (demo farm)",
+    "survey_number": "Gat 118",
+    "area_ha": 0.15,
+    "demo": true,
+    "registered": true,
+    "registry_tx": "2f474667d8d841628d94de18d23f2f3537832a28d424ec6f3bb90c45b708a6ee",
+    "note": "Field outline registered at 5am.earth (Project Swaminathan) on Cardano mainnet. Not a survey boundary; ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.946163033,
+       18.960158958
+      ],
+      [
+       74.94698444,
+       18.960036866
+      ],
+      [
+       74.947399413,
+       18.959826879
+      ],
+      [
+       74.947136558,
+       18.959594643
+      ],
+      [
+       74.946494583,
+       18.959585423
+      ],
+      [
+       74.945882253,
+       18.959893854
+      ],
+      [
+       74.946163033,
+       18.960158958
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-5AM-Nandur-121/3",
+    "label": "Registered field Nandur-121/3",
+    "state": "Maharashtra",
+    "district": "Beed",
+    "village": "Nandur (demo farm)",
+    "survey_number": "Gat 121/3",
+    "area_ha": 0.65,
+    "demo": true,
+    "registered": true,
+    "registry_tx": "575004d7702692b516526c923dd8aa96dfb88b9f84a22465804dac3942deb71b",
+    "note": "Field outline registered at 5am.earth (Project Swaminathan) on Cardano mainnet. Not a survey boundary; ownership not verified."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.947193244,
+       18.95952935
+      ],
+      [
+       74.947503089,
+       18.959563734
+      ],
+      [
+       74.94751119,
+       18.959252364
+      ],
+      [
+       74.947135363,
+       18.959262523
+      ],
+      [
+       74.947193244,
+       18.95952935
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "IN-5AM-Nandur-124/1",
+    "label": "Registered field Nandur-124/1",
+    "state": "Maharashtra",
+    "district": "Beed",
+    "village": "Nandur (demo farm)",
+    "survey_number": "Gat 124/1",
+    "area_ha": 0.12,
+    "demo": true,
+    "registered": true,
+    "registry_tx": "8f5ca047ea8be77a2f140fa2ce356edf2d1788f38d60939220760abc2a0d55b9",
+    "note": "Field outline registered at 5am.earth (Project Swaminathan) on Cardano mainnet. Not a survey boundary; ownership not verified."
+   }
   }
  ]
 }

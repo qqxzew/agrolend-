@@ -32,6 +32,7 @@ def make_client(tmp_path, monkeypatch):
         monkeypatch.setenv("AGROLAND_STATE_DIR", str(tmp_path))
         monkeypatch.setenv("AGROLAND_PAYMENT_MODE", env.pop("mode", "dev-unpaid"))
         monkeypatch.setenv("AGROLAND_INTERNAL_KEY", "internal-test-key")
+        monkeypatch.setenv("AGROLAND_ASSISTANT_ENV", str(tmp_path / "no-assistant.env"))  # tests never use a bundled key
         monkeypatch.setenv("AGROLAND_CROPWATCH", env.pop("cropwatch", "off"))  # tests stay offline; test_cropwatch.py uses recorded responses
         for k, v in env.items():
             monkeypatch.setenv(k, v)

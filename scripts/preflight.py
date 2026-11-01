@@ -36,6 +36,7 @@ def main():
         nonlocal bad
         print(("  ok   " if ok else "  FAIL ") + msg + ("" if ok else f"  -> {hint}")); bad += 0 if ok else 1
     print("Configuration")
+    print("  ok   OPENAI_API_KEY (home-page assistant)" if env.get("OPENAI_API_KEY") else "  note OPENAI_API_KEY is empty: the home-page chat falls back to keyword routing (optional)")
     for k in REQUIRED:
         check(bool(env.get(k)), k, "set it in .env")
     check(env.get("AGROLAND_PAYMENT_MODE", "masumi") == "masumi", "AGROLAND_PAYMENT_MODE is masumi", "dev-unpaid must never serve a demo")

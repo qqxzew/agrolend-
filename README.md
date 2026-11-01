@@ -4,7 +4,9 @@ AgroLand helps three kinds of customers work with land — **landowners**, **ten
 
 Built for the Cardano track of the TUM Blockchain & AI Hackathon (Munich, 30–31 Oct 2026).
 
-> **Status in one paragraph.** The product, the shared execution engine, the three workflows (both countries), the website, the Masumi seller side, the MIP-003 agent API and the Sokosumi Coworker are implemented and tested locally. **No real Cardano payment, Masumi registration, Sokosumi Task or model call has been made yet** — those need accounts, keys, funded test wallets and your authorization (see [docs/DEPLOY.md](docs/DEPLOY.md)). Evidence fields in [docs/EVIDENCE.md](docs/EVIDENCE.md) are marked **PENDING**; nothing there is invented.
+**Live demo:** https://audit.mrrobot.hackclub.app · **Repository:** https://github.com/qqxzew/agrolend-
+
+> **Status in one paragraph (31 Oct 2026, checked on the production server).** The product, the shared execution engine, the three workflows (both countries), the website, the Masumi seller side, the MIP-003 agent API and the Sokosumi Coworker are implemented, tested and **running on a public server**. All three agents are `RegistrationConfirmed` in the Masumi registry and report `available`. Real Sokosumi Tasks were paid on **Cardano preprod**: e.g. Task `01a19166-d167-745b-beaa-b58383cedb5d` → order `4f650b39…` → funds-locked `6087b1ff…`, result-hash `60ce47ff…`, seller settlement `607ee2d0…` (all confirmed on Blockfrost). Full hashes and the order-to-transaction mapping: [docs/EVIDENCE.md](docs/EVIDENCE.md). Fields with no source record stay **PENDING**; nothing is invented.
 
 ---
 
@@ -38,6 +40,14 @@ Three paid services are registered in Masumi as separate agents; the language-mo
 | **Configuration** | `AGENT_IDENTIFIER_LEASE_CHECK`. |
 | **Verification** | `gateway/tests/test_farm.py` (parity, forged-report rejection, CSV validation, calendar syntax), `test_listings.py::test_farm_upload_and_outcomes`, `test_cropwatch.py` (recorded live section of 2026-10-31, forged-section rejection, offset/cloud/artefact handling, sources down, boundary uploads). |
 
+### Land discovery and energy clusters
+
+The Energy developer workspace starts with **Find land**: browse parcel boundaries with region buttons, a searchable parcel list and map tooltips in both Germany and India. Owner offers can be filtered by technology, region and minimum area. An accepted boundary request lets the developer open the shared outline in their own site workspace; this does not itself establish a lease or land rights. India map labels are neutral; illustrative geometry and invented survey references remain documented under **Data and sources**.
+
+In **Site workspace**, **Add to land database** requires an explicit declaration of permission and consent to matching. This is a free database registration, separate from a paid audit or private introduction. **My sites** keeps the registration and its consent timestamp. Compatible solar/wind sites whose boundaries connect within 1.5 km form a cluster proposal. **Clusters** records a separate decision from every participant; only unanimous consent confirms that exact membership. New members require fresh approval, and withdrawing a site cancels affected proposals/agreements. No orders or payments are created by these actions, and other participants' exact boundaries and contacts remain private.
+
+Storage: `land_sites`, `energy_clusters`, `energy_cluster_members`, `energy_cluster_events` in the gateway SQLite database. API: `/api/land/sites`, `/api/land/clusters`, and `/api/land/clusters/{id}/decision`; these require a developer workspace and enforce country and membership access. `gateway/tests/test_clusters.py` covers both countries, three-party consent, idempotency, isolation, withdrawal and changed membership. A cluster records mutual interest, not legal pooling, verified title, suitability or a calculated economic benefit.
+
 ### Agent 3 — Pool Access  (paid Masumi service; started on the website)
 | | |
 |---|---|
@@ -45,11 +55,17 @@ Three paid services are registered in Masumi as separate agents; the language-mo
 | **Input** | A `match_id` from the matcher (created by registering sites in the pool). |
 | **Output** | Revealed counterpart package, joint plan (shares in basis points summing to 10 000, turbine layout, NPV), two PDFs with hashes. |
 | **Relationships** | Internal services: matcher → escrow/NDA → architect (DE and IN stacks). Proximity of two sites never proves a continuous block or an economic benefit — the report says so. |
-| **From our app** | Developer → *Sites* → add to pool → *Matches & deals*. |
+| **From our app** | Developer → *Site workspace* → *Private introductions · optional* → add to pool → *Private introductions*. This existing two-party NDA/payment flow is separate from free multi-party cluster consent. |
 | **From Sokosumi** | **Not hireable as an anonymous one-shot job**: it needs each party's identity, consent and signature. Its MIP-003 `/masumi/pool_access` answers availability and `start_job` returns 400 with the website path. This is a deliberate platform boundary. |
 | **Paid** | Yes — **3.00 tUSDM per party** (longer windows: pay 48 h, deliver 7 days). |
 | **Configuration** | `AGENT_IDENTIFIER_POOL_ACCESS`. |
 | **Verification** | `gateway/tests/test_pool.py` — runs against the **real** matcher, escrow and architect services for **both DE and IN**: payment gate before the NDA, hash-checked signatures, no delivery before both sign, access control for outsiders, decline path. |
+
+### Home and workspace assistant
+
+The home chat and the right-hand assistant on workflow pages answer questions about AgroLand and guide the visitor through the current page, tab and step. On smaller screens, **Ask AI** opens the assistant. Both share one conversation per workspace, kept in this tab's `sessionStorage`; switching workspaces also switches conversations, including while a reply is pending. The companion uses the same colours, borders and agent avatars as the rest of the app.
+
+It uses the OpenAI API from the gateway (`gateway/agroland/chat.py`, `POST /api/chat`; `OPENAI_API_KEY` in `.env`, `OPENAI_MODEL` defaults to `gpt-4.1-mini`). It only talks: no orders, no payment, no access to files, parcel boundaries or report contents. Screen context is restricted to predefined navigation states. The header and greeting use the active Land Audit, Lease Check or Pool Access avatar; each new reply stores its agent so its avatar stays correct after navigation. Failed replies show a retry button; without a key the home page also offers a workflow based on keywords. `node --test web/tests/assistant.test.mjs` checks conversation isolation, pending requests, retries and stored history.
 
 ### Agent 4 — AgroLand Concierge  (Sokosumi Coworker, language model; not a paid registration)
 | | |
@@ -60,7 +76,7 @@ Three paid services are registered in Masumi as separate agents; the language-mo
 | **Invocation** | Create a Task for the Coworker in Sokosumi (`agent/worker.mjs` polls). |
 | **Paid** | The order inside it is (Agent 1 or 2 price). The Coworker itself is not a separate registry entry. |
 | **Configuration** | `agent/.env` (`ZAI_*` model, `COWORKER_ID`, `AGROLAND_INTERNAL_KEY`, `PAID_TASKS_ENABLED`). |
-| **Verification** | `agent/*.test.mjs` (25 tests: planner validation, paid-order journal with fake gateway/Core, no-replay, quickstart tests). **Model replies and Tasks: PENDING (needs a model key and Sokosumi login).** |
+| **Verification** | `agent/*.test.mjs` (25 tests: planner validation, paid-order journal with fake gateway/Core, no-replay, quickstart tests). **Model replies and Tasks (verified 2026-10-30/31, Personal Workspace, execution-only):** Task `01a18f28-c334-7267-9d80-77be89c8a2f1` (answer from the `coverage` tool, prices match the catalog) and Task `01a18f29-340b-7458-8279-b5bc967425cb` (quote only, nothing run or charged) both COMPLETED; paid Tasks (e.g. "TEST A4", wind audit in India) also completed — see [docs/EVIDENCE.md](docs/EVIDENCE.md). |
 
 ---
 
@@ -111,9 +127,9 @@ Demonstration data: `.venv/bin/python scripts/seed_demo.py --pool` (workspaces f
 `scripts/test_all.sh` runs everything below (offline; no accounts, keys or payments).
 
 ```bash
-.venv/bin/python -m pytest gateway/tests -q            # 30 tests, ~60 s (starts real geo services as subprocesses)
+.venv/bin/python -m pytest gateway/tests -q            # 31 tests, ~60 s (starts real geo services as subprocesses)
 (cd services/geo && for t in tests/test_*.py; do ../../.venv/bin/python $t; done)   # original service suites
-(cd agent && npm ci && npm test)                       # 25 tests, Node 24
+(cd agent && npm ci && npm test)                       # 27 tests, Node 24
 (cd agent && AGROLAND_URL=… AGROLAND_INTERNAL_KEY=… npm run e2e:fake)   # real Eve + tools + gateway, scripted stand-in model
 ```
 
@@ -150,7 +166,9 @@ Demonstration datasets are labelled "demo" in data, API and UI. Unavailable sour
 
 **Implemented and verified (locally)** — details and evidence in [docs/VERIFICATION.md](docs/VERIFICATION.md): shared order engine with idempotent payment journal; Masumi seller client with fake-payment-service tests of every transition; MIP-003 API; all three workflows for DE and IN (Pool Access verified against the real matcher/escrow/architect for both countries); live DE and IN audits through the gateway; website (landing + app) checked in a browser; Node worker/planner/paid-order state machine tested with fakes; deployment files and preflight.
 
-**Ready but awaiting external access or authorization**: Sokosumi sign-in, Vendor/Coworker, model reply and execution-only Task check; payment service + funded wallets; Masumi registration (immutable, spends test ADA); paid preprod job + tx hash; Sokosumi TUM-workspace grant; public domain/TLS; Docker/compose first start. Exact steps: [docs/DEPLOY.md](docs/DEPLOY.md).
+**Verified against real external services (2026-10-30/31)** — details in [docs/VERIFICATION.md](docs/VERIFICATION.md) and [docs/EVIDENCE.md](docs/EVIDENCE.md): Sokosumi sign-in; Coworker `AgroLand Concierge` in the Personal Workspace; real model replies (`gpt-4.1-mini`) and execution-only Tasks; Masumi payment service with a funded preprod seller wallet; the three agents registered and confirmed in the Masumi registry from the public server (registration is immutable, so it must not be repeated); paid Sokosumi Tasks completed with on-chain buyer locks, result submissions and seller collections observed through Blockfrost.
+
+**Still to finish or confirm**: Sokosumi TUM-workspace grant; a first full `docker compose up` of the whole stack from a clean checkout (the production stack runs from `/opt/agroland`); the seller net-receipt check per Task (`agent/.local/evidence/<TASK_ID>.json`); a paid Pool Access deal (website-only by design) has not been run on the server. Two early orders ended `failed` (payment request outcome unknown) and were not retried automatically, as designed. Exact steps: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 **Not implemented**: x402 pay-per-request path (not needed for qualification; the Masumi paid-job path is the integration); CIP-30 browser-wallet payment on the website (the website supports paying from a Masumi/Sokosumi wallet using the payment identifier, or an operator-funded demo wallet); qualified e-signatures; ownership verification; Bavaria data; strong user authentication; an Indian farm record lookup.
 
