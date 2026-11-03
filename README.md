@@ -1,5 +1,14 @@
 # AgroLand — agentic commerce on Cardano for land, leases and energy sites
 
+![AgroLend team project](docs/portfolio-header.svg)
+
+**Team project - TUM Blockchain & AI Hackathon 2026, Munich.** The repository implements workflows for landowners, tenant farms and energy developers, with maps and reports for Germany and India.
+
+**Frontend contribution:** [Yehor Hubarenko / 9Sk1p](docs/CONTRIBUTIONS_YEHOR.md) - role-specific interfaces, parcel selection, workspace assistant and consent-based clustering. This is shared team work; the notes distinguish recorded contributions from production deployment and payment verification.
+
+For a portfolio walkthrough, start with the website in `web/`, the assistant in `web/js/assistant.js`, and the map/site flows in `web/js/map.js` and `web/js/energy.js`. The technical documentation below covers the complete system. The public demo returned 502 during the 3 November 2026 audit; use the local run instructions if it is unavailable. The deployment evidence below records earlier verified runs, not a current uptime guarantee.
+
+
 AgroLand helps three kinds of customers work with land — **landowners**, **tenant farms** and **energy developers** — in **Germany and India**. You pay per result on **Cardano preprod** through **Masumi**; the same engine answers on our website and inside **Sokosumi**.
 
 Built for the Cardano track of the TUM Blockchain & AI Hackathon (Munich, 30–31 Oct 2026).
